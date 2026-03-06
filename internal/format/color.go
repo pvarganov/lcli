@@ -7,8 +7,8 @@ import (
 	"github.com/fatih/color"
 )
 
-// ansiEscapeRe matches ANSI/VT escape sequences.
-var ansiEscapeRe = regexp.MustCompile(`\x1b(?:\[[0-9;]*[A-Za-z]|[^[\x1b])`)
+// ansiEscapeRe matches ANSI/VT escape sequences including CSI, OSC and 2-byte sequences.
+var ansiEscapeRe = regexp.MustCompile(`\x1b(?:\[[0-9;]*[A-Za-z]|\][^\x07\x1b]*(?:\x07|\x1b\\)|[^\x1b])`)
 
 // StripControlChars removes ANSI escape sequences and non-printable control
 // characters (except newline, carriage return and tab) from s.

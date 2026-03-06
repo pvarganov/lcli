@@ -81,7 +81,7 @@ func (c *Client) Do(query string, variables map[string]any, result any) error {
 		return fmt.Errorf("http error: %s", resp.Status)
 	}
 
-	raw, err := io.ReadAll(resp.Body)
+	raw, err := io.ReadAll(io.LimitReader(resp.Body, 10<<20))
 	if err != nil {
 		return fmt.Errorf("read response: %w", err)
 	}

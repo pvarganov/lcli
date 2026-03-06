@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/pavelvarganov/lcli/internal/client"
+	"github.com/pavelvarganov/lcli/internal/format"
 	"github.com/spf13/cobra"
 )
 
@@ -61,7 +62,7 @@ var issueCreateCmd = &cobra.Command{
 		}
 
 		out := cmd.OutOrStdout()
-		fmt.Fprintf(out, "Задача создана: %s  %s\n", issue.Identifier, issue.Title)
+		fmt.Fprintf(out, "Задача создана: %s  %s\n", issue.Identifier, format.StripControlChars(issue.Title))
 		return nil
 	},
 }

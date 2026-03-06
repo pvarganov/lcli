@@ -165,7 +165,7 @@ func (c *Client) ListComments(issueID string) ([]Comment, error) {
 	query := `
 query ListComments($issueId: String!) {
   issue(id: $issueId) {
-    comments {
+    comments(first: 250) {
       nodes {
         id
         body
@@ -218,7 +218,7 @@ type TeamConnection struct {
 func (c *Client) ListProjects() ([]Project, error) {
 	query := `
 query ListProjects {
-  projects {
+  projects(first: 250) {
     nodes {
       id
       name
@@ -239,7 +239,7 @@ query ListProjects {
 func (c *Client) ListTeams() ([]Team, error) {
 	query := `
 query ListTeams {
-  teams {
+  teams(first: 250) {
     nodes {
       id
       key
