@@ -3535,3 +3535,73 @@ func TestDeleteGitAutomationTargetBranch(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
+
+func TestCreateTimeSchedule(t *testing.T) {
+	responseData := map[string]any{
+		"timeScheduleCreate": map[string]any{
+			"success": true,
+			"timeSchedule": map[string]any{
+				"id":        "ts1",
+				"name":      "On-call",
+				"timezone":  "UTC",
+				"createdAt": "2026-01-01T00:00:00Z",
+				"updatedAt": "2026-01-01T00:00:00Z",
+			},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	ts, err := c.CreateTimeSchedule("On-call", "UTC")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if ts.Name != "On-call" {
+		t.Errorf("expected name 'On-call', got %q", ts.Name)
+	}
+}
+
+func TestUpdateTimeSchedule(t *testing.T) {
+	responseData := map[string]any{
+		"timeScheduleUpdate": map[string]any{
+			"success": true,
+			"timeSchedule": map[string]any{
+				"id":        "ts1",
+				"name":      "Updated Schedule",
+				"timezone":  "Europe/Moscow",
+				"createdAt": "2026-01-01T00:00:00Z",
+				"updatedAt": "2026-03-01T00:00:00Z",
+			},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	ts, err := c.UpdateTimeSchedule("ts1", "Updated Schedule", "Europe/Moscow")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if ts.Name != "Updated Schedule" {
+		t.Errorf("expected name 'Updated Schedule', got %q", ts.Name)
+	}
+}
+
+func TestDeleteTimeSchedule(t *testing.T) {
+	responseData := map[string]any{
+		"timeScheduleDelete": map[string]any{
+			"success": true,
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	if err := c.DeleteTimeSchedule("ts1"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}

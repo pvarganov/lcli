@@ -2438,3 +2438,118 @@ func TestListAuditEntryTypes(t *testing.T) {
 		t.Errorf("expected type 'issueCreate', got %q", types[0].Type)
 	}
 }
+
+func TestGetRateLimitStatus(t *testing.T) {
+	responseData := map[string]any{
+		"rateLimitStatus": map[string]any{
+			"identifier":    "org-123",
+			"complexity":    10,
+			"maxComplexity": 10000,
+			"requestsMade":  5,
+			"maxRequests":   1500,
+			"resetAt":       "2026-03-06T12:00:00Z",
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	status, err := c.GetRateLimitStatus()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if status == nil {
+		t.Fatal("expected status, got nil")
+	}
+	if status.MaxComplexity != 10000 {
+		t.Errorf("expected maxComplexity 10000, got %d", status.MaxComplexity)
+	}
+	if status.RequestsMade != 5 {
+		t.Errorf("expected requestsMade 5, got %d", status.RequestsMade)
+	}
+}
+
+func TestListTimeSchedules(t *testing.T) {
+	responseData := map[string]any{
+		"timeSchedules": map[string]any{
+			"nodes": []map[string]any{
+				{
+					"id":        "ts1",
+					"name":      "On-call Schedule",
+					"timezone":  "America/New_York",
+					"createdAt": "2026-01-01T00:00:00Z",
+					"updatedAt": "2026-01-01T00:00:00Z",
+				},
+			},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	schedules, err := c.ListTimeSchedules()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(schedules) != 1 {
+		t.Fatalf("expected 1 schedule, got %d", len(schedules))
+	}
+	if schedules[0].Name != "On-call Schedule" {
+		t.Errorf("expected name 'On-call Schedule', got %q", schedules[0].Name)
+	}
+}
+
+func TestListTimeSchedulesEmpty(t *testing.T) {
+	responseData := map[string]any{
+		"timeSchedules": map[string]any{
+			"nodes": []map[string]any{},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	schedules, err := c.ListTimeSchedules()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(schedules) != 0 {
+		t.Errorf("expected 0 schedules, got %d", len(schedules))
+	}
+}
+
+func TestListTriageResponsibilities(t *testing.T) {
+	responseData := map[string]any{
+		"team": map[string]any{
+			"triageResponsibilities": map[string]any{
+				"nodes": []map[string]any{
+					{
+						"id":        "tr1",
+						"createdAt": "2026-01-01T00:00:00Z",
+						"action":    "assignIssues",
+						"team":      map[string]any{"id": "t1", "key": "ENG", "name": "Engineering"},
+						"user":      map[string]any{"id": "u1", "name": "Alice", "displayName": "Alice Smith", "email": "alice@test.com"},
+					},
+				},
+			},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	responsibilities, err := c.ListTriageResponsibilities("t1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(responsibilities) != 1 {
+		t.Fatalf("expected 1 responsibility, got %d", len(responsibilities))
+	}
+	if responsibilities[0].Action != "assignIssues" {
+		t.Errorf("expected action 'assignIssues', got %q", responsibilities[0].Action)
+	}
+}

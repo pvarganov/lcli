@@ -4148,6 +4148,99 @@ mutation GitAutomationTargetBranchUpdate($id: String!, $input: GitAutomationTarg
 	return &result.GitAutomationTargetBranchUpdate.GitAutomationTargetBranch, nil
 }
 
+// CreateTimeSchedule создаёт новое расписание.
+func (c *Client) CreateTimeSchedule(name, timezone string) (*TimeSchedule, error) {
+	mutation := `
+mutation TimeScheduleCreate($input: TimeScheduleCreateInput!) {
+  timeScheduleCreate(input: $input) {
+    success
+    timeSchedule {
+      id
+      name
+      timezone
+      createdAt
+      updatedAt
+    }
+  }
+}`
+	input := map[string]any{
+		"name":     name,
+		"timezone": timezone,
+	}
+	var result struct {
+		TimeScheduleCreate struct {
+			TimeSchedule TimeSchedule `json:"timeSchedule"`
+			Success      bool         `json:"success"`
+		} `json:"timeScheduleCreate"`
+	}
+	if err := c.Do(mutation, map[string]any{"input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.TimeScheduleCreate.Success {
+		return nil, fmt.Errorf("timeScheduleCreate вернул success=false")
+	}
+	return &result.TimeScheduleCreate.TimeSchedule, nil
+}
+
+// UpdateTimeSchedule обновляет расписание.
+func (c *Client) UpdateTimeSchedule(id, name, timezone string) (*TimeSchedule, error) {
+	mutation := `
+mutation TimeScheduleUpdate($id: String!, $input: TimeScheduleUpdateInput!) {
+  timeScheduleUpdate(id: $id, input: $input) {
+    success
+    timeSchedule {
+      id
+      name
+      timezone
+      createdAt
+      updatedAt
+    }
+  }
+}`
+	input := map[string]any{}
+	if name != "" {
+		input["name"] = name
+	}
+	if timezone != "" {
+		input["timezone"] = timezone
+	}
+	var result struct {
+		TimeScheduleUpdate struct {
+			TimeSchedule TimeSchedule `json:"timeSchedule"`
+			Success      bool         `json:"success"`
+		} `json:"timeScheduleUpdate"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id, "input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.TimeScheduleUpdate.Success {
+		return nil, fmt.Errorf("timeScheduleUpdate вернул success=false")
+	}
+	return &result.TimeScheduleUpdate.TimeSchedule, nil
+}
+
+// DeleteTimeSchedule удаляет расписание.
+func (c *Client) DeleteTimeSchedule(id string) error {
+	mutation := `
+mutation TimeScheduleDelete($id: String!) {
+  timeScheduleDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		TimeScheduleDelete struct {
+			Success bool `json:"success"`
+		} `json:"timeScheduleDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.TimeScheduleDelete.Success {
+		return fmt.Errorf("timeScheduleDelete вернул success=false")
+	}
+	return nil
+}
+
 // DeleteGitAutomationTargetBranch удаляет целевую ветку для git автоматизации.
 func (c *Client) DeleteGitAutomationTargetBranch(id string) error {
 	mutation := `

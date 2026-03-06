@@ -2015,6 +2015,110 @@ query ListAuditEntries($first: Int, $after: String, $filter: AuditEntryFilter) {
 	return result.AuditEntries.Nodes, &result.AuditEntries.PageInfo, nil
 }
 
+// RateLimitPayload — информация о лимите запросов API.
+type RateLimitPayload struct {
+	Identifier    string `json:"identifier"`
+	Complexity    int    `json:"complexity"`
+	MaxComplexity int    `json:"maxComplexity"`
+	RequestsMade  int    `json:"requestsMade"`
+	MaxRequests   int    `json:"maxRequests"`
+	ResetAt       string `json:"resetAt"`
+}
+
+// GetRateLimitStatus возвращает текущий статус rate limit.
+func (c *Client) GetRateLimitStatus() (*RateLimitPayload, error) {
+	query := `
+query {
+  rateLimitStatus {
+    identifier
+    complexity
+    maxComplexity
+    requestsMade
+    maxRequests
+    resetAt
+  }
+}`
+	var result struct {
+		RateLimitStatus RateLimitPayload `json:"rateLimitStatus"`
+	}
+	if err := c.Do(query, nil, &result); err != nil {
+		return nil, err
+	}
+	return &result.RateLimitStatus, nil
+}
+
+// TimeSchedule представляет расписание для команды.
+type TimeSchedule struct {
+	ID         string `json:"id"`
+	Name       string `json:"name"`
+	Timezone   string `json:"timezone"`
+	CreatedAt  string `json:"createdAt"`
+	UpdatedAt  string `json:"updatedAt"`
+}
+
+// ListTimeSchedules возвращает список расписаний.
+func (c *Client) ListTimeSchedules() ([]TimeSchedule, error) {
+	query := `
+query {
+  timeSchedules {
+    nodes {
+      id
+      name
+      timezone
+      createdAt
+      updatedAt
+    }
+  }
+}`
+	var result struct {
+		TimeSchedules struct {
+			Nodes []TimeSchedule `json:"nodes"`
+		} `json:"timeSchedules"`
+	}
+	if err := c.Do(query, nil, &result); err != nil {
+		return nil, err
+	}
+	return result.TimeSchedules.Nodes, nil
+}
+
+// TriageResponsibility представляет ответственность за триаж задач.
+type TriageResponsibility struct {
+	ID        string `json:"id"`
+	CreatedAt string `json:"createdAt"`
+	Action    string `json:"action"`
+	Team      Team   `json:"team"`
+	User      *User  `json:"user"`
+}
+
+// ListTriageResponsibilities возвращает список ответственностей за триаж для команды.
+func (c *Client) ListTriageResponsibilities(teamID string) ([]TriageResponsibility, error) {
+	query := `
+query ListTriageResponsibilities($teamId: String!) {
+  team(id: $teamId) {
+    triageResponsibilities {
+      nodes {
+        id
+        createdAt
+        action
+        team { id key name }
+        user { id name displayName email }
+      }
+    }
+  }
+}`
+	var result struct {
+		Team struct {
+			TriageResponsibilities struct {
+				Nodes []TriageResponsibility `json:"nodes"`
+			} `json:"triageResponsibilities"`
+		} `json:"team"`
+	}
+	if err := c.Do(query, map[string]any{"teamId": teamID}, &result); err != nil {
+		return nil, err
+	}
+	return result.Team.TriageResponsibilities.Nodes, nil
+}
+
 // ListAuditEntryTypes возвращает список типов аудит-лога.
 func (c *Client) ListAuditEntryTypes() ([]AuditEntryType, error) {
 	query := `

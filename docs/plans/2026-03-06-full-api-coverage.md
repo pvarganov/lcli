@@ -524,19 +524,19 @@
 
 #### Task 39: Rate Limit + Time Schedules + Triage
 
-- [ ] написать тесты для `GetRateLimitStatus()` в queries.go
-- [ ] добавить метод в queries.go
-- [ ] добавить тип `TimeSchedule` в queries.go
-- [ ] написать тесты для `ListTimeSchedules()`
-- [ ] добавить метод в queries.go
-- [ ] написать тесты для мутаций `timeScheduleCreate`, `timeScheduleUpdate`, `timeScheduleDelete`
-- [ ] добавить методы в mutations.go
-- [ ] добавить тип `TriageResponsibility` в queries.go
-- [ ] написать тесты для `ListTriageResponsibilities(teamID)`
-- [ ] добавить метод в queries.go
-- [ ] написать тесты для cmd `rate-limit`, `time-schedules list/create/update/delete`, `triage-responsibilities list`
-- [ ] добавить команды в `cmd/misc.go`
-- [ ] запустить тесты — должны пройти
+- [x] написать тесты для `GetRateLimitStatus()` в queries.go
+- [x] добавить метод в queries.go
+- [x] добавить тип `TimeSchedule` в queries.go
+- [x] написать тесты для `ListTimeSchedules()`
+- [x] добавить метод в queries.go
+- [x] написать тесты для мутаций `timeScheduleCreate`, `timeScheduleUpdate`, `timeScheduleDelete`
+- [x] добавить методы в mutations.go
+- [x] добавить тип `TriageResponsibility` в queries.go
+- [x] написать тесты для `ListTriageResponsibilities(teamID)`
+- [x] добавить метод в queries.go
+- [x] написать тесты для cmd `rate-limit`, `time-schedules list/create/update/delete`, `triage-responsibilities list`
+- [x] добавить команды в `cmd/misc.go`
+- [x] запустить тесты — должны пройти
 
 ---
 
