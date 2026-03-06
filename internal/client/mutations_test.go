@@ -2246,23 +2246,19 @@ func TestRotateWebhookSecret(t *testing.T) {
 		responseData := map[string]any{
 			"webhookRotateSecret": map[string]any{
 				"success": true,
-				"webhook": map[string]any{
-					"id":     "wh1",
-					"url":    "https://example.com/hook",
-					"secret": "newsecret",
-				},
+				"secret":  "newsecret",
 			},
 		}
 		srv := newMutationTestServer(t, responseData)
 		defer srv.Close()
 
 		c := NewWithURL("test-token", srv.URL)
-		wh, err := c.RotateWebhookSecret("wh1")
+		secret, err := c.RotateWebhookSecret("wh1")
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
-		if wh.ID != "wh1" {
-			t.Errorf("expected id wh1, got %s", wh.ID)
+		if secret != "newsecret" {
+			t.Errorf("expected secret 'newsecret', got %s", secret)
 		}
 	})
 
@@ -3543,7 +3539,6 @@ func TestCreateTimeSchedule(t *testing.T) {
 			"timeSchedule": map[string]any{
 				"id":        "ts1",
 				"name":      "On-call",
-				"timezone":  "UTC",
 				"createdAt": "2026-01-01T00:00:00Z",
 				"updatedAt": "2026-01-01T00:00:00Z",
 			},
@@ -3554,7 +3549,7 @@ func TestCreateTimeSchedule(t *testing.T) {
 	defer srv.Close()
 
 	c := NewWithURL("test-token", srv.URL)
-	ts, err := c.CreateTimeSchedule("On-call", "UTC")
+	ts, err := c.CreateTimeSchedule("On-call")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -3570,7 +3565,6 @@ func TestUpdateTimeSchedule(t *testing.T) {
 			"timeSchedule": map[string]any{
 				"id":        "ts1",
 				"name":      "Updated Schedule",
-				"timezone":  "Europe/Moscow",
 				"createdAt": "2026-01-01T00:00:00Z",
 				"updatedAt": "2026-03-01T00:00:00Z",
 			},
@@ -3581,7 +3575,7 @@ func TestUpdateTimeSchedule(t *testing.T) {
 	defer srv.Close()
 
 	c := NewWithURL("test-token", srv.URL)
-	ts, err := c.UpdateTimeSchedule("ts1", "Updated Schedule", "Europe/Moscow")
+	ts, err := c.UpdateTimeSchedule("ts1", "Updated Schedule")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

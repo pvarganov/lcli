@@ -353,13 +353,6 @@ type IssueRelation struct {
 	RelatedIssue Issue  `json:"relatedIssue"`
 }
 
-// IssueRelationIssue — краткое представление задачи в связи.
-type IssueRelationIssue struct {
-	ID         string `json:"id"`
-	Identifier string `json:"identifier"`
-	Title      string `json:"title"`
-}
-
 // ListIssueRelations возвращает список связей задачи по её ID.
 func (c *Client) ListIssueRelations(issueID string) ([]IssueRelation, error) {
 	query := `
@@ -1085,8 +1078,8 @@ query GetDocument($id: String!) {
 // SearchDocuments выполняет поиск документов по запросу.
 func (c *Client) SearchDocuments(query string) ([]Document, error) {
 	gqlQuery := `
-query SearchDocuments($query: String!) {
-  searchDocuments(query: $query) {
+query SearchDocuments($term: String!) {
+  searchDocuments(term: $term) {
     nodes {
       id
       title
@@ -1103,7 +1096,7 @@ query SearchDocuments($query: String!) {
 			Nodes []Document `json:"nodes"`
 		} `json:"searchDocuments"`
 	}
-	if err := c.Do(gqlQuery, map[string]any{"query": query}, &result); err != nil {
+	if err := c.Do(gqlQuery, map[string]any{"term": query}, &result); err != nil {
 		return nil, err
 	}
 	return result.SearchDocuments.Nodes, nil
@@ -1953,13 +1946,13 @@ query ListGitAutomationStates($teamId: String!) {
 
 // AuditEntry представляет запись аудит-лога Linear.
 type AuditEntry struct {
-	ID        string         `json:"id"`
-	Type      string         `json:"type"`
-	ActorID   string         `json:"actorId"`
-	CreatedAt string         `json:"createdAt"`
-	IP        string         `json:"ip"`
-	Country   string         `json:"country"`
-	Metadata  map[string]any `json:"metadata"`
+	ID          string         `json:"id"`
+	Type        string         `json:"type"`
+	ActorID     string         `json:"actorId"`
+	CreatedAt   string         `json:"createdAt"`
+	IP          string         `json:"ip"`
+	CountryCode string         `json:"countryCode"`
+	Metadata    map[string]any `json:"metadata"`
 }
 
 // AuditEntryType представляет тип записи аудит-лога.
@@ -1986,7 +1979,7 @@ query ListAuditEntries($first: Int, $after: String, $filter: AuditEntryFilter) {
       actorId
       createdAt
       ip
-      country
+      countryCode
     }
     pageInfo {
       hasNextPage
@@ -2015,14 +2008,21 @@ query ListAuditEntries($first: Int, $after: String, $filter: AuditEntryFilter) {
 	return result.AuditEntries.Nodes, &result.AuditEntries.PageInfo, nil
 }
 
+// RateLimitResultPayload — лимит одного типа запросов.
+type RateLimitResultPayload struct {
+	Type            string  `json:"type"`
+	AllowedAmount   float64 `json:"allowedAmount"`
+	RequestedAmount float64 `json:"requestedAmount"`
+	RemainingAmount float64 `json:"remainingAmount"`
+	Period          float64 `json:"period"`
+	Reset           string  `json:"reset"`
+}
+
 // RateLimitPayload — информация о лимите запросов API.
 type RateLimitPayload struct {
-	Identifier    string `json:"identifier"`
-	Complexity    int    `json:"complexity"`
-	MaxComplexity int    `json:"maxComplexity"`
-	RequestsMade  int    `json:"requestsMade"`
-	MaxRequests   int    `json:"maxRequests"`
-	ResetAt       string `json:"resetAt"`
+	Identifier string                   `json:"identifier"`
+	Kind       string                   `json:"kind"`
+	Limits     []RateLimitResultPayload `json:"limits"`
 }
 
 // GetRateLimitStatus возвращает текущий статус rate limit.
@@ -2031,11 +2031,15 @@ func (c *Client) GetRateLimitStatus() (*RateLimitPayload, error) {
 query {
   rateLimitStatus {
     identifier
-    complexity
-    maxComplexity
-    requestsMade
-    maxRequests
-    resetAt
+    kind
+    limits {
+      type
+      allowedAmount
+      requestedAmount
+      remainingAmount
+      period
+      reset
+    }
   }
 }`
 	var result struct {
@@ -2049,11 +2053,10 @@ query {
 
 // TimeSchedule представляет расписание для команды.
 type TimeSchedule struct {
-	ID         string `json:"id"`
-	Name       string `json:"name"`
-	Timezone   string `json:"timezone"`
-	CreatedAt  string `json:"createdAt"`
-	UpdatedAt  string `json:"updatedAt"`
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	CreatedAt string `json:"createdAt"`
+	UpdatedAt string `json:"updatedAt"`
 }
 
 // ListTimeSchedules возвращает список расписаний.
@@ -2064,7 +2067,6 @@ query {
     nodes {
       id
       name
-      timezone
       createdAt
       updatedAt
     }
@@ -2083,40 +2085,39 @@ query {
 
 // TriageResponsibility представляет ответственность за триаж задач.
 type TriageResponsibility struct {
-	ID        string `json:"id"`
-	CreatedAt string `json:"createdAt"`
-	Action    string `json:"action"`
-	Team      Team   `json:"team"`
-	User      *User  `json:"user"`
+	ID          string `json:"id"`
+	CreatedAt   string `json:"createdAt"`
+	Action      string `json:"action"`
+	Team        Team   `json:"team"`
+	CurrentUser *User  `json:"currentUser"`
 }
 
-// ListTriageResponsibilities возвращает список ответственностей за триаж для команды.
+// ListTriageResponsibilities возвращает ответственность за триаж для команды.
 func (c *Client) ListTriageResponsibilities(teamID string) ([]TriageResponsibility, error) {
 	query := `
 query ListTriageResponsibilities($teamId: String!) {
   team(id: $teamId) {
-    triageResponsibilities {
-      nodes {
-        id
-        createdAt
-        action
-        team { id key name }
-        user { id name displayName email }
-      }
+    triageResponsibility {
+      id
+      createdAt
+      action
+      team { id key name }
+      currentUser { id name displayName email }
     }
   }
 }`
 	var result struct {
 		Team struct {
-			TriageResponsibilities struct {
-				Nodes []TriageResponsibility `json:"nodes"`
-			} `json:"triageResponsibilities"`
+			TriageResponsibility *TriageResponsibility `json:"triageResponsibility"`
 		} `json:"team"`
 	}
 	if err := c.Do(query, map[string]any{"teamId": teamID}, &result); err != nil {
 		return nil, err
 	}
-	return result.Team.TriageResponsibilities.Nodes, nil
+	if result.Team.TriageResponsibility == nil {
+		return []TriageResponsibility{}, nil
+	}
+	return []TriageResponsibility{*result.Team.TriageResponsibility}, nil
 }
 
 // ListAuditEntryTypes возвращает список типов аудит-лога.

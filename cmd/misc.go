@@ -34,16 +34,21 @@ var rateLimitCmd = &cobra.Command{
 			return enc.Encode(status)
 		}
 
-		headers := []string{"FIELD", "VALUE"}
-		rows := [][]string{
-			{"Identifier", status.Identifier},
-			{"Complexity", strconv.Itoa(status.Complexity)},
-			{"Max Complexity", strconv.Itoa(status.MaxComplexity)},
-			{"Requests Made", strconv.Itoa(status.RequestsMade)},
-			{"Max Requests", strconv.Itoa(status.MaxRequests)},
-			{"Reset At", status.ResetAt},
+		fmt.Fprintf(out, "Identifier: %s\nKind: %s\n\n", status.Identifier, status.Kind)
+		if len(status.Limits) > 0 {
+			headers := []string{"TYPE", "ALLOWED", "REQUESTED", "REMAINING", "RESET"}
+			rows := make([][]string, 0, len(status.Limits))
+			for _, l := range status.Limits {
+				rows = append(rows, []string{
+					l.Type,
+					strconv.FormatFloat(l.AllowedAmount, 'f', 0, 64),
+					strconv.FormatFloat(l.RequestedAmount, 'f', 0, 64),
+					strconv.FormatFloat(l.RemainingAmount, 'f', 0, 64),
+					l.Reset,
+				})
+			}
+			format.TableWriter(out, headers, rows)
 		}
-		format.TableWriter(out, headers, rows)
 		return nil
 	},
 }
@@ -83,10 +88,10 @@ var timeSchedulesListCmd = &cobra.Command{
 			return nil
 		}
 
-		headers := []string{"ID", "NAME", "TIMEZONE", "CREATED_AT"}
+		headers := []string{"ID", "NAME", "CREATED_AT"}
 		rows := make([][]string, 0, len(schedules))
 		for _, s := range schedules {
-			rows = append(rows, []string{s.ID, s.Name, s.Timezone, s.CreatedAt})
+			rows = append(rows, []string{s.ID, s.Name, s.CreatedAt})
 		}
 		format.TableWriter(out, headers, rows)
 		return nil
@@ -106,17 +111,13 @@ var timeSchedulesCreateCmd = &cobra.Command{
 		}
 
 		name, _ := cmd.Flags().GetString("name")
-		timezone, _ := cmd.Flags().GetString("timezone")
 
 		if name == "" {
 			return fmt.Errorf("--name обязателен")
 		}
-		if timezone == "" {
-			timezone = "UTC"
-		}
 
 		c := newLinearClient(t)
-		ts, err := c.CreateTimeSchedule(name, timezone)
+		ts, err := c.CreateTimeSchedule(name)
 		if err != nil {
 			return err
 		}
@@ -148,10 +149,9 @@ var timeSchedulesUpdateCmd = &cobra.Command{
 
 		id := args[0]
 		name, _ := cmd.Flags().GetString("name")
-		timezone, _ := cmd.Flags().GetString("timezone")
 
 		c := newLinearClient(t)
-		ts, err := c.UpdateTimeSchedule(id, name, timezone)
+		ts, err := c.UpdateTimeSchedule(id, name)
 		if err != nil {
 			return err
 		}
@@ -236,8 +236,8 @@ var triageResponsibilitiesListCmd = &cobra.Command{
 		rows := make([][]string, 0, len(responsibilities))
 		for _, r := range responsibilities {
 			userName := ""
-			if r.User != nil {
-				userName = r.User.Name
+			if r.CurrentUser != nil {
+				userName = r.CurrentUser.Name
 			}
 			rows = append(rows, []string{r.ID, r.Action, r.Team.Key, userName, r.CreatedAt})
 		}
@@ -248,10 +248,8 @@ var triageResponsibilitiesListCmd = &cobra.Command{
 
 func init() {
 	timeSchedulesCreateCmd.Flags().String("name", "", "Название расписания")
-	timeSchedulesCreateCmd.Flags().String("timezone", "UTC", "Часовой пояс")
 
 	timeSchedulesUpdateCmd.Flags().String("name", "", "Новое название расписания")
-	timeSchedulesUpdateCmd.Flags().String("timezone", "", "Новый часовой пояс")
 
 	triageResponsibilitiesListCmd.Flags().String("team", "", "ID команды")
 

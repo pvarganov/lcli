@@ -23,12 +23,18 @@ func newMiscTestServer(t *testing.T, responseData any) *httptest.Server {
 func TestRateLimitOutput(t *testing.T) {
 	responseData := map[string]any{
 		"rateLimitStatus": map[string]any{
-			"identifier":    "org-123",
-			"complexity":    10,
-			"maxComplexity": 10000,
-			"requestsMade":  5,
-			"maxRequests":   1500,
-			"resetAt":       "2026-03-06T12:00:00Z",
+			"identifier": "org-123",
+			"kind":       "requestComplexity",
+			"limits": []map[string]any{
+				{
+					"type":            "requestComplexity",
+					"allowedAmount":   10000,
+					"requestedAmount": 5,
+					"remainingAmount": 9995,
+					"period":          3600,
+					"reset":           "2026-03-06T12:00:00Z",
+				},
+			},
 		},
 	}
 
@@ -62,12 +68,9 @@ func TestRateLimitOutput(t *testing.T) {
 func TestRateLimitJSON(t *testing.T) {
 	responseData := map[string]any{
 		"rateLimitStatus": map[string]any{
-			"identifier":    "org-abc",
-			"complexity":    0,
-			"maxComplexity": 5000,
-			"requestsMade":  0,
-			"maxRequests":   1500,
-			"resetAt":       "2026-03-06T12:00:00Z",
+			"identifier": "org-abc",
+			"kind":       "requestComplexity",
+			"limits":     []map[string]any{},
 		},
 	}
 
@@ -262,16 +265,12 @@ func TestTimeSchedulesDelete(t *testing.T) {
 func TestTriageResponsibilitiesListOutput(t *testing.T) {
 	responseData := map[string]any{
 		"team": map[string]any{
-			"triageResponsibilities": map[string]any{
-				"nodes": []map[string]any{
-					{
-						"id":        "tr1",
-						"createdAt": "2026-01-01T00:00:00Z",
-						"action":    "assignIssues",
-						"team":      map[string]any{"id": "t1", "key": "ENG", "name": "Engineering"},
-						"user":      map[string]any{"id": "u1", "name": "Alice", "displayName": "Alice Smith", "email": "alice@test.com"},
-					},
-				},
+			"triageResponsibility": map[string]any{
+				"id":          "tr1",
+				"createdAt":   "2026-01-01T00:00:00Z",
+				"action":      "assignIssues",
+				"team":        map[string]any{"id": "t1", "key": "ENG", "name": "Engineering"},
+				"currentUser": map[string]any{"id": "u1", "name": "Alice", "displayName": "Alice Smith", "email": "alice@test.com"},
 			},
 		},
 	}
@@ -311,16 +310,12 @@ func TestTriageResponsibilitiesListOutput(t *testing.T) {
 func TestTriageResponsibilitiesListJSON(t *testing.T) {
 	responseData := map[string]any{
 		"team": map[string]any{
-			"triageResponsibilities": map[string]any{
-				"nodes": []map[string]any{
-					{
-						"id":        "tr2",
-						"createdAt": "2026-01-01T00:00:00Z",
-						"action":    "notifyIssues",
-						"team":      map[string]any{"id": "t2", "key": "OPS", "name": "Operations"},
-						"user":      nil,
-					},
-				},
+			"triageResponsibility": map[string]any{
+				"id":          "tr2",
+				"createdAt":   "2026-01-01T00:00:00Z",
+				"action":      "notifyIssues",
+				"team":        map[string]any{"id": "t2", "key": "OPS", "name": "Operations"},
+				"currentUser": nil,
 			},
 		},
 	}

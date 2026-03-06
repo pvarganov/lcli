@@ -2442,12 +2442,18 @@ func TestListAuditEntryTypes(t *testing.T) {
 func TestGetRateLimitStatus(t *testing.T) {
 	responseData := map[string]any{
 		"rateLimitStatus": map[string]any{
-			"identifier":    "org-123",
-			"complexity":    10,
-			"maxComplexity": 10000,
-			"requestsMade":  5,
-			"maxRequests":   1500,
-			"resetAt":       "2026-03-06T12:00:00Z",
+			"identifier": "org-123",
+			"kind":       "requestComplexity",
+			"limits": []map[string]any{
+				{
+					"type":            "requestComplexity",
+					"allowedAmount":   10000,
+					"requestedAmount": 5,
+					"remainingAmount": 9995,
+					"period":          3600,
+					"reset":           "2026-03-06T12:00:00Z",
+				},
+			},
 		},
 	}
 
@@ -2462,11 +2468,14 @@ func TestGetRateLimitStatus(t *testing.T) {
 	if status == nil {
 		t.Fatal("expected status, got nil")
 	}
-	if status.MaxComplexity != 10000 {
-		t.Errorf("expected maxComplexity 10000, got %d", status.MaxComplexity)
+	if status.Identifier != "org-123" {
+		t.Errorf("expected identifier 'org-123', got %s", status.Identifier)
 	}
-	if status.RequestsMade != 5 {
-		t.Errorf("expected requestsMade 5, got %d", status.RequestsMade)
+	if len(status.Limits) != 1 {
+		t.Fatalf("expected 1 limit, got %d", len(status.Limits))
+	}
+	if status.Limits[0].AllowedAmount != 10000 {
+		t.Errorf("expected allowedAmount 10000, got %f", status.Limits[0].AllowedAmount)
 	}
 }
 
@@ -2477,7 +2486,6 @@ func TestListTimeSchedules(t *testing.T) {
 				{
 					"id":        "ts1",
 					"name":      "On-call Schedule",
-					"timezone":  "America/New_York",
 					"createdAt": "2026-01-01T00:00:00Z",
 					"updatedAt": "2026-01-01T00:00:00Z",
 				},
@@ -2524,16 +2532,12 @@ func TestListTimeSchedulesEmpty(t *testing.T) {
 func TestListTriageResponsibilities(t *testing.T) {
 	responseData := map[string]any{
 		"team": map[string]any{
-			"triageResponsibilities": map[string]any{
-				"nodes": []map[string]any{
-					{
-						"id":        "tr1",
-						"createdAt": "2026-01-01T00:00:00Z",
-						"action":    "assignIssues",
-						"team":      map[string]any{"id": "t1", "key": "ENG", "name": "Engineering"},
-						"user":      map[string]any{"id": "u1", "name": "Alice", "displayName": "Alice Smith", "email": "alice@test.com"},
-					},
-				},
+			"triageResponsibility": map[string]any{
+				"id":          "tr1",
+				"createdAt":   "2026-01-01T00:00:00Z",
+				"action":      "assignIssues",
+				"team":        map[string]any{"id": "t1", "key": "ENG", "name": "Engineering"},
+				"currentUser": map[string]any{"id": "u1", "name": "Alice", "displayName": "Alice Smith", "email": "alice@test.com"},
 			},
 		},
 	}

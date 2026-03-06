@@ -294,11 +294,7 @@ func TestWebhooksRotateSecretOutput(t *testing.T) {
 	responseData := map[string]any{
 		"webhookRotateSecret": map[string]any{
 			"success": true,
-			"webhook": map[string]any{
-				"id":     "wh1",
-				"url":    "https://example.com/hook",
-				"secret": "newsecret",
-			},
+			"secret":  "newsecret",
 		},
 	}
 

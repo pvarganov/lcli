@@ -33,16 +33,29 @@ var issueBatchUpdateCmd = &cobra.Command{
 			return fmt.Errorf("укажите --status")
 		}
 
-		ids := strings.Split(batchUpdateIDs, ",")
-		for i, id := range ids {
-			ids[i] = strings.TrimSpace(id)
+		identifiers := strings.Split(batchUpdateIDs, ",")
+		for i, id := range identifiers {
+			identifiers[i] = strings.TrimSpace(id)
 		}
 
 		c := newLinearClient(t)
 
-		// Найти state ID по имени — берём через первую задачу в списке
-		// Сначала получим команду из первой задачи для поиска состояния
-		stateID, err := findStateIDForBatch(c, ids[0], batchUpdateStatus)
+		// Разрешаем идентификаторы (ENG-1) в UUID, требуемые issueBatchUpdate(ids: [UUID!]!)
+		// Сохраняем команду первой задачи для поиска статуса
+		uuids := make([]string, 0, len(identifiers))
+		var firstTeamID string
+		for i, identifier := range identifiers {
+			issue, err := c.GetIssue(identifier)
+			if err != nil {
+				return fmt.Errorf("задача не найдена: %s: %w", identifier, err)
+			}
+			uuids = append(uuids, issue.ID)
+			if i == 0 {
+				firstTeamID = issue.Team.ID
+			}
+		}
+
+		stateID, err := c.FindWorkflowStateByName(firstTeamID, batchUpdateStatus)
 		if err != nil {
 			return err
 		}
@@ -51,7 +64,7 @@ var issueBatchUpdateCmd = &cobra.Command{
 		}
 
 		issues, err := c.BatchUpdateIssues(client.BatchUpdateIssuesInput{
-			IDs:    ids,
+			IDs:    uuids,
 			Update: client.UpdateIssueInput{StateID: stateID},
 		})
 		if err != nil {
@@ -80,18 +93,6 @@ var issueBatchUpdateCmd = &cobra.Command{
 		}
 		return nil
 	},
-}
-
-// findStateIDForBatch получает ID состояния задачи по её идентификатору и имени статуса.
-func findStateIDForBatch(c *client.Client, issueID, stateName string) (string, error) {
-	issue, err := c.GetIssue(issueID)
-	if err != nil {
-		return "", err
-	}
-	if issue == nil {
-		return "", fmt.Errorf("задача не найдена: %s", issueID)
-	}
-	return c.FindWorkflowStateByName(issue.Team.ID, stateName)
 }
 
 func init() {

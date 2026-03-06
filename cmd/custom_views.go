@@ -46,11 +46,6 @@ var viewsListCmd = &cobra.Command{
 		headers := []string{"ID", "NAME", "DESCRIPTION", "ICON", "COLOR"}
 		rows := make([][]string, 0, len(views))
 		for _, v := range views {
-			owner := ""
-			if v.Owner != nil {
-				owner = v.Owner.Name
-			}
-			_ = owner
 			rows = append(rows, []string{v.ID, v.Name, v.Description, v.Icon, v.Color})
 		}
 		format.TableWriter(out, headers, rows)

@@ -3,7 +3,6 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/pavelvarganov/lcli/internal/format"
@@ -27,13 +26,7 @@ var notificationsListCmd = &cobra.Command{
 			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
 		}
 
-		limitStr, _ := cmd.Flags().GetString("limit")
-		limit := 50
-		if limitStr != "" {
-			if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
-				limit = l
-			}
-		}
+		limit, _ := cmd.Flags().GetInt("limit")
 		after, _ := cmd.Flags().GetString("after")
 
 		c := newLinearClient(t)
@@ -173,7 +166,7 @@ var notificationsArchiveCmd = &cobra.Command{
 }
 
 func init() {
-	notificationsListCmd.Flags().String("limit", "50", "Максимальное количество уведомлений")
+	notificationsListCmd.Flags().Int("limit", 50, "Максимальное количество уведомлений")
 	notificationsListCmd.Flags().String("after", "", "Курсор для пагинации")
 
 	notificationsCmd.AddCommand(notificationsListCmd)

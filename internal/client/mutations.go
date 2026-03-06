@@ -2112,35 +2112,28 @@ mutation DeleteWebhook($id: String!) {
 	return nil
 }
 
-// RotateWebhookSecret обновляет секрет вебхука по ID.
-func (c *Client) RotateWebhookSecret(id string) (*Webhook, error) {
+// RotateWebhookSecret обновляет секрет вебхука по ID и возвращает новый секрет.
+func (c *Client) RotateWebhookSecret(id string) (string, error) {
 	mutation := `
 mutation RotateWebhookSecret($id: String!) {
   webhookRotateSecret(id: $id) {
     success
-    webhook {
-      id
-      url
-      enabled
-      secret
-      resourceTypes
-      team { id key name }
-    }
+    secret
   }
 }`
 	var result struct {
 		WebhookRotateSecret struct {
-			Webhook Webhook `json:"webhook"`
-			Success bool    `json:"success"`
+			Secret  string `json:"secret"`
+			Success bool   `json:"success"`
 		} `json:"webhookRotateSecret"`
 	}
 	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
-		return nil, err
+		return "", err
 	}
 	if !result.WebhookRotateSecret.Success {
-		return nil, fmt.Errorf("webhookRotateSecret вернул success=false")
+		return "", fmt.Errorf("webhookRotateSecret вернул success=false")
 	}
-	return &result.WebhookRotateSecret.Webhook, nil
+	return result.WebhookRotateSecret.Secret, nil
 }
 
 // AttachmentLinkURL привязывает URL к задаче как вложение.
@@ -4149,7 +4142,7 @@ mutation GitAutomationTargetBranchUpdate($id: String!, $input: GitAutomationTarg
 }
 
 // CreateTimeSchedule создаёт новое расписание.
-func (c *Client) CreateTimeSchedule(name, timezone string) (*TimeSchedule, error) {
+func (c *Client) CreateTimeSchedule(name string) (*TimeSchedule, error) {
 	mutation := `
 mutation TimeScheduleCreate($input: TimeScheduleCreateInput!) {
   timeScheduleCreate(input: $input) {
@@ -4157,15 +4150,13 @@ mutation TimeScheduleCreate($input: TimeScheduleCreateInput!) {
     timeSchedule {
       id
       name
-      timezone
       createdAt
       updatedAt
     }
   }
 }`
 	input := map[string]any{
-		"name":     name,
-		"timezone": timezone,
+		"name": name,
 	}
 	var result struct {
 		TimeScheduleCreate struct {
@@ -4183,7 +4174,7 @@ mutation TimeScheduleCreate($input: TimeScheduleCreateInput!) {
 }
 
 // UpdateTimeSchedule обновляет расписание.
-func (c *Client) UpdateTimeSchedule(id, name, timezone string) (*TimeSchedule, error) {
+func (c *Client) UpdateTimeSchedule(id, name string) (*TimeSchedule, error) {
 	mutation := `
 mutation TimeScheduleUpdate($id: String!, $input: TimeScheduleUpdateInput!) {
   timeScheduleUpdate(id: $id, input: $input) {
@@ -4191,7 +4182,6 @@ mutation TimeScheduleUpdate($id: String!, $input: TimeScheduleUpdateInput!) {
     timeSchedule {
       id
       name
-      timezone
       createdAt
       updatedAt
     }
@@ -4200,9 +4190,6 @@ mutation TimeScheduleUpdate($id: String!, $input: TimeScheduleUpdateInput!) {
 	input := map[string]any{}
 	if name != "" {
 		input["name"] = name
-	}
-	if timezone != "" {
-		input["timezone"] = timezone
 	}
 	var result struct {
 		TimeScheduleUpdate struct {

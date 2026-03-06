@@ -53,10 +53,10 @@ var auditListCmd = &cobra.Command{
 			return nil
 		}
 
-		headers := []string{"ID", "TYPE", "ACTOR_ID", "IP", "COUNTRY", "CREATED_AT"}
+		headers := []string{"ID", "TYPE", "ACTOR_ID", "IP", "COUNTRY_CODE", "CREATED_AT"}
 		rows := make([][]string, 0, len(entries))
 		for _, e := range entries {
-			rows = append(rows, []string{e.ID, e.Type, e.ActorID, e.IP, e.Country, e.CreatedAt})
+			rows = append(rows, []string{e.ID, e.Type, e.ActorID, e.IP, e.CountryCode, e.CreatedAt})
 		}
 		format.TableWriter(out, headers, rows)
 		return nil

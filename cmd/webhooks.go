@@ -254,7 +254,7 @@ var webhooksRotateSecretCmd = &cobra.Command{
 		}
 
 		c := newLinearClient(t)
-		wh, err := c.RotateWebhookSecret(args[0])
+		secret, err := c.RotateWebhookSecret(args[0])
 		if err != nil {
 			return err
 		}
@@ -263,9 +263,9 @@ var webhooksRotateSecretCmd = &cobra.Command{
 		if GetOutputFormat() == "json" {
 			enc := json.NewEncoder(out)
 			enc.SetIndent("", "  ")
-			return enc.Encode(wh)
+			return enc.Encode(map[string]string{"id": args[0], "secret": secret})
 		}
-		fmt.Fprintf(out, "Секрет вебхука %s обновлён. Новый секрет: %s\n", wh.ID, wh.Secret)
+		fmt.Fprintf(out, "Секрет вебхука %s обновлён. Новый секрет: %s\n", args[0], secret)
 		return nil
 	},
 }
