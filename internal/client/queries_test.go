@@ -739,3 +739,119 @@ func TestSearchProjects(t *testing.T) {
 		}
 	})
 }
+
+func TestListCycles(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		now := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+		end := time.Date(2024, 1, 14, 0, 0, 0, 0, time.UTC)
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{
+				"data": map[string]any{
+					"cycles": map[string]any{
+						"nodes": []map[string]any{
+							{
+								"id":          "cycle1",
+								"number":      1,
+								"name":        "Sprint 1",
+								"startsAt":    now.Format(time.RFC3339),
+								"endsAt":      end.Format(time.RFC3339),
+								"completedAt": nil,
+								"team":        map[string]any{"id": "t1", "key": "ENG", "name": "Engineering"},
+							},
+						},
+					},
+				},
+			})
+		}))
+		defer srv.Close()
+		c := NewWithURL("token", srv.URL)
+		cycles, err := c.ListCycles("t1")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(cycles) != 1 {
+			t.Fatalf("expected 1 cycle, got %d", len(cycles))
+		}
+		if cycles[0].Name != "Sprint 1" {
+			t.Errorf("expected 'Sprint 1', got %q", cycles[0].Name)
+		}
+		if cycles[0].Number != 1 {
+			t.Errorf("expected number 1, got %d", cycles[0].Number)
+		}
+	})
+
+	t.Run("empty", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{
+				"data": map[string]any{
+					"cycles": map[string]any{
+						"nodes": []map[string]any{},
+					},
+				},
+			})
+		}))
+		defer srv.Close()
+		c := NewWithURL("token", srv.URL)
+		cycles, err := c.ListCycles("t1")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(cycles) != 0 {
+			t.Fatalf("expected 0 cycles, got %d", len(cycles))
+		}
+	})
+}
+
+func TestGetCycle(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		now := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+		end := time.Date(2024, 1, 14, 0, 0, 0, 0, time.UTC)
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{
+				"data": map[string]any{
+					"cycle": map[string]any{
+						"id":          "cycle1",
+						"number":      1,
+						"name":        "Sprint 1",
+						"startsAt":    now.Format(time.RFC3339),
+						"endsAt":      end.Format(time.RFC3339),
+						"completedAt": nil,
+						"team":        map[string]any{"id": "t1", "key": "ENG", "name": "Engineering"},
+					},
+				},
+			})
+		}))
+		defer srv.Close()
+		c := NewWithURL("token", srv.URL)
+		cycle, err := c.GetCycle("cycle1")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if cycle.ID != "cycle1" {
+			t.Errorf("expected cycle1, got %q", cycle.ID)
+		}
+		if cycle.Team.Key != "ENG" {
+			t.Errorf("expected ENG, got %q", cycle.Team.Key)
+		}
+	})
+
+	t.Run("not_found", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{
+				"data": map[string]any{
+					"cycle": nil,
+				},
+			})
+		}))
+		defer srv.Close()
+		c := NewWithURL("token", srv.URL)
+		_, err := c.GetCycle("nonexistent")
+		if err == nil {
+			t.Fatal("expected error for not found cycle")
+		}
+	})
+}

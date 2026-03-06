@@ -611,6 +611,70 @@ query SearchProjects($filter: ProjectFilter) {
 	return result.Projects.Nodes, nil
 }
 
+// Cycle представляет цикл (спринт) команды Linear.
+type Cycle struct {
+	ID          string     `json:"id"`
+	Number      int        `json:"number"`
+	Name        string     `json:"name"`
+	StartsAt    time.Time  `json:"startsAt"`
+	EndsAt      time.Time  `json:"endsAt"`
+	CompletedAt *time.Time `json:"completedAt"`
+	Team        Team       `json:"team"`
+}
+
+// ListCycles возвращает список циклов команды по её ID.
+func (c *Client) ListCycles(teamID string) ([]Cycle, error) {
+	query := `
+query ListCycles($teamId: String!) {
+  cycles(filter: { team: { id: { eq: $teamId } } }, first: 250) {
+    nodes {
+      id
+      number
+      name
+      startsAt
+      endsAt
+      completedAt
+      team { id key name }
+    }
+  }
+}`
+	var result struct {
+		Cycles struct {
+			Nodes []Cycle `json:"nodes"`
+		} `json:"cycles"`
+	}
+	if err := c.Do(query, map[string]any{"teamId": teamID}, &result); err != nil {
+		return nil, err
+	}
+	return result.Cycles.Nodes, nil
+}
+
+// GetCycle возвращает цикл по ID.
+func (c *Client) GetCycle(id string) (*Cycle, error) {
+	query := `
+query GetCycle($id: String!) {
+  cycle(id: $id) {
+    id
+    number
+    name
+    startsAt
+    endsAt
+    completedAt
+    team { id key name }
+  }
+}`
+	var result struct {
+		Cycle *Cycle `json:"cycle"`
+	}
+	if err := c.Do(query, map[string]any{"id": id}, &result); err != nil {
+		return nil, err
+	}
+	if result.Cycle == nil {
+		return nil, fmt.Errorf("цикл не найден: %s", id)
+	}
+	return result.Cycle, nil
+}
+
 // PriorityLabel возвращает текстовое обозначение приоритета.
 func PriorityLabel(p int) string {
 	switch p {

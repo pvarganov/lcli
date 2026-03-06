@@ -198,12 +198,12 @@
 
 #### Task 16: Cycles — Query
 
-- [ ] добавить тип `Cycle` в queries.go (id, number, name, startsAt, endsAt, team, issues)
-- [ ] написать тесты для `ListCycles(teamKey)`, `GetCycle(id)`
-- [ ] добавить методы `ListCycles(teamID)`, `GetCycle(id)` в queries.go
-- [ ] написать тесты для cmd `cycles list --team <KEY>`, `cycles view <ID>`
-- [ ] добавить команды в `cmd/cycles.go`
-- [ ] запустить тесты — должны пройти
+- [x] добавить тип `Cycle` в queries.go (id, number, name, startsAt, endsAt, team, issues)
+- [x] написать тесты для `ListCycles(teamKey)`, `GetCycle(id)`
+- [x] добавить методы `ListCycles(teamID)`, `GetCycle(id)` в queries.go
+- [x] написать тесты для cmd `cycles list --team <KEY>`, `cycles view <ID>`
+- [x] добавить команды в `cmd/cycles.go`
+- [x] запустить тесты — должны пройти
 
 #### Task 17: Cycles — Mutations
 
