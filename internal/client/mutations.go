@@ -592,6 +592,114 @@ mutation UnsubscribeFromIssue($id: String!) {
 	return nil
 }
 
+// BatchCreateIssuesInput — входные данные для пакетного создания задач.
+type BatchCreateIssuesInput struct {
+	Issues []CreateIssueInput
+}
+
+// BatchCreateIssues создаёт несколько задач за одну транзакцию.
+func (c *Client) BatchCreateIssues(input BatchCreateIssuesInput) ([]Issue, error) {
+	mutation := `
+mutation IssueBatchCreate($input: IssueBatchCreateInput!) {
+  issueBatchCreate(input: $input) {
+    success
+    issues {
+      id
+      identifier
+      title
+      priority
+      state { name type }
+      team { id key name }
+    }
+  }
+}`
+	issues := make([]map[string]any, 0, len(input.Issues))
+	for _, i := range input.Issues {
+		gi := map[string]any{
+			"teamId": i.TeamID,
+			"title":  i.Title,
+		}
+		if i.Description != "" {
+			gi["description"] = i.Description
+		}
+		if i.AssigneeID != "" {
+			gi["assigneeId"] = i.AssigneeID
+		}
+		if i.Priority != 0 {
+			gi["priority"] = i.Priority
+		}
+		issues = append(issues, gi)
+	}
+	var result struct {
+		IssueBatchCreate struct {
+			Issues  []Issue `json:"issues"`
+			Success bool    `json:"success"`
+		} `json:"issueBatchCreate"`
+	}
+	if err := c.Do(mutation, map[string]any{
+		"input": map[string]any{"issues": issues},
+	}, &result); err != nil {
+		return nil, err
+	}
+	if !result.IssueBatchCreate.Success {
+		return nil, fmt.Errorf("issueBatchCreate вернул success=false")
+	}
+	return result.IssueBatchCreate.Issues, nil
+}
+
+// BatchUpdateIssuesInput — входные данные для пакетного обновления задач.
+type BatchUpdateIssuesInput struct {
+	IDs    []string
+	Update UpdateIssueInput
+}
+
+// BatchUpdateIssues обновляет несколько задач за один запрос (до 50 за раз).
+func (c *Client) BatchUpdateIssues(input BatchUpdateIssuesInput) ([]Issue, error) {
+	mutation := `
+mutation IssueBatchUpdate($ids: [UUID!]!, $input: IssueUpdateInput!) {
+  issueBatchUpdate(ids: $ids, input: $input) {
+    success
+    issues {
+      id
+      identifier
+      title
+      priority
+      state { name type }
+      team { id key name }
+    }
+  }
+}`
+	gqlInput := map[string]any{}
+	if input.Update.Title != "" {
+		gqlInput["title"] = input.Update.Title
+	}
+	if input.Update.StateID != "" {
+		gqlInput["stateId"] = input.Update.StateID
+	}
+	if input.Update.AssigneeID != "" {
+		gqlInput["assigneeId"] = input.Update.AssigneeID
+	}
+	if input.Update.Priority != nil {
+		gqlInput["priority"] = *input.Update.Priority
+	}
+	var result struct {
+		IssueBatchUpdate struct {
+			Issues  []Issue `json:"issues"`
+			Success bool    `json:"success"`
+		} `json:"issueBatchUpdate"`
+	}
+	if err := c.Do(mutation, map[string]any{
+		"ids":   input.IDs,
+		"input": gqlInput,
+	}, &result); err != nil {
+		return nil, err
+	}
+	if !result.IssueBatchUpdate.Success {
+		return nil, fmt.Errorf("issueBatchUpdate вернул success=false")
+	}
+	return result.IssueBatchUpdate.Issues, nil
+}
+
 // FindUserByName ищет пользователя по displayName или email.
 func (c *Client) FindUserByName(name string) (*User, error) {
 	query := `

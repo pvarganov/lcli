@@ -649,3 +649,95 @@ func TestUnsubscribeFromIssue(t *testing.T) {
 		}
 	})
 }
+
+func TestBatchCreateIssues(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"issueBatchCreate": map[string]any{
+				"success": true,
+				"issues": []map[string]any{
+					{"id": "issue1", "identifier": "ENG-1", "title": "First", "priority": 0, "state": map[string]any{"name": "Todo", "type": "unstarted"}, "team": map[string]any{"id": "t1", "key": "ENG", "name": "Eng"}},
+					{"id": "issue2", "identifier": "ENG-2", "title": "Second", "priority": 0, "state": map[string]any{"name": "Todo", "type": "unstarted"}, "team": map[string]any{"id": "t1", "key": "ENG", "name": "Eng"}},
+				},
+			},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		issues, err := c.BatchCreateIssues(BatchCreateIssuesInput{
+			Issues: []CreateIssueInput{
+				{TeamID: "t1", Title: "First"},
+				{TeamID: "t1", Title: "Second"},
+			},
+		})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(issues) != 2 {
+			t.Fatalf("expected 2 issues, got %d", len(issues))
+		}
+		if issues[0].Identifier != "ENG-1" {
+			t.Errorf("expected ENG-1, got %s", issues[0].Identifier)
+		}
+	})
+
+	t.Run("success_false", func(t *testing.T) {
+		responseData := map[string]any{
+			"issueBatchCreate": map[string]any{"success": false, "issues": []any{}},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		_, err := c.BatchCreateIssues(BatchCreateIssuesInput{
+			Issues: []CreateIssueInput{{TeamID: "t1", Title: "Test"}},
+		})
+		if err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestBatchUpdateIssues(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"issueBatchUpdate": map[string]any{
+				"success": true,
+				"issues": []map[string]any{
+					{"id": "issue1", "identifier": "ENG-1", "title": "Updated", "priority": 0, "state": map[string]any{"name": "In Progress", "type": "started"}, "team": map[string]any{"id": "t1", "key": "ENG", "name": "Eng"}},
+				},
+			},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		issues, err := c.BatchUpdateIssues(BatchUpdateIssuesInput{
+			IDs:    []string{"issue1"},
+			Update: UpdateIssueInput{Title: "Updated"},
+		})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(issues) != 1 {
+			t.Fatalf("expected 1 issue, got %d", len(issues))
+		}
+		if issues[0].Title != "Updated" {
+			t.Errorf("expected 'Updated', got %s", issues[0].Title)
+		}
+	})
+
+	t.Run("success_false", func(t *testing.T) {
+		responseData := map[string]any{
+			"issueBatchUpdate": map[string]any{"success": false, "issues": []any{}},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		_, err := c.BatchUpdateIssues(BatchUpdateIssuesInput{
+			IDs:    []string{"issue1"},
+			Update: UpdateIssueInput{Title: "Test"},
+		})
+		if err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}

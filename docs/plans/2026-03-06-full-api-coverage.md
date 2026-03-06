@@ -107,11 +107,11 @@
 
 #### Task 8: Issue Batch Operations
 
-- [ ] написать тесты для мутаций `issueBatchCreate`, `issueBatchUpdate`
-- [ ] добавить типы и методы `BatchCreateIssues`, `BatchUpdateIssues` в mutations.go
-- [ ] написать тесты для cmd `issues batch-update --status <S> --ids <id1,id2,...>`
-- [ ] добавить команду `issues batch-update` в `cmd/issue_batch.go`
-- [ ] запустить тесты — должны пройти
+- [x] написать тесты для мутаций `issueBatchCreate`, `issueBatchUpdate`
+- [x] добавить типы и методы `BatchCreateIssues`, `BatchUpdateIssues` в mutations.go
+- [x] написать тесты для cmd `issues batch-update --status <S> --ids <id1,id2,...>`
+- [x] добавить команду `issues batch-update` в `cmd/issue_batch.go`
+- [x] запустить тесты — должны пройти
 
 #### Task 9: Comments — Update/Delete/Resolve
 
