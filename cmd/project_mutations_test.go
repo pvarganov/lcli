@@ -230,6 +230,219 @@ func TestProjectUpdateNoToken(t *testing.T) {
 	}
 }
 
+func TestProjectCreateWithColor(t *testing.T) {
+	responses := map[string]any{
+		"projectCreate": map[string]any{
+			"projectCreate": map[string]any{
+				"success": true,
+				"project": map[string]any{
+					"id": "proj-color", "name": "Colored", "description": "",
+					"state": "planned", "startDate": "", "targetDate": "", "url": "", "lead": nil,
+				},
+			},
+		},
+	}
+	srv := newMultiResponseServer(t, responses)
+	defer srv.Close()
+
+	origFactory := newLinearClient
+	newLinearClient = func(tok string) *client.Client { return client.NewWithURL(tok, srv.URL) }
+	defer func() { newLinearClient = origFactory }()
+
+	token = "test-token"
+	defer func() { token = "" }()
+
+	_ = projectCreateCmd.Flags().Set("name", "Colored")
+	_ = projectCreateCmd.Flags().Set("team-ids", "team1")
+	_ = projectCreateCmd.Flags().Set("color", "#FF0000")
+	defer func() {
+		_ = projectCreateCmd.Flags().Set("name", "")
+		_ = projectCreateCmd.Flags().Set("team-ids", "")
+		_ = projectCreateCmd.Flags().Set("color", "")
+	}()
+
+	var buf bytes.Buffer
+	projectCreateCmd.SetOut(&buf)
+	if err := projectCreateCmd.RunE(projectCreateCmd, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !strings.Contains(buf.String(), "Colored") {
+		t.Errorf("expected 'Colored' in output, got: %s", buf.String())
+	}
+}
+
+func TestProjectCreateWithIcon(t *testing.T) {
+	responses := map[string]any{
+		"projectCreate": map[string]any{
+			"projectCreate": map[string]any{
+				"success": true,
+				"project": map[string]any{
+					"id": "proj-icon", "name": "WithIcon", "description": "",
+					"state": "planned", "startDate": "", "targetDate": "", "url": "", "lead": nil,
+				},
+			},
+		},
+	}
+	srv := newMultiResponseServer(t, responses)
+	defer srv.Close()
+
+	origFactory := newLinearClient
+	newLinearClient = func(tok string) *client.Client { return client.NewWithURL(tok, srv.URL) }
+	defer func() { newLinearClient = origFactory }()
+
+	token = "test-token"
+	defer func() { token = "" }()
+
+	_ = projectCreateCmd.Flags().Set("name", "WithIcon")
+	_ = projectCreateCmd.Flags().Set("team-ids", "team1")
+	_ = projectCreateCmd.Flags().Set("icon", "🚀")
+	defer func() {
+		_ = projectCreateCmd.Flags().Set("name", "")
+		_ = projectCreateCmd.Flags().Set("team-ids", "")
+		_ = projectCreateCmd.Flags().Set("icon", "")
+	}()
+
+	var buf bytes.Buffer
+	projectCreateCmd.SetOut(&buf)
+	if err := projectCreateCmd.RunE(projectCreateCmd, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !strings.Contains(buf.String(), "WithIcon") {
+		t.Errorf("expected 'WithIcon' in output, got: %s", buf.String())
+	}
+}
+
+func TestProjectCreateWithPriority(t *testing.T) {
+	responses := map[string]any{
+		"projectCreate": map[string]any{
+			"projectCreate": map[string]any{
+				"success": true,
+				"project": map[string]any{
+					"id": "proj-pri", "name": "HighPri", "description": "",
+					"state": "planned", "startDate": "", "targetDate": "", "url": "", "lead": nil,
+				},
+			},
+		},
+	}
+	srv := newMultiResponseServer(t, responses)
+	defer srv.Close()
+
+	origFactory := newLinearClient
+	newLinearClient = func(tok string) *client.Client { return client.NewWithURL(tok, srv.URL) }
+	defer func() { newLinearClient = origFactory }()
+
+	token = "test-token"
+	defer func() { token = "" }()
+
+	_ = projectCreateCmd.Flags().Set("name", "HighPri")
+	_ = projectCreateCmd.Flags().Set("team-ids", "team1")
+	_ = projectCreateCmd.Flags().Set("priority", "1")
+	defer func() {
+		_ = projectCreateCmd.Flags().Set("name", "")
+		_ = projectCreateCmd.Flags().Set("team-ids", "")
+		_ = projectCreateCmd.Flags().Set("priority", "0")
+	}()
+
+	var buf bytes.Buffer
+	projectCreateCmd.SetOut(&buf)
+	if err := projectCreateCmd.RunE(projectCreateCmd, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !strings.Contains(buf.String(), "HighPri") {
+		t.Errorf("expected 'HighPri' in output, got: %s", buf.String())
+	}
+}
+
+func TestProjectCreateWithMemberIDsAndContent(t *testing.T) {
+	responses := map[string]any{
+		"projectCreate": map[string]any{
+			"projectCreate": map[string]any{
+				"success": true,
+				"project": map[string]any{
+					"id": "proj-members", "name": "WithMembers", "description": "",
+					"state": "planned", "startDate": "", "targetDate": "", "url": "", "lead": nil,
+				},
+			},
+		},
+	}
+	srv := newMultiResponseServer(t, responses)
+	defer srv.Close()
+
+	origFactory := newLinearClient
+	newLinearClient = func(tok string) *client.Client { return client.NewWithURL(tok, srv.URL) }
+	defer func() { newLinearClient = origFactory }()
+
+	token = "test-token"
+	defer func() { token = "" }()
+
+	_ = projectCreateCmd.Flags().Set("name", "WithMembers")
+	_ = projectCreateCmd.Flags().Set("team-ids", "team1")
+	_ = projectCreateCmd.Flags().Set("member-ids", "user1,user2")
+	_ = projectCreateCmd.Flags().Set("content", "# Overview")
+	defer func() {
+		_ = projectCreateCmd.Flags().Set("name", "")
+		_ = projectCreateCmd.Flags().Set("team-ids", "")
+		_ = projectCreateCmd.Flags().Set("member-ids", "")
+		_ = projectCreateCmd.Flags().Set("content", "")
+	}()
+
+	var buf bytes.Buffer
+	projectCreateCmd.SetOut(&buf)
+	if err := projectCreateCmd.RunE(projectCreateCmd, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !strings.Contains(buf.String(), "WithMembers") {
+		t.Errorf("expected 'WithMembers' in output, got: %s", buf.String())
+	}
+}
+
+func TestProjectUpdateWithColorIconPriorityMemberIDsContent(t *testing.T) {
+	responses := map[string]any{
+		"projectUpdate": map[string]any{
+			"projectUpdate": map[string]any{
+				"success": true,
+				"project": map[string]any{
+					"id": "proj1", "name": "Updated", "description": "",
+					"state": "started", "startDate": "", "targetDate": "", "url": "", "lead": nil,
+				},
+			},
+		},
+	}
+	srv := newMultiResponseServer(t, responses)
+	defer srv.Close()
+
+	origFactory := newLinearClient
+	newLinearClient = func(tok string) *client.Client { return client.NewWithURL(tok, srv.URL) }
+	defer func() { newLinearClient = origFactory }()
+
+	token = "test-token"
+	defer func() { token = "" }()
+
+	_ = projectUpdateCmd.Flags().Set("name", "Updated")
+	_ = projectUpdateCmd.Flags().Set("color", "#00FF00")
+	_ = projectUpdateCmd.Flags().Set("icon", "🎯")
+	_ = projectUpdateCmd.Flags().Set("priority", "2")
+	_ = projectUpdateCmd.Flags().Set("member-ids", "user3")
+	_ = projectUpdateCmd.Flags().Set("content", "## Details")
+	defer func() {
+		_ = projectUpdateCmd.Flags().Set("name", "")
+		_ = projectUpdateCmd.Flags().Set("color", "")
+		_ = projectUpdateCmd.Flags().Set("icon", "")
+		_ = projectUpdateCmd.Flags().Set("priority", "0")
+		_ = projectUpdateCmd.Flags().Set("member-ids", "")
+		_ = projectUpdateCmd.Flags().Set("content", "")
+	}()
+
+	var buf bytes.Buffer
+	projectUpdateCmd.SetOut(&buf)
+	if err := projectUpdateCmd.RunE(projectUpdateCmd, []string{"proj1"}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !strings.Contains(buf.String(), "Updated") {
+		t.Errorf("expected 'Updated' in output, got: %s", buf.String())
+	}
+}
+
 func TestProjectDeleteSuccess(t *testing.T) {
 	responses := map[string]any{
 		"projectDelete": map[string]any{

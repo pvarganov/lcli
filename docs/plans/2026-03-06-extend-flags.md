@@ -94,12 +94,12 @@
 
 ### Task 7: Расширить projects create/update
 
-- [ ] добавить поля в `CreateProjectInput` в `internal/client/mutations.go`: `Color string`, `Icon string`, `Priority *int`, `MemberIDs []string`, `Content string`
-- [ ] добавить поля в `UpdateProjectInput`: `Color string`, `Icon string`, `Priority *int`, `MemberIDs []string`, `Content string`
-- [ ] расширить `CreateProject` и `UpdateProject` — передавать новые поля
-- [ ] написать тесты в `cmd/project_mutations_test.go` для новых полей
-- [ ] добавить флаги в `cmd/project_mutations.go`: `--color`, `--icon`, `--priority`, `--member-ids`, `--content`
-- [ ] запустить `go test ./...` — все зелёные
+- [x] добавить поля в `CreateProjectInput` в `internal/client/mutations.go`: `Color string`, `Icon string`, `Priority *int`, `MemberIDs []string`, `Content string`
+- [x] добавить поля в `UpdateProjectInput`: `Color string`, `Icon string`, `Priority *int`, `MemberIDs []string`, `Content string`
+- [x] расширить `CreateProject` и `UpdateProject` — передавать новые поля
+- [x] написать тесты в `cmd/project_mutations_test.go` для новых полей
+- [x] добавить флаги в `cmd/project_mutations.go`: `--color`, `--icon`, `--priority`, `--member-ids`, `--content`
+- [x] запустить `go test ./...` — все зелёные
 
 ### Task 8: Финальная верификация
 

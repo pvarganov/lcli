@@ -76,6 +76,10 @@ var projectCreateCmd = &cobra.Command{
 		startDate, _ := cmd.Flags().GetString("start-date")
 		targetDate, _ := cmd.Flags().GetString("target-date")
 		leadID, _ := cmd.Flags().GetString("lead-id")
+		color, _ := cmd.Flags().GetString("color")
+		icon, _ := cmd.Flags().GetString("icon")
+		memberIDsStr, _ := cmd.Flags().GetString("member-ids")
+		content, _ := cmd.Flags().GetString("content")
 
 		if name == "" {
 			return fmt.Errorf("требуется --name")
@@ -86,15 +90,30 @@ var projectCreateCmd = &cobra.Command{
 
 		teamIDs := strings.Split(teamIDsStr, ",")
 
-		c := newLinearClient(t)
-		project, err := c.CreateProject(client.CreateProjectInput{
+		var memberIDs []string
+		if memberIDsStr != "" {
+			memberIDs = strings.Split(memberIDsStr, ",")
+		}
+
+		inp := client.CreateProjectInput{
 			Name:        name,
 			Description: description,
 			TeamIDs:     teamIDs,
 			StartDate:   startDate,
 			TargetDate:  targetDate,
 			LeadID:      leadID,
-		})
+			Color:       color,
+			Icon:        icon,
+			MemberIDs:   memberIDs,
+			Content:     content,
+		}
+		if cmd.Flags().Changed("priority") {
+			p, _ := cmd.Flags().GetInt("priority")
+			inp.Priority = &p
+		}
+
+		c := newLinearClient(t)
+		project, err := c.CreateProject(inp)
 		if err != nil {
 			return err
 		}
@@ -123,16 +142,35 @@ var projectUpdateCmd = &cobra.Command{
 		targetDate, _ := cmd.Flags().GetString("target-date")
 		leadID, _ := cmd.Flags().GetString("lead-id")
 		state, _ := cmd.Flags().GetString("state")
+		color, _ := cmd.Flags().GetString("color")
+		icon, _ := cmd.Flags().GetString("icon")
+		memberIDsStr, _ := cmd.Flags().GetString("member-ids")
+		content, _ := cmd.Flags().GetString("content")
 
-		c := newLinearClient(t)
-		project, err := c.UpdateProject(args[0], client.UpdateProjectInput{
+		var memberIDs []string
+		if memberIDsStr != "" {
+			memberIDs = strings.Split(memberIDsStr, ",")
+		}
+
+		upd := client.UpdateProjectInput{
 			Name:        name,
 			Description: description,
 			StartDate:   startDate,
 			TargetDate:  targetDate,
 			LeadID:      leadID,
 			State:       state,
-		})
+			Color:       color,
+			Icon:        icon,
+			MemberIDs:   memberIDs,
+			Content:     content,
+		}
+		if cmd.Flags().Changed("priority") {
+			p, _ := cmd.Flags().GetInt("priority")
+			upd.Priority = &p
+		}
+
+		c := newLinearClient(t)
+		project, err := c.UpdateProject(args[0], upd)
 		if err != nil {
 			return err
 		}
@@ -218,6 +256,11 @@ func init() {
 	projectCreateCmd.Flags().String("start-date", "", "Дата начала (YYYY-MM-DD)")
 	projectCreateCmd.Flags().String("target-date", "", "Целевая дата (YYYY-MM-DD)")
 	projectCreateCmd.Flags().String("lead-id", "", "ID руководителя проекта")
+	projectCreateCmd.Flags().String("color", "", "Цвет проекта (hex, например #FF0000)")
+	projectCreateCmd.Flags().String("icon", "", "Иконка проекта (эмодзи или имя)")
+	projectCreateCmd.Flags().Int("priority", 0, "Приоритет проекта (0=нет, 1=срочный, 2=высокий, 3=средний, 4=низкий)")
+	projectCreateCmd.Flags().String("member-ids", "", "ID участников через запятую")
+	projectCreateCmd.Flags().String("content", "", "Содержимое/описание проекта (markdown)")
 
 	projectUpdateCmd.Flags().String("name", "", "Новое название проекта")
 	projectUpdateCmd.Flags().String("description", "", "Новое описание")
@@ -225,6 +268,11 @@ func init() {
 	projectUpdateCmd.Flags().String("target-date", "", "Целевая дата (YYYY-MM-DD)")
 	projectUpdateCmd.Flags().String("lead-id", "", "ID руководителя проекта")
 	projectUpdateCmd.Flags().String("state", "", "Статус проекта")
+	projectUpdateCmd.Flags().String("color", "", "Цвет проекта (hex, например #FF0000)")
+	projectUpdateCmd.Flags().String("icon", "", "Иконка проекта (эмодзи или имя)")
+	projectUpdateCmd.Flags().Int("priority", 0, "Приоритет проекта (0=нет, 1=срочный, 2=высокий, 3=средний, 4=низкий)")
+	projectUpdateCmd.Flags().String("member-ids", "", "ID участников через запятую")
+	projectUpdateCmd.Flags().String("content", "", "Содержимое/описание проекта (markdown)")
 
 	projectsCmd.AddCommand(projectViewCmd)
 	projectsCmd.AddCommand(projectCreateCmd)

@@ -893,6 +893,11 @@ type CreateProjectInput struct {
 	StartDate   string
 	TargetDate  string
 	LeadID      string
+	Color       string
+	Icon        string
+	Priority    *int
+	MemberIDs   []string
+	Content     string
 }
 
 // UpdateProjectInput — входные данные для обновления проекта.
@@ -903,6 +908,11 @@ type UpdateProjectInput struct {
 	TargetDate  string
 	LeadID      string
 	State       string
+	Color       string
+	Icon        string
+	Priority    *int
+	MemberIDs   []string
+	Content     string
 }
 
 // CreateProject создаёт новый проект в Linear.
@@ -938,6 +948,21 @@ mutation CreateProject($input: ProjectCreateInput!) {
 	}
 	if input.LeadID != "" {
 		gqlInput["leadId"] = input.LeadID
+	}
+	if input.Color != "" {
+		gqlInput["color"] = input.Color
+	}
+	if input.Icon != "" {
+		gqlInput["icon"] = input.Icon
+	}
+	if input.Priority != nil {
+		gqlInput["priority"] = *input.Priority
+	}
+	if len(input.MemberIDs) > 0 {
+		gqlInput["memberIds"] = input.MemberIDs
+	}
+	if input.Content != "" {
+		gqlInput["content"] = input.Content
 	}
 
 	var result struct {
@@ -991,6 +1016,21 @@ mutation UpdateProject($id: String!, $input: ProjectUpdateInput!) {
 	}
 	if input.State != "" {
 		gqlInput["state"] = input.State
+	}
+	if input.Color != "" {
+		gqlInput["color"] = input.Color
+	}
+	if input.Icon != "" {
+		gqlInput["icon"] = input.Icon
+	}
+	if input.Priority != nil {
+		gqlInput["priority"] = *input.Priority
+	}
+	if len(input.MemberIDs) > 0 {
+		gqlInput["memberIds"] = input.MemberIDs
+	}
+	if input.Content != "" {
+		gqlInput["content"] = input.Content
 	}
 
 	var result struct {
