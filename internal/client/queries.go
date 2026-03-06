@@ -345,6 +345,43 @@ query GetIssueLabel($id: String!) {
 	return result.IssueLabel, nil
 }
 
+// FindLabelsByNames ищет метки по именам в рамках команды и возвращает их ID.
+func (c *Client) FindLabelsByNames(teamID string, names []string) ([]string, error) {
+	query := `
+query GetIssueLabels($teamId: ID!) {
+  issueLabels(first: 250, filter: { team: { id: { eq: $teamId } } }) {
+    nodes {
+      id
+      name
+    }
+  }
+}`
+	var result struct {
+		IssueLabels struct {
+			Nodes []struct {
+				ID   string `json:"id"`
+				Name string `json:"name"`
+			} `json:"nodes"`
+		} `json:"issueLabels"`
+	}
+	if err := c.Do(query, map[string]any{"teamId": teamID}, &result); err != nil {
+		return nil, err
+	}
+	nameToID := make(map[string]string, len(result.IssueLabels.Nodes))
+	for _, lbl := range result.IssueLabels.Nodes {
+		nameToID[lbl.Name] = lbl.ID
+	}
+	ids := make([]string, 0, len(names))
+	for _, name := range names {
+		id, ok := nameToID[name]
+		if !ok {
+			return nil, fmt.Errorf("метка не найдена: %s", name)
+		}
+		ids = append(ids, id)
+	}
+	return ids, nil
+}
+
 // IssueRelation представляет связь между задачами Linear.
 type IssueRelation struct {
 	ID           string `json:"id"`

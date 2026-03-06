@@ -47,6 +47,14 @@ type CreateIssueInput struct {
 	Description string
 	AssigneeID  string
 	Priority    int
+	DueDate     string
+	Estimate    *int
+	LabelIDs    []string
+	ParentID    string
+	CycleID     string
+	ProjectID   string
+	MilestoneID string
+	StateID     string
 }
 
 // UpdateIssueInput — входные данные для обновления задачи.
@@ -103,6 +111,30 @@ mutation CreateIssue($input: IssueCreateInput!) {
 	}
 	if input.Priority != 0 {
 		gqlInput["priority"] = input.Priority
+	}
+	if input.DueDate != "" {
+		gqlInput["dueDate"] = input.DueDate
+	}
+	if input.Estimate != nil {
+		gqlInput["estimate"] = *input.Estimate
+	}
+	if len(input.LabelIDs) > 0 {
+		gqlInput["labelIds"] = input.LabelIDs
+	}
+	if input.ParentID != "" {
+		gqlInput["parentId"] = input.ParentID
+	}
+	if input.CycleID != "" {
+		gqlInput["cycleId"] = input.CycleID
+	}
+	if input.ProjectID != "" {
+		gqlInput["projectId"] = input.ProjectID
+	}
+	if input.MilestoneID != "" {
+		gqlInput["projectMilestoneId"] = input.MilestoneID
+	}
+	if input.StateID != "" {
+		gqlInput["stateId"] = input.StateID
 	}
 
 	var result createIssueResult
