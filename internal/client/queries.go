@@ -310,6 +310,51 @@ query GetIssueLabel($id: String!) {
 	return result.IssueLabel, nil
 }
 
+// IssueRelation представляет связь между задачами Linear.
+type IssueRelation struct {
+	ID           string `json:"id"`
+	Type         string `json:"type"`
+	Issue        Issue  `json:"issue"`
+	RelatedIssue Issue  `json:"relatedIssue"`
+}
+
+// IssueRelationIssue — краткое представление задачи в связи.
+type IssueRelationIssue struct {
+	ID         string `json:"id"`
+	Identifier string `json:"identifier"`
+	Title      string `json:"title"`
+}
+
+// ListIssueRelations возвращает список связей задачи по её ID.
+func (c *Client) ListIssueRelations(issueID string) ([]IssueRelation, error) {
+	query := `
+query ListIssueRelations($id: String!) {
+  issue(id: $id) {
+    relations(first: 250) {
+      nodes {
+        id
+        type
+        relatedIssue { id identifier title }
+      }
+    }
+  }
+}`
+	var result struct {
+		Issue *struct {
+			Relations struct {
+				Nodes []IssueRelation `json:"nodes"`
+			} `json:"relations"`
+		} `json:"issue"`
+	}
+	if err := c.Do(query, map[string]any{"id": issueID}, &result); err != nil {
+		return nil, err
+	}
+	if result.Issue == nil {
+		return nil, fmt.Errorf("задача не найдена: %s", issueID)
+	}
+	return result.Issue.Relations.Nodes, nil
+}
+
 // PriorityLabel возвращает текстовое обозначение приоритета.
 func PriorityLabel(p int) string {
 	switch p {

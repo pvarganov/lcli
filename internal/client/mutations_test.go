@@ -418,6 +418,84 @@ func TestRemoveLabelFromIssue(t *testing.T) {
 	})
 }
 
+func TestCreateIssueRelation(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"issueRelationCreate": map[string]any{
+				"success": true,
+				"issueRelation": map[string]any{
+					"id":   "rel1",
+					"type": "blocks",
+					"relatedIssue": map[string]any{
+						"id":         "i2",
+						"identifier": "ENG-2",
+						"title":      "Related issue",
+					},
+				},
+			},
+		})
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		rel, err := c.CreateIssueRelation(CreateIssueRelationInput{
+			IssueID:        "i1",
+			RelatedIssueID: "i2",
+			Type:           "blocks",
+		})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if rel.ID != "rel1" {
+			t.Errorf("expected rel1, got %s", rel.ID)
+		}
+		if rel.Type != "blocks" {
+			t.Errorf("expected blocks, got %s", rel.Type)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"issueRelationCreate": map[string]any{
+				"success":       false,
+				"issueRelation": nil,
+			},
+		})
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		_, err := c.CreateIssueRelation(CreateIssueRelationInput{IssueID: "i1", RelatedIssueID: "i2", Type: "related"})
+		if err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestDeleteIssueRelation(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"issueRelationDelete": map[string]any{
+				"success": true,
+			},
+		})
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.DeleteIssueRelation("rel1"); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"issueRelationDelete": map[string]any{
+				"success": false,
+			},
+		})
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.DeleteIssueRelation("rel1"); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
 func TestFindUserByName(t *testing.T) {
 	responseData := map[string]any{
 		"users": map[string]any{

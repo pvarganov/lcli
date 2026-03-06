@@ -419,6 +419,69 @@ func (c *Client) RemoveLabelFromIssue(issueID, labelID string) error {
 	return c.updateIssueLabelIDs(issueID, newIDs)
 }
 
+// CreateIssueRelationInput — входные данные для создания связи.
+type CreateIssueRelationInput struct {
+	IssueID        string
+	RelatedIssueID string
+	Type           string // blocks, blocked_by, related, duplicate, duplicate_of
+}
+
+// CreateIssueRelation создаёт связь между двумя задачами.
+func (c *Client) CreateIssueRelation(input CreateIssueRelationInput) (*IssueRelation, error) {
+	mutation := `
+mutation CreateIssueRelation($input: IssueRelationCreateInput!) {
+  issueRelationCreate(input: $input) {
+    success
+    issueRelation {
+      id
+      type
+      relatedIssue { id identifier title }
+    }
+  }
+}`
+	var result struct {
+		IssueRelationCreate struct {
+			IssueRelation IssueRelation `json:"issueRelation"`
+			Success       bool          `json:"success"`
+		} `json:"issueRelationCreate"`
+	}
+	if err := c.Do(mutation, map[string]any{
+		"input": map[string]any{
+			"issueId":        input.IssueID,
+			"relatedIssueId": input.RelatedIssueID,
+			"type":           input.Type,
+		},
+	}, &result); err != nil {
+		return nil, err
+	}
+	if !result.IssueRelationCreate.Success {
+		return nil, fmt.Errorf("issueRelationCreate вернул success=false")
+	}
+	return &result.IssueRelationCreate.IssueRelation, nil
+}
+
+// DeleteIssueRelation удаляет связь между задачами по ID связи.
+func (c *Client) DeleteIssueRelation(id string) error {
+	mutation := `
+mutation DeleteIssueRelation($id: String!) {
+  issueRelationDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		IssueRelationDelete struct {
+			Success bool `json:"success"`
+		} `json:"issueRelationDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.IssueRelationDelete.Success {
+		return fmt.Errorf("issueRelationDelete вернул success=false")
+	}
+	return nil
+}
+
 // FindUserByName ищет пользователя по displayName или email.
 func (c *Client) FindUserByName(name string) (*User, error) {
 	query := `

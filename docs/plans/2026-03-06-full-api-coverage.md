@@ -71,14 +71,14 @@
 
 #### Task 4: Issue Relations (связи задач)
 
-- [ ] добавить тип `IssueRelation` в queries.go (id, type, issue, relatedIssue)
-- [ ] написать тесты для `ListIssueRelations(issueID)`
-- [ ] добавить метод `ListIssueRelations(issueID)` в queries.go
-- [ ] написать тесты для мутаций `issueRelationCreate`, `issueRelationDelete`
-- [ ] добавить методы `CreateIssueRelation`, `DeleteIssueRelation` в mutations.go
-- [ ] написать тесты для cmd `issues relations list <ISSUE-ID>`, `issues relations add`, `issues relations remove`
-- [ ] добавить команды в `cmd/issue_relations.go`
-- [ ] запустить тесты — должны пройти
+- [x] добавить тип `IssueRelation` в queries.go (id, type, issue, relatedIssue)
+- [x] написать тесты для `ListIssueRelations(issueID)`
+- [x] добавить метод `ListIssueRelations(issueID)` в queries.go
+- [x] написать тесты для мутаций `issueRelationCreate`, `issueRelationDelete`
+- [x] добавить методы `CreateIssueRelation`, `DeleteIssueRelation` в mutations.go
+- [x] написать тесты для cmd `issues relations list <ISSUE-ID>`, `issues relations add`, `issues relations remove`
+- [x] добавить команды в `cmd/issue_relations.go`
+- [x] запустить тесты — должны пройти
 
 #### Task 5: Issue Archive/Delete/Unarchive
 

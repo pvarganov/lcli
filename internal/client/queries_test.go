@@ -189,6 +189,92 @@ func TestGetIssueLabel(t *testing.T) {
 	})
 }
 
+func TestListIssueRelations(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{
+				"data": map[string]any{
+					"issue": map[string]any{
+						"relations": map[string]any{
+							"nodes": []map[string]any{
+								{
+									"id":   "rel1",
+									"type": "blocks",
+									"relatedIssue": map[string]any{
+										"id":         "i2",
+										"identifier": "ENG-2",
+										"title":      "Blocked issue",
+									},
+								},
+							},
+						},
+					},
+				},
+			})
+		}))
+		defer srv.Close()
+		c := NewWithURL("token", srv.URL)
+		rels, err := c.ListIssueRelations("i1")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(rels) != 1 {
+			t.Fatalf("expected 1 relation, got %d", len(rels))
+		}
+		if rels[0].ID != "rel1" {
+			t.Errorf("expected rel1, got %s", rels[0].ID)
+		}
+		if rels[0].Type != "blocks" {
+			t.Errorf("expected blocks, got %s", rels[0].Type)
+		}
+		if rels[0].RelatedIssue.Identifier != "ENG-2" {
+			t.Errorf("expected ENG-2, got %s", rels[0].RelatedIssue.Identifier)
+		}
+	})
+
+	t.Run("empty", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{
+				"data": map[string]any{
+					"issue": map[string]any{
+						"relations": map[string]any{
+							"nodes": []map[string]any{},
+						},
+					},
+				},
+			})
+		}))
+		defer srv.Close()
+		c := NewWithURL("token", srv.URL)
+		rels, err := c.ListIssueRelations("i1")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(rels) != 0 {
+			t.Errorf("expected 0 relations, got %d", len(rels))
+		}
+	})
+
+	t.Run("issue not found", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{
+				"data": map[string]any{
+					"issue": nil,
+				},
+			})
+		}))
+		defer srv.Close()
+		c := NewWithURL("token", srv.URL)
+		_, err := c.ListIssueRelations("nonexistent")
+		if err == nil {
+			t.Fatal("expected error for nil issue")
+		}
+	})
+}
+
 func TestPriorityLabel(t *testing.T) {
 	cases := []struct {
 		p    int
