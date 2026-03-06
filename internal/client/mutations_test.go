@@ -1388,3 +1388,106 @@ func TestArchiveProjectUpdate(t *testing.T) {
 		}
 	})
 }
+
+func TestCreateProjectStatus(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"projectStatusCreate": map[string]any{
+				"success": true,
+				"projectStatus": map[string]any{
+					"id": "pst1", "name": "Planned", "type": "planned", "color": "#0000ff", "description": "", "position": 1.0,
+				},
+			},
+		})
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		status, err := c.CreateProjectStatus(CreateProjectStatusInput{
+			Name:     "Planned",
+			Type:     "planned",
+			Color:    "#0000ff",
+			Position: 1.0,
+		})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if status.Name != "Planned" {
+			t.Errorf("expected name 'Planned', got %q", status.Name)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"projectStatusCreate": map[string]any{"success": false},
+		})
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		_, err := c.CreateProjectStatus(CreateProjectStatusInput{Name: "X", Type: "planned", Color: "#fff", Position: 1.0})
+		if err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestUpdateProjectStatus(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"projectStatusUpdate": map[string]any{
+				"success": true,
+				"projectStatus": map[string]any{
+					"id": "pst1", "name": "Updated", "type": "started", "color": "#00ff00", "description": "", "position": 1.0,
+				},
+			},
+		})
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		status, err := c.UpdateProjectStatus("pst1", UpdateProjectStatusInput{Name: "Updated"})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if status.Name != "Updated" {
+			t.Errorf("expected name 'Updated', got %q", status.Name)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"projectStatusUpdate": map[string]any{"success": false},
+		})
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		_, err := c.UpdateProjectStatus("pst1", UpdateProjectStatusInput{Name: "X"})
+		if err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestArchiveProjectStatus(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"projectStatusArchive": map[string]any{"success": true},
+		})
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.ArchiveProjectStatus("pst1"); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"projectStatusArchive": map[string]any{"success": false},
+		})
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.ArchiveProjectStatus("pst1"); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}

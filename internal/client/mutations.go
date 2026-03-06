@@ -1367,3 +1367,122 @@ mutation UnarchiveProject($id: String!) {
 	}
 	return nil
 }
+
+// CreateProjectStatusInput — входные данные для создания статуса проекта.
+type CreateProjectStatusInput struct {
+	Name        string
+	Type        string
+	Color       string
+	Description string
+	Position    float64
+}
+
+// UpdateProjectStatusInput — входные данные для обновления статуса проекта.
+type UpdateProjectStatusInput struct {
+	Name        string
+	Color       string
+	Description string
+}
+
+// CreateProjectStatus создаёт новый статус проекта.
+func (c *Client) CreateProjectStatus(input CreateProjectStatusInput) (*ProjectStatus, error) {
+	mutation := `
+mutation CreateProjectStatus($input: ProjectStatusCreateInput!) {
+  projectStatusCreate(input: $input) {
+    success
+    projectStatus {
+      id
+      name
+      type
+      color
+      description
+      position
+    }
+  }
+}`
+	gqlInput := map[string]any{
+		"name":     input.Name,
+		"type":     input.Type,
+		"color":    input.Color,
+		"position": input.Position,
+	}
+	if input.Description != "" {
+		gqlInput["description"] = input.Description
+	}
+	var result struct {
+		ProjectStatusCreate struct {
+			ProjectStatus ProjectStatus `json:"projectStatus"`
+			Success       bool          `json:"success"`
+		} `json:"projectStatusCreate"`
+	}
+	if err := c.Do(mutation, map[string]any{"input": gqlInput}, &result); err != nil {
+		return nil, err
+	}
+	if !result.ProjectStatusCreate.Success {
+		return nil, fmt.Errorf("projectStatusCreate вернул success=false")
+	}
+	return &result.ProjectStatusCreate.ProjectStatus, nil
+}
+
+// UpdateProjectStatus обновляет статус проекта.
+func (c *Client) UpdateProjectStatus(id string, input UpdateProjectStatusInput) (*ProjectStatus, error) {
+	mutation := `
+mutation UpdateProjectStatus($id: String!, $input: ProjectStatusUpdateInput!) {
+  projectStatusUpdate(id: $id, input: $input) {
+    success
+    projectStatus {
+      id
+      name
+      type
+      color
+      description
+      position
+    }
+  }
+}`
+	gqlInput := map[string]any{}
+	if input.Name != "" {
+		gqlInput["name"] = input.Name
+	}
+	if input.Color != "" {
+		gqlInput["color"] = input.Color
+	}
+	if input.Description != "" {
+		gqlInput["description"] = input.Description
+	}
+	var result struct {
+		ProjectStatusUpdate struct {
+			ProjectStatus ProjectStatus `json:"projectStatus"`
+			Success       bool          `json:"success"`
+		} `json:"projectStatusUpdate"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id, "input": gqlInput}, &result); err != nil {
+		return nil, err
+	}
+	if !result.ProjectStatusUpdate.Success {
+		return nil, fmt.Errorf("projectStatusUpdate вернул success=false")
+	}
+	return &result.ProjectStatusUpdate.ProjectStatus, nil
+}
+
+// ArchiveProjectStatus архивирует статус проекта.
+func (c *Client) ArchiveProjectStatus(id string) error {
+	mutation := `
+mutation ArchiveProjectStatus($id: String!) {
+  projectStatusArchive(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		ProjectStatusArchive struct {
+			Success bool `json:"success"`
+		} `json:"projectStatusArchive"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.ProjectStatusArchive.Success {
+		return fmt.Errorf("projectStatusArchive вернул success=false")
+	}
+	return nil
+}

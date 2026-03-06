@@ -542,6 +542,42 @@ query ListProjectLabels {
 	return result.ProjectLabels.Nodes, nil
 }
 
+// ProjectStatus представляет статус проекта Linear.
+type ProjectStatus struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Type        string `json:"type"`
+	Color       string `json:"color"`
+	Description string `json:"description"`
+	Position    float64 `json:"position"`
+}
+
+// ListProjectStatuses возвращает все статусы проектов организации.
+func (c *Client) ListProjectStatuses() ([]ProjectStatus, error) {
+	query := `
+query ListProjectStatuses {
+  projectStatuses(first: 250) {
+    nodes {
+      id
+      name
+      type
+      color
+      description
+      position
+    }
+  }
+}`
+	var result struct {
+		ProjectStatuses struct {
+			Nodes []ProjectStatus `json:"nodes"`
+		} `json:"projectStatuses"`
+	}
+	if err := c.Do(query, nil, &result); err != nil {
+		return nil, err
+	}
+	return result.ProjectStatuses.Nodes, nil
+}
+
 // PriorityLabel возвращает текстовое обозначение приоритета.
 func PriorityLabel(p int) string {
 	switch p {

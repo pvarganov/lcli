@@ -171,14 +171,14 @@
 
 #### Task 14: Project Statuses
 
-- [ ] добавить тип `ProjectStatus` в queries.go
-- [ ] написать тесты для `ListProjectStatuses()`
-- [ ] добавить метод `ListProjectStatuses()` в queries.go
-- [ ] написать тесты для мутаций `projectStatusCreate`, `projectStatusUpdate`, `projectStatusArchive`
-- [ ] добавить методы в mutations.go
-- [ ] написать тесты для cmd `projects statuses list`, `projects statuses create`, `projects statuses update`
-- [ ] добавить команды в `cmd/project_statuses.go`
-- [ ] запустить тесты — должны пройти
+- [x] добавить тип `ProjectStatus` в queries.go
+- [x] написать тесты для `ListProjectStatuses()`
+- [x] добавить метод `ListProjectStatuses()` в queries.go
+- [x] написать тесты для мутаций `projectStatusCreate`, `projectStatusUpdate`, `projectStatusArchive`
+- [x] добавить методы в mutations.go
+- [x] написать тесты для cmd `projects statuses list`, `projects statuses create`, `projects statuses update`
+- [x] добавить команды в `cmd/project_statuses.go`
+- [x] запустить тесты — должны пройти
 
 #### Task 15: Project Search + Relations
 

@@ -624,3 +624,58 @@ func TestListProjectUpdates(t *testing.T) {
 		}
 	})
 }
+
+func TestListProjectStatuses(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"projectStatuses": map[string]any{
+				"nodes": []map[string]any{
+					{"id": "ps1", "name": "Planned", "type": "planned", "color": "#0000ff", "description": "Project is planned", "position": 1.0},
+					{"id": "ps2", "name": "In Progress", "type": "started", "color": "#00ff00", "description": "", "position": 2.0},
+				},
+			},
+		}
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+		}))
+		defer srv.Close()
+
+		c := NewWithURL("token", srv.URL)
+		statuses, err := c.ListProjectStatuses()
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(statuses) != 2 {
+			t.Fatalf("expected 2 statuses, got %d", len(statuses))
+		}
+		if statuses[0].Name != "Planned" {
+			t.Errorf("expected name 'Planned', got %q", statuses[0].Name)
+		}
+		if statuses[0].Type != "planned" {
+			t.Errorf("expected type 'planned', got %q", statuses[0].Type)
+		}
+	})
+
+	t.Run("empty", func(t *testing.T) {
+		responseData := map[string]any{
+			"projectStatuses": map[string]any{
+				"nodes": []map[string]any{},
+			},
+		}
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+		}))
+		defer srv.Close()
+
+		c := NewWithURL("token", srv.URL)
+		statuses, err := c.ListProjectStatuses()
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(statuses) != 0 {
+			t.Errorf("expected 0 statuses, got %d", len(statuses))
+		}
+	})
+}
