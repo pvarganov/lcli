@@ -252,11 +252,11 @@
 
 #### Task 20: Users — List + View + Viewer
 
-- [ ] написать тесты для `ListUsers()`, `GetUser(id)`, `GetViewer()` в queries.go
-- [ ] добавить методы в queries.go (расширить существующий FindUserByName)
-- [ ] написать тесты для cmd `users list`, `users view <ID>`, `users me`
-- [ ] добавить команды в `cmd/users.go`
-- [ ] запустить тесты — должны пройти
+- [x] написать тесты для `ListUsers()`, `GetUser(id)`, `GetViewer()` в queries.go
+- [x] добавить методы в queries.go (расширить существующий FindUserByName)
+- [x] написать тесты для cmd `users list`, `users view <ID>`, `users me`
+- [x] добавить команды в `cmd/users.go`
+- [x] запустить тесты — должны пройти
 
 ---
 

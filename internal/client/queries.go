@@ -760,3 +760,73 @@ query ListTeamMembers($teamId: String!) {
 	}
 	return result.Team.Members.Nodes, nil
 }
+
+// ListUsers возвращает всех пользователей организации.
+func (c *Client) ListUsers() ([]User, error) {
+	query := `
+query ListUsers {
+  users(first: 250) {
+    nodes {
+      id
+      name
+      displayName
+      email
+    }
+  }
+}`
+	var result struct {
+		Users struct {
+			Nodes []User `json:"nodes"`
+		} `json:"users"`
+	}
+	if err := c.Do(query, nil, &result); err != nil {
+		return nil, err
+	}
+	return result.Users.Nodes, nil
+}
+
+// GetUser возвращает пользователя по ID.
+func (c *Client) GetUser(id string) (*User, error) {
+	query := `
+query GetUser($id: String!) {
+  user(id: $id) {
+    id
+    name
+    displayName
+    email
+  }
+}`
+	var result struct {
+		User *User `json:"user"`
+	}
+	if err := c.Do(query, map[string]any{"id": id}, &result); err != nil {
+		return nil, err
+	}
+	if result.User == nil {
+		return nil, fmt.Errorf("пользователь не найден: %s", id)
+	}
+	return result.User, nil
+}
+
+// GetViewer возвращает текущего аутентифицированного пользователя.
+func (c *Client) GetViewer() (*User, error) {
+	query := `
+query GetViewer {
+  viewer {
+    id
+    name
+    displayName
+    email
+  }
+}`
+	var result struct {
+		Viewer *User `json:"viewer"`
+	}
+	if err := c.Do(query, nil, &result); err != nil {
+		return nil, err
+	}
+	if result.Viewer == nil {
+		return nil, fmt.Errorf("не удалось получить данные текущего пользователя")
+	}
+	return result.Viewer, nil
+}

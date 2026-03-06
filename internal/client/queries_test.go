@@ -988,3 +988,114 @@ func TestListTeamMembers(t *testing.T) {
 		}
 	})
 }
+
+func TestListUsers(t *testing.T) {
+	responseData := map[string]any{
+		"users": map[string]any{
+			"nodes": []map[string]any{
+				{"id": "u1", "name": "Alice", "displayName": "Alice Smith", "email": "alice@example.com"},
+				{"id": "u2", "name": "Bob", "displayName": "Bob Jones", "email": "bob@example.com"},
+			},
+		},
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	users, err := c.ListUsers()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(users) != 2 {
+		t.Fatalf("expected 2 users, got %d", len(users))
+	}
+	if users[0].DisplayName != "Alice Smith" {
+		t.Errorf("expected Alice Smith, got %q", users[0].DisplayName)
+	}
+}
+
+func TestListUsersEmpty(t *testing.T) {
+	responseData := map[string]any{
+		"users": map[string]any{
+			"nodes": []map[string]any{},
+		},
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	users, err := c.ListUsers()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(users) != 0 {
+		t.Fatalf("expected 0 users, got %d", len(users))
+	}
+}
+
+func TestGetUser(t *testing.T) {
+	responseData := map[string]any{
+		"user": map[string]any{
+			"id": "u1", "name": "Alice", "displayName": "Alice Smith", "email": "alice@example.com",
+		},
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	user, err := c.GetUser("u1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if user.Email != "alice@example.com" {
+		t.Errorf("expected alice@example.com, got %q", user.Email)
+	}
+}
+
+func TestGetUserNotFound(t *testing.T) {
+	responseData := map[string]any{
+		"user": nil,
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	_, err := c.GetUser("nonexistent")
+	if err == nil {
+		t.Fatal("expected error for not found user, got nil")
+	}
+}
+
+func TestGetViewer(t *testing.T) {
+	responseData := map[string]any{
+		"viewer": map[string]any{
+			"id": "v1", "name": "Me", "displayName": "Current User", "email": "me@example.com",
+		},
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	viewer, err := c.GetViewer()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if viewer.DisplayName != "Current User" {
+		t.Errorf("expected Current User, got %q", viewer.DisplayName)
+	}
+}
