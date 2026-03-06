@@ -99,11 +99,11 @@
 
 #### Task 7: Issue Subscribe/Unsubscribe
 
-- [ ] написать тесты для мутаций `issueSubscribe`, `issueUnsubscribe`
-- [ ] добавить методы `SubscribeToIssue(id)`, `UnsubscribeFromIssue(id)` в mutations.go
-- [ ] написать тесты для cmd `issues subscribe <ID>`, `issues unsubscribe <ID>`
-- [ ] добавить команды в `cmd/issue_subscribe.go`
-- [ ] запустить тесты — должны пройти
+- [x] написать тесты для мутаций `issueSubscribe`, `issueUnsubscribe`
+- [x] добавить методы `SubscribeToIssue(id)`, `UnsubscribeFromIssue(id)` в mutations.go
+- [x] написать тесты для cmd `issues subscribe <ID>`, `issues unsubscribe <ID>`
+- [x] добавить команды в `cmd/issue_subscribe.go`
+- [x] запустить тесты — должны пройти
 
 #### Task 8: Issue Batch Operations
 

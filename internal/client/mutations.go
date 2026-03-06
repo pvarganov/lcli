@@ -548,6 +548,50 @@ mutation DeleteIssue($id: String!) {
 	return nil
 }
 
+// SubscribeToIssue подписывает текущего пользователя на задачу.
+func (c *Client) SubscribeToIssue(id string) error {
+	mutation := `
+mutation SubscribeToIssue($id: String!) {
+  issueSubscribe(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		IssueSubscribe struct {
+			Success bool `json:"success"`
+		} `json:"issueSubscribe"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.IssueSubscribe.Success {
+		return fmt.Errorf("issueSubscribe вернул success=false")
+	}
+	return nil
+}
+
+// UnsubscribeFromIssue отписывает текущего пользователя от задачи.
+func (c *Client) UnsubscribeFromIssue(id string) error {
+	mutation := `
+mutation UnsubscribeFromIssue($id: String!) {
+  issueUnsubscribe(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		IssueUnsubscribe struct {
+			Success bool `json:"success"`
+		} `json:"issueUnsubscribe"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.IssueUnsubscribe.Success {
+		return fmt.Errorf("issueUnsubscribe вернул success=false")
+	}
+	return nil
+}
+
 // FindUserByName ищет пользователя по displayName или email.
 func (c *Client) FindUserByName(name string) (*User, error) {
 	query := `

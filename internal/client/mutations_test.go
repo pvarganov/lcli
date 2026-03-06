@@ -601,3 +601,51 @@ func TestDeleteIssue(t *testing.T) {
 		}
 	})
 }
+
+func TestSubscribeToIssue(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"issueSubscribe": map[string]any{"success": true},
+		})
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.SubscribeToIssue("issue1"); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"issueSubscribe": map[string]any{"success": false},
+		})
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.SubscribeToIssue("issue1"); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestUnsubscribeFromIssue(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"issueUnsubscribe": map[string]any{"success": true},
+		})
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.UnsubscribeFromIssue("issue1"); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"issueUnsubscribe": map[string]any{"success": false},
+		})
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.UnsubscribeFromIssue("issue1"); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
