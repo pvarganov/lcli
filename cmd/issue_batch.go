@@ -41,17 +41,18 @@ var issueBatchUpdateCmd = &cobra.Command{
 		c := newLinearClient(t)
 
 		// Разрешаем идентификаторы (ENG-1) в UUID, требуемые issueBatchUpdate(ids: [UUID!]!)
-		// Сохраняем команду первой задачи для поиска статуса
 		uuids := make([]string, 0, len(identifiers))
 		var firstTeamID string
-		for i, identifier := range identifiers {
+		for _, identifier := range identifiers {
 			issue, err := c.GetIssue(identifier)
 			if err != nil {
 				return fmt.Errorf("задача не найдена: %s: %w", identifier, err)
 			}
 			uuids = append(uuids, issue.ID)
-			if i == 0 {
+			if firstTeamID == "" {
 				firstTeamID = issue.Team.ID
+			} else if issue.Team.ID != firstTeamID {
+				return fmt.Errorf("все задачи в batch-update должны принадлежать одной команде (смешение команд не поддерживается при указании --status)")
 			}
 		}
 

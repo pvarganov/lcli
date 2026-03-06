@@ -25,12 +25,18 @@ var cyclesListCmd = &cobra.Command{
 			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
 		}
 
-		teamID, _ := cmd.Flags().GetString("team")
-		if teamID == "" {
-			return fmt.Errorf("требуется --team (ID команды)")
+		teamKey, _ := cmd.Flags().GetString("team")
+		if teamKey == "" {
+			return fmt.Errorf("требуется --team (ключ или ID команды)")
 		}
 
 		c := newLinearClient(t)
+		teamID := teamKey
+		if team, err := c.GetTeamByKey(teamKey); err != nil {
+			return fmt.Errorf("ошибка получения команды: %w", err)
+		} else if team != nil {
+			teamID = team.ID
+		}
 		cycles, err := c.ListCycles(teamID)
 		if err != nil {
 			return err
@@ -117,9 +123,9 @@ var cyclesCreateCmd = &cobra.Command{
 			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
 		}
 
-		teamID, _ := cmd.Flags().GetString("team")
-		if teamID == "" {
-			return fmt.Errorf("требуется --team (ID команды)")
+		teamKey, _ := cmd.Flags().GetString("team")
+		if teamKey == "" {
+			return fmt.Errorf("требуется --team (ключ или ID команды)")
 		}
 		startsAt, _ := cmd.Flags().GetString("starts-at")
 		if startsAt == "" {
@@ -132,6 +138,12 @@ var cyclesCreateCmd = &cobra.Command{
 		name, _ := cmd.Flags().GetString("name")
 
 		c := newLinearClient(t)
+		teamID := teamKey
+		if team, err := c.GetTeamByKey(teamKey); err != nil {
+			return fmt.Errorf("ошибка получения команды: %w", err)
+		} else if team != nil {
+			teamID = team.ID
+		}
 		cycle, err := c.CreateCycle(teamID, name, startsAt, endsAt)
 		if err != nil {
 			return err

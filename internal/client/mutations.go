@@ -192,7 +192,7 @@ query GetTeams {
 func (c *Client) FindWorkflowStateByName(teamID, stateName string) (string, error) {
 	query := `
 query GetWorkflowStates($teamId: ID!) {
-  workflowStates(filter: { team: { id: { eq: $teamId } } }) {
+  workflowStates(first: 250, filter: { team: { id: { eq: $teamId } } }) {
     nodes {
       id
       name

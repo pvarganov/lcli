@@ -6,11 +6,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var reactionsCmd = &cobra.Command{
-	Use:   "react",
-	Short: "Управление реакциями на комментарии",
-}
-
 var commentReactCmd = &cobra.Command{
 	Use:   "react <COMMENT-ID> <emoji>",
 	Short: "Добавить реакцию на комментарий",

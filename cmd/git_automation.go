@@ -30,12 +30,18 @@ var gitAutomationStatesListCmd = &cobra.Command{
 			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
 		}
 
-		teamID, _ := cmd.Flags().GetString("team")
-		if teamID == "" {
-			return fmt.Errorf("требуется --team (ID команды)")
+		teamKey, _ := cmd.Flags().GetString("team")
+		if teamKey == "" {
+			return fmt.Errorf("требуется --team (ключ или ID команды)")
 		}
 
 		c := newLinearClient(t)
+		teamID := teamKey
+		if team, err := c.GetTeamByKey(teamKey); err != nil {
+			return fmt.Errorf("ошибка получения команды: %w", err)
+		} else if team != nil {
+			teamID = team.ID
+		}
 		states, err := c.ListGitAutomationStates(teamID)
 		if err != nil {
 			return err
@@ -90,9 +96,9 @@ var gitAutomationStatesCreateCmd = &cobra.Command{
 			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
 		}
 
-		teamID, _ := cmd.Flags().GetString("team")
-		if teamID == "" {
-			return fmt.Errorf("требуется --team (ID команды)")
+		teamKey, _ := cmd.Flags().GetString("team")
+		if teamKey == "" {
+			return fmt.Errorf("требуется --team (ключ или ID команды)")
 		}
 		event, _ := cmd.Flags().GetString("event")
 		if event == "" {
@@ -102,6 +108,12 @@ var gitAutomationStatesCreateCmd = &cobra.Command{
 		targetBranchID, _ := cmd.Flags().GetString("target-branch")
 
 		c := newLinearClient(t)
+		teamID := teamKey
+		if team, err := c.GetTeamByKey(teamKey); err != nil {
+			return fmt.Errorf("ошибка получения команды: %w", err)
+		} else if team != nil {
+			teamID = team.ID
+		}
 		state, err := c.CreateGitAutomationState(teamID, event, stateID, targetBranchID)
 		if err != nil {
 			return err
@@ -196,9 +208,9 @@ var gitAutomationBranchesCreateCmd = &cobra.Command{
 			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
 		}
 
-		teamID, _ := cmd.Flags().GetString("team")
-		if teamID == "" {
-			return fmt.Errorf("требуется --team (ID команды)")
+		teamKey, _ := cmd.Flags().GetString("team")
+		if teamKey == "" {
+			return fmt.Errorf("требуется --team (ключ или ID команды)")
 		}
 		pattern, _ := cmd.Flags().GetString("pattern")
 		if pattern == "" {
@@ -207,6 +219,12 @@ var gitAutomationBranchesCreateCmd = &cobra.Command{
 		isRegex, _ := cmd.Flags().GetBool("regex")
 
 		c := newLinearClient(t)
+		teamID := teamKey
+		if team, err := c.GetTeamByKey(teamKey); err != nil {
+			return fmt.Errorf("ошибка получения команды: %w", err)
+		} else if team != nil {
+			teamID = team.ID
+		}
 		tb, err := c.CreateGitAutomationTargetBranch(teamID, pattern, isRegex)
 		if err != nil {
 			return err

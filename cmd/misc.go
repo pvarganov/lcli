@@ -209,12 +209,18 @@ var triageResponsibilitiesListCmd = &cobra.Command{
 			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
 		}
 
-		teamID, _ := cmd.Flags().GetString("team")
-		if teamID == "" {
+		teamKey, _ := cmd.Flags().GetString("team")
+		if teamKey == "" {
 			return fmt.Errorf("--team обязателен")
 		}
 
 		c := newLinearClient(t)
+		teamID := teamKey
+		if team, err := c.GetTeamByKey(teamKey); err != nil {
+			return fmt.Errorf("ошибка получения команды: %w", err)
+		} else if team != nil {
+			teamID = team.ID
+		}
 		responsibilities, err := c.ListTriageResponsibilities(teamID)
 		if err != nil {
 			return err

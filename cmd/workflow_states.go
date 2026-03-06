@@ -25,12 +25,18 @@ var workflowStatesListCmd = &cobra.Command{
 			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
 		}
 
-		teamID, _ := cmd.Flags().GetString("team")
-		if teamID == "" {
-			return fmt.Errorf("требуется --team (ID команды)")
+		teamKey, _ := cmd.Flags().GetString("team")
+		if teamKey == "" {
+			return fmt.Errorf("требуется --team (ключ или ID команды)")
 		}
 
 		c := newLinearClient(t)
+		teamID := teamKey
+		if team, err := c.GetTeamByKey(teamKey); err != nil {
+			return fmt.Errorf("ошибка получения команды: %w", err)
+		} else if team != nil {
+			teamID = team.ID
+		}
 		states, err := c.ListWorkflowStates(teamID)
 		if err != nil {
 			return err
@@ -77,9 +83,9 @@ var workflowStatesCreateCmd = &cobra.Command{
 			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
 		}
 
-		teamID, _ := cmd.Flags().GetString("team")
-		if teamID == "" {
-			return fmt.Errorf("требуется --team (ID команды)")
+		teamKey, _ := cmd.Flags().GetString("team")
+		if teamKey == "" {
+			return fmt.Errorf("требуется --team (ключ или ID команды)")
 		}
 		name, _ := cmd.Flags().GetString("name")
 		if name == "" {
@@ -92,6 +98,12 @@ var workflowStatesCreateCmd = &cobra.Command{
 		color, _ := cmd.Flags().GetString("color")
 
 		c := newLinearClient(t)
+		teamID := teamKey
+		if team, err := c.GetTeamByKey(teamKey); err != nil {
+			return fmt.Errorf("ошибка получения команды: %w", err)
+		} else if team != nil {
+			teamID = team.ID
+		}
 		ws, err := c.CreateWorkflowState(teamID, name, stateType, color)
 		if err != nil {
 			return err
