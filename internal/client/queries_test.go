@@ -90,6 +90,105 @@ func TestGetIssue(t *testing.T) {
 	}
 }
 
+func TestListIssueLabels(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{
+				"data": map[string]any{
+					"issueLabels": map[string]any{
+						"nodes": []map[string]any{
+							{"id": "label1", "name": "Bug", "color": "#ff0000", "description": "A bug"},
+							{"id": "label2", "name": "Feature", "color": "#00ff00", "description": ""},
+						},
+					},
+				},
+			})
+		}))
+		defer srv.Close()
+		c := NewWithURL("token", srv.URL)
+		labels, err := c.ListIssueLabels()
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(labels) != 2 {
+			t.Fatalf("expected 2 labels, got %d", len(labels))
+		}
+		if labels[0].Name != "Bug" {
+			t.Errorf("expected Bug, got %q", labels[0].Name)
+		}
+		if labels[0].Color != "#ff0000" {
+			t.Errorf("expected #ff0000, got %q", labels[0].Color)
+		}
+	})
+
+	t.Run("empty", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{
+				"data": map[string]any{
+					"issueLabels": map[string]any{
+						"nodes": []map[string]any{},
+					},
+				},
+			})
+		}))
+		defer srv.Close()
+		c := NewWithURL("token", srv.URL)
+		labels, err := c.ListIssueLabels()
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(labels) != 0 {
+			t.Fatalf("expected 0 labels, got %d", len(labels))
+		}
+	})
+}
+
+func TestGetIssueLabel(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{
+				"data": map[string]any{
+					"issueLabel": map[string]any{
+						"id": "label1", "name": "Bug", "color": "#ff0000", "description": "A bug",
+					},
+				},
+			})
+		}))
+		defer srv.Close()
+		c := NewWithURL("token", srv.URL)
+		label, err := c.GetIssueLabel("label1")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if label.ID != "label1" {
+			t.Errorf("expected label1, got %q", label.ID)
+		}
+		if label.Name != "Bug" {
+			t.Errorf("expected Bug, got %q", label.Name)
+		}
+	})
+
+	t.Run("not found", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{
+				"data": map[string]any{
+					"issueLabel": nil,
+				},
+			})
+		}))
+		defer srv.Close()
+		c := NewWithURL("token", srv.URL)
+		_, err := c.GetIssueLabel("nonexistent")
+		if err == nil {
+			t.Fatal("expected error for not found label")
+		}
+	})
+}
+
 func TestPriorityLabel(t *testing.T) {
 	cases := []struct {
 		p    int

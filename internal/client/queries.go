@@ -255,6 +255,61 @@ query ListTeams {
 	return result.Teams.Nodes, nil
 }
 
+// IssueLabel представляет метку задачи Linear.
+type IssueLabel struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Color       string `json:"color"`
+	Description string `json:"description"`
+}
+
+// ListIssueLabels возвращает все метки организации.
+func (c *Client) ListIssueLabels() ([]IssueLabel, error) {
+	query := `
+query ListIssueLabels {
+  issueLabels(first: 250) {
+    nodes {
+      id
+      name
+      color
+      description
+    }
+  }
+}`
+	var result struct {
+		IssueLabels struct {
+			Nodes []IssueLabel `json:"nodes"`
+		} `json:"issueLabels"`
+	}
+	if err := c.Do(query, nil, &result); err != nil {
+		return nil, err
+	}
+	return result.IssueLabels.Nodes, nil
+}
+
+// GetIssueLabel возвращает метку по ID.
+func (c *Client) GetIssueLabel(id string) (*IssueLabel, error) {
+	query := `
+query GetIssueLabel($id: String!) {
+  issueLabel(id: $id) {
+    id
+    name
+    color
+    description
+  }
+}`
+	var result struct {
+		IssueLabel *IssueLabel `json:"issueLabel"`
+	}
+	if err := c.Do(query, map[string]any{"id": id}, &result); err != nil {
+		return nil, err
+	}
+	if result.IssueLabel == nil {
+		return nil, fmt.Errorf("метка не найдена: %s", id)
+	}
+	return result.IssueLabel, nil
+}
+
 // PriorityLabel возвращает текстовое обозначение приоритета.
 func PriorityLabel(p int) string {
 	switch p {

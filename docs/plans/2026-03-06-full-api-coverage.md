@@ -1,0 +1,655 @@
+# Полное покрытие Linear GraphQL API в lcli
+
+## Overview
+
+Расширение CLI-утилиты lcli для покрытия всего публичного Linear GraphQL API.
+Текущее состояние: реализовано ~4% API (8 команд).
+Цель: покрыть все значимые Query и Mutation Linear API.
+
+Схема API: `docs/Linear-API@current--#@!api!@#.json`
+
+## Context (from discovery)
+
+- Файлы клиента: `internal/client/queries.go`, `internal/client/mutations.go`, `internal/client/client.go`
+- Команды: `cmd/issues.go`, `cmd/issue_create.go`, `cmd/issue_update.go`, `cmd/issue_view.go`, `cmd/issue_comment.go`, `cmd/projects.go`, `cmd/teams.go`, `cmd/auth.go`
+- Формат: таблица (default) или JSON (`-o json`)
+- Паттерн команды: cobra + client.Do(graphql) + format.TableWriter
+- Тесты: table-driven, моки через замену `newLinearClient`
+
+## Development Approach
+
+- **Testing approach**: TDD (тесты первыми)
+- Каждый task = один логический блок (одна группа команд)
+- Сначала тесты, потом реализация
+- Все тесты должны пройти перед переходом к следующему task
+- Обратная совместимость с существующими командами
+
+## Testing Strategy
+
+- **Unit tests**: table-driven, мок клиента через замену фабрики `newLinearClient`
+- Паттерн из существующих тестов: `cmd/issues_test.go`, `cmd/issue_mutations_test.go`
+- Тесты для client-методов: `internal/client/queries_test.go`, `internal/client/mutations_test.go`
+
+## Progress Tracking
+
+- Отмечать выполненные пункты `[x]` сразу после завершения
+- Новые задачи добавлять с префиксом ➕
+- Блокеры отмечать с префиксом ⚠️
+
+---
+
+## Implementation Steps
+
+### Phase 1: Issues — расширенная функциональность
+
+#### Task 1: Issue Labels (метки задач) — Query
+
+- [x] добавить типы `IssueLabel` в `internal/client/queries.go`
+- [x] добавить метод `ListIssueLabels()` — все метки организации
+- [x] написать тесты для `ListIssueLabels` (success + empty)
+- [x] добавить метод `GetIssueLabel(id)` — одна метка по ID
+- [x] написать тесты для `GetIssueLabel` (success + not found)
+- [x] запустить тесты — должны пройти
+
+#### Task 2: Issue Labels (метки задач) — Mutations + CMD
+
+- [ ] написать тесты для cmd `issues labels list` (table + json output)
+- [ ] добавить команды `issues labels list` в `cmd/issue_labels.go`
+- [ ] написать тесты для мутаций `issueLabelCreate`, `issueLabelUpdate`, `issueLabelDelete`
+- [ ] добавить методы `CreateIssueLabel`, `UpdateIssueLabel`, `DeleteIssueLabel` в `internal/client/mutations.go`
+- [ ] написать тесты для cmd `issues labels create/update/delete`
+- [ ] добавить команды `issues labels create`, `issues labels update`, `issues labels delete`
+- [ ] запустить тесты — должны пройти
+
+#### Task 3: Issue Labels — добавление/удаление меток на задачах
+
+- [ ] написать тесты для мутаций `issueAddLabel`, `issueRemoveLabel`
+- [ ] добавить методы `AddLabelToIssue(issueID, labelID)`, `RemoveLabelFromIssue(issueID, labelID)` в mutations.go
+- [ ] написать тесты для cmd `issues label add <ISSUE-ID> <label-name>` и `issues label remove`
+- [ ] добавить команды `issues label add` и `issues label remove` (поиск метки по имени)
+- [ ] запустить тесты — должны пройти
+
+#### Task 4: Issue Relations (связи задач)
+
+- [ ] добавить тип `IssueRelation` в queries.go (id, type, issue, relatedIssue)
+- [ ] написать тесты для `ListIssueRelations(issueID)`
+- [ ] добавить метод `ListIssueRelations(issueID)` в queries.go
+- [ ] написать тесты для мутаций `issueRelationCreate`, `issueRelationDelete`
+- [ ] добавить методы `CreateIssueRelation`, `DeleteIssueRelation` в mutations.go
+- [ ] написать тесты для cmd `issues relations list <ISSUE-ID>`, `issues relations add`, `issues relations remove`
+- [ ] добавить команды в `cmd/issue_relations.go`
+- [ ] запустить тесты — должны пройти
+
+#### Task 5: Issue Archive/Delete/Unarchive
+
+- [ ] написать тесты для мутаций `issueArchive`, `issueUnarchive`, `issueDelete`
+- [ ] добавить методы `ArchiveIssue(id)`, `UnarchiveIssue(id)`, `DeleteIssue(id)` в mutations.go
+- [ ] написать тесты для cmd `issues archive <ID>`, `issues unarchive <ID>`, `issues delete <ID>`
+- [ ] добавить команды в `cmd/issue_archive.go`
+- [ ] запустить тесты — должны пройти
+
+#### Task 6: Issue Search
+
+- [ ] добавить тип `IssueSearchResult` (nodes + pageInfo) в queries.go
+- [ ] написать тесты для `SearchIssues(query, limit)`
+- [ ] добавить метод `SearchIssues(query string, limit int)` в queries.go (использовать `searchIssues` mutation)
+- [ ] написать тесты для cmd `issues search <query>`
+- [ ] добавить команду `issues search` в `cmd/issue_search.go` (флаги: --limit, --team, -o json)
+- [ ] запустить тесты — должны пройти
+
+#### Task 7: Issue Subscribe/Unsubscribe
+
+- [ ] написать тесты для мутаций `issueSubscribe`, `issueUnsubscribe`
+- [ ] добавить методы `SubscribeToIssue(id)`, `UnsubscribeFromIssue(id)` в mutations.go
+- [ ] написать тесты для cmd `issues subscribe <ID>`, `issues unsubscribe <ID>`
+- [ ] добавить команды в `cmd/issue_subscribe.go`
+- [ ] запустить тесты — должны пройти
+
+#### Task 8: Issue Batch Operations
+
+- [ ] написать тесты для мутаций `issueBatchCreate`, `issueBatchUpdate`
+- [ ] добавить типы и методы `BatchCreateIssues`, `BatchUpdateIssues` в mutations.go
+- [ ] написать тесты для cmd `issues batch-update --status <S> --ids <id1,id2,...>`
+- [ ] добавить команду `issues batch-update` в `cmd/issue_batch.go`
+- [ ] запустить тесты — должны пройти
+
+#### Task 9: Comments — Update/Delete/Resolve
+
+- [ ] написать тесты для мутаций `commentUpdate`, `commentDelete`, `commentResolve`, `commentUnresolve`
+- [ ] добавить методы `UpdateComment(id, body)`, `DeleteComment(id)`, `ResolveComment(id)`, `UnresolveComment(id)` в mutations.go
+- [ ] написать тесты для cmd `issues comment update <ID>`, `issues comment delete <ID>`, `issues comment resolve <ID>`
+- [ ] добавить команды в `cmd/issue_comment.go` (расширить существующий файл)
+- [ ] запустить тесты — должны пройти
+
+---
+
+### Phase 2: Projects — расширенная функциональность
+
+#### Task 10: Projects — Create/Update/Delete
+
+- [ ] расширить тип `Project` в queries.go (добавить startDate, targetDate, lead, members, teams, url)
+- [ ] написать тесты для `GetProject(id)` query
+- [ ] добавить метод `GetProject(id)` в queries.go
+- [ ] написать тесты для мутаций `projectCreate`, `projectUpdate`, `projectDelete`, `projectArchive`, `projectUnarchive`
+- [ ] добавить методы `CreateProject`, `UpdateProject`, `DeleteProject`, `ArchiveProject`, `UnarchiveProject` в mutations.go
+- [ ] написать тесты для cmd `projects create`, `projects update <ID>`, `projects delete <ID>`, `projects view <ID>`
+- [ ] добавить команды в `cmd/projects.go` (расширить) и `cmd/project_mutations.go`
+- [ ] запустить тесты — должны пройти
+
+#### Task 11: Project Milestones
+
+- [ ] добавить тип `ProjectMilestone` в queries.go (id, name, targetDate, description)
+- [ ] написать тесты для `ListProjectMilestones(projectID)`
+- [ ] добавить метод `ListProjectMilestones(projectID)` в queries.go
+- [ ] написать тесты для мутаций `projectMilestoneCreate`, `projectMilestoneUpdate`, `projectMilestoneDelete`
+- [ ] добавить методы `CreateProjectMilestone`, `UpdateProjectMilestone`, `DeleteProjectMilestone` в mutations.go
+- [ ] написать тесты для cmd `projects milestones list <PROJECT-ID>`, `projects milestones create`, `projects milestones update`, `projects milestones delete`
+- [ ] добавить команды в `cmd/project_milestones.go`
+- [ ] запустить тесты — должны пройти
+
+#### Task 12: Project Updates (журнал обновлений проекта)
+
+- [ ] добавить тип `ProjectUpdate` в queries.go (id, body, createdAt, user, health)
+- [ ] написать тесты для `ListProjectUpdates(projectID)`
+- [ ] добавить метод `ListProjectUpdates(projectID)` в queries.go
+- [ ] написать тесты для мутаций `projectUpdateCreate`, `projectUpdateUpdate`, `projectUpdateArchive`
+- [ ] добавить методы в mutations.go
+- [ ] написать тесты для cmd `projects updates list <PROJECT-ID>`, `projects updates create`, `projects updates delete`
+- [ ] добавить команды в `cmd/project_updates.go`
+- [ ] запустить тесты — должны пройти
+
+#### Task 13: Project Labels (метки проекта)
+
+- [ ] добавить тип `ProjectLabel` в queries.go
+- [ ] написать тесты для `ListProjectLabels()`
+- [ ] добавить метод `ListProjectLabels()` в queries.go
+- [ ] написать тесты для мутаций `projectLabelCreate`, `projectLabelUpdate`, `projectLabelDelete`
+- [ ] добавить методы в mutations.go
+- [ ] написать тесты для cmd `projects labels list`, `projects labels create`, `projects labels update`, `projects labels delete`
+- [ ] добавить команды в `cmd/project_labels.go`
+- [ ] запустить тесты — должны пройти
+
+#### Task 14: Project Statuses
+
+- [ ] добавить тип `ProjectStatus` в queries.go
+- [ ] написать тесты для `ListProjectStatuses()`
+- [ ] добавить метод `ListProjectStatuses()` в queries.go
+- [ ] написать тесты для мутаций `projectStatusCreate`, `projectStatusUpdate`, `projectStatusArchive`
+- [ ] добавить методы в mutations.go
+- [ ] написать тесты для cmd `projects statuses list`, `projects statuses create`, `projects statuses update`
+- [ ] добавить команды в `cmd/project_statuses.go`
+- [ ] запустить тесты — должны пройти
+
+#### Task 15: Project Search + Relations
+
+- [ ] написать тесты для `SearchProjects(query)`
+- [ ] добавить метод `SearchProjects(query string)` в queries.go
+- [ ] написать тесты для cmd `projects search <query>`
+- [ ] добавить команду `projects search` в cmd/projects.go
+- [ ] написать тесты для мутаций `projectRelationCreate`, `projectRelationDelete`
+- [ ] добавить методы в mutations.go
+- [ ] написать тесты для cmd `projects relations add`, `projects relations remove`
+- [ ] добавить команды в `cmd/project_relations.go`
+- [ ] запустить тесты — должны пройти
+
+---
+
+### Phase 3: Cycles (циклы)
+
+#### Task 16: Cycles — Query
+
+- [ ] добавить тип `Cycle` в queries.go (id, number, name, startsAt, endsAt, team, issues)
+- [ ] написать тесты для `ListCycles(teamKey)`, `GetCycle(id)`
+- [ ] добавить методы `ListCycles(teamID)`, `GetCycle(id)` в queries.go
+- [ ] написать тесты для cmd `cycles list --team <KEY>`, `cycles view <ID>`
+- [ ] добавить команды в `cmd/cycles.go`
+- [ ] запустить тесты — должны пройти
+
+#### Task 17: Cycles — Mutations
+
+- [ ] написать тесты для мутаций `cycleCreate`, `cycleUpdate`, `cycleArchive`
+- [ ] добавить методы `CreateCycle`, `UpdateCycle`, `ArchiveCycle` в mutations.go
+- [ ] написать тесты для cmd `cycles create`, `cycles update <ID>`, `cycles archive <ID>`
+- [ ] добавить команды в `cmd/cycles.go`
+- [ ] запустить тесты — должны пройти
+
+---
+
+### Phase 4: Workflow States (статусы задач)
+
+#### Task 18: Workflow States — Query + Mutations
+
+- [ ] добавить тип `WorkflowState` в queries.go (id, name, type, color, team)
+- [ ] написать тесты для `ListWorkflowStates(teamID)`
+- [ ] добавить метод `ListWorkflowStates(teamID)` в queries.go (расширить существующий)
+- [ ] написать тесты для мутаций `workflowStateCreate`, `workflowStateUpdate`, `workflowStateArchive`
+- [ ] добавить методы `CreateWorkflowState`, `UpdateWorkflowState`, `ArchiveWorkflowState` в mutations.go
+- [ ] написать тесты для cmd `workflow-states list --team <KEY>`, `workflow-states create`, `workflow-states update`, `workflow-states archive`
+- [ ] добавить команды в `cmd/workflow_states.go`
+- [ ] запустить тесты — должны пройти
+
+---
+
+### Phase 5: Teams — расширенная функциональность
+
+#### Task 19: Teams — Create/Update/Delete + Memberships
+
+- [ ] написать тесты для мутаций `teamCreate`, `teamUpdate`, `teamDelete`
+- [ ] добавить методы `CreateTeam`, `UpdateTeam`, `DeleteTeam` в mutations.go
+- [ ] написать тесты для cmd `teams create`, `teams update <ID>`, `teams delete <ID>`
+- [ ] добавить тип `TeamMembership` в queries.go (id, user, team, role)
+- [ ] написать тесты для `ListTeamMembers(teamID)`
+- [ ] добавить метод `ListTeamMembers(teamID)` в queries.go
+- [ ] написать тесты для мутаций `teamMembershipCreate`, `teamMembershipDelete`, `teamMembershipUpdate`
+- [ ] добавить методы в mutations.go
+- [ ] написать тесты для cmd `teams members list <TEAM-ID>`, `teams members add`, `teams members remove`
+- [ ] добавить команды в `cmd/teams.go` (расширить) и `cmd/team_members.go`
+- [ ] запустить тесты — должны пройти
+
+---
+
+### Phase 6: Users
+
+#### Task 20: Users — List + View + Viewer
+
+- [ ] написать тесты для `ListUsers()`, `GetUser(id)`, `GetViewer()` в queries.go
+- [ ] добавить методы в queries.go (расширить существующий FindUserByName)
+- [ ] написать тесты для cmd `users list`, `users view <ID>`, `users me`
+- [ ] добавить команды в `cmd/users.go`
+- [ ] запустить тесты — должны пройти
+
+---
+
+### Phase 7: Notifications
+
+#### Task 21: Notifications — List + управление
+
+- [ ] добавить тип `Notification` в queries.go (id, type, readAt, createdAt, issue, comment, project)
+- [ ] написать тесты для `ListNotifications(limit, after)`, `GetNotificationsUnreadCount()`
+- [ ] добавить методы в queries.go
+- [ ] написать тесты для мутаций `notificationMarkReadAll`, `notificationArchive`, `notificationUpdate`
+- [ ] добавить методы в mutations.go
+- [ ] написать тесты для cmd `notifications list`, `notifications unread-count`, `notifications mark-read`, `notifications archive`
+- [ ] добавить команды в `cmd/notifications.go`
+- [ ] запустить тесты — должны пройти
+
+---
+
+### Phase 8: Webhooks
+
+#### Task 22: Webhooks — CRUD
+
+- [ ] добавить тип `Webhook` в queries.go (id, url, enabled, secret, resourceTypes, team)
+- [ ] написать тесты для `ListWebhooks()`, `GetWebhook(id)`
+- [ ] добавить методы в queries.go
+- [ ] написать тесты для мутаций `webhookCreate`, `webhookUpdate`, `webhookDelete`, `webhookRotateSecret`
+- [ ] добавить методы в mutations.go
+- [ ] написать тесты для cmd `webhooks list`, `webhooks view <ID>`, `webhooks create`, `webhooks update <ID>`, `webhooks delete <ID>`, `webhooks rotate-secret <ID>`
+- [ ] добавить команды в `cmd/webhooks.go`
+- [ ] запустить тесты — должны пройти
+
+---
+
+### Phase 9: Attachments
+
+#### Task 23: Attachments — Query + основные мутации
+
+- [ ] добавить тип `Attachment` в queries.go (id, title, url, sourceType, issue)
+- [ ] написать тесты для `ListAttachments(issueID)`
+- [ ] добавить метод `ListAttachments(issueID)` в queries.go
+- [ ] написать тесты для мутаций `attachmentLinkURL`, `attachmentLinkGitHubPR`, `attachmentLinkGitHubIssue`, `attachmentLinkGitLabMR`, `attachmentDelete`, `attachmentUpdate`
+- [ ] добавить методы в mutations.go
+- [ ] написать тесты для cmd `issues attachments list <ISSUE-ID>`, `issues attachments link-url`, `issues attachments link-github-pr`, `issues attachments delete <ID>`
+- [ ] добавить команды в `cmd/issue_attachments.go`
+- [ ] запустить тесты — должны пройти
+
+---
+
+### Phase 10: Documents
+
+#### Task 24: Documents — CRUD + Search
+
+- [ ] добавить тип `Document` в queries.go (id, title, content, createdAt, updatedAt, project, creator)
+- [ ] написать тесты для `ListDocuments()`, `GetDocument(id)`, `SearchDocuments(query)`
+- [ ] добавить методы в queries.go
+- [ ] написать тесты для мутаций `documentCreate`, `documentUpdate`, `documentDelete`
+- [ ] добавить методы в mutations.go
+- [ ] написать тесты для cmd `documents list`, `documents view <ID>`, `documents create`, `documents update <ID>`, `documents delete <ID>`, `documents search <query>`
+- [ ] добавить команды в `cmd/documents.go`
+- [ ] запустить тесты — должны пройти
+
+---
+
+### Phase 11: Initiatives (инициативы)
+
+#### Task 25: Initiatives — Query + Mutations
+
+- [ ] добавить тип `Initiative` в queries.go (id, name, description, status, owner, projects)
+- [ ] написать тесты для `ListInitiatives()`, `GetInitiative(id)`
+- [ ] добавить методы в queries.go
+- [ ] написать тесты для мутаций `initiativeCreate`, `initiativeUpdate`, `initiativeDelete`, `initiativeArchive`
+- [ ] добавить методы в mutations.go
+- [ ] написать тесты для cmd `initiatives list`, `initiatives view <ID>`, `initiatives create`, `initiatives update <ID>`, `initiatives archive <ID>`
+- [ ] добавить команды в `cmd/initiatives.go`
+- [ ] запустить тесты — должны пройти
+
+#### Task 26: Initiative Updates + Relations с проектами
+
+- [ ] написать тесты для `ListInitiativeUpdates(initiativeID)`
+- [ ] добавить метод в queries.go
+- [ ] написать тесты для мутаций `initiativeUpdateCreate`, `initiativeUpdateUpdate`, `initiativeUpdateArchive`
+- [ ] добавить методы в mutations.go
+- [ ] написать тесты для мутаций `initiativeToProjectCreate`, `initiativeToProjectDelete`
+- [ ] добавить методы в mutations.go
+- [ ] написать тесты для cmd `initiatives updates list`, `initiatives updates create`, `initiatives link-project`, `initiatives unlink-project`
+- [ ] добавить команды в `cmd/initiatives.go`
+- [ ] запустить тесты — должны пройти
+
+---
+
+### Phase 12: Roadmaps (дорожные карты)
+
+#### Task 27: Roadmaps — CRUD + Projects
+
+- [ ] добавить тип `Roadmap` в queries.go (id, name, description, owner)
+- [ ] написать тесты для `ListRoadmaps()`, `GetRoadmap(id)`
+- [ ] добавить методы в queries.go
+- [ ] написать тесты для мутаций `roadmapCreate`, `roadmapUpdate`, `roadmapDelete`, `roadmapArchive`
+- [ ] добавить методы в mutations.go
+- [ ] написать тесты для мутаций `roadmapToProjectCreate`, `roadmapToProjectDelete`
+- [ ] добавить методы в mutations.go
+- [ ] написать тесты для cmd `roadmaps list`, `roadmaps view <ID>`, `roadmaps create`, `roadmaps update <ID>`, `roadmaps delete <ID>`, `roadmaps add-project`, `roadmaps remove-project`
+- [ ] добавить команды в `cmd/roadmaps.go`
+- [ ] запустить тесты — должны пройти
+
+---
+
+### Phase 13: Customers (CRM)
+
+#### Task 28: Customers — CRUD
+
+- [ ] добавить тип `Customer`, `CustomerNeed`, `CustomerStatus`, `CustomerTier` в queries.go
+- [ ] написать тесты для `ListCustomers()`, `GetCustomer(id)`, `ListCustomerNeeds()`
+- [ ] добавить методы в queries.go
+- [ ] написать тесты для мутаций `customerCreate`, `customerUpdate`, `customerDelete`, `customerUpsert`
+- [ ] добавить методы в mutations.go
+- [ ] написать тесты для cmd `customers list`, `customers view <ID>`, `customers create`, `customers update <ID>`, `customers delete <ID>`
+- [ ] добавить команды в `cmd/customers.go`
+- [ ] запустить тесты — должны пройти
+
+#### Task 29: Customer Needs + Statuses + Tiers
+
+- [ ] написать тесты для мутаций `customerNeedCreate`, `customerNeedUpdate`, `customerNeedDelete`
+- [ ] добавить методы в mutations.go
+- [ ] написать тесты для мутаций `customerStatusCreate`, `customerStatusUpdate`, `customerStatusDelete`
+- [ ] добавить методы в mutations.go
+- [ ] написать тесты для мутаций `customerTierCreate`, `customerTierUpdate`, `customerTierDelete`
+- [ ] добавить методы в mutations.go
+- [ ] написать тесты для cmd `customers needs list`, `customers needs create`, `customers statuses list`, `customers tiers list`
+- [ ] добавить команды в `cmd/customers.go`
+- [ ] запустить тесты — должны пройти
+
+---
+
+### Phase 14: Templates
+
+#### Task 30: Templates — CRUD
+
+- [ ] добавить тип `Template` в queries.go (id, name, description, type, templateData)
+- [ ] написать тесты для `ListTemplates()`, `GetTemplate(id)`
+- [ ] добавить методы в queries.go
+- [ ] написать тесты для мутаций `templateCreate`, `templateUpdate`, `templateDelete`
+- [ ] добавить методы в mutations.go
+- [ ] написать тесты для cmd `templates list`, `templates view <ID>`, `templates create`, `templates update <ID>`, `templates delete <ID>`
+- [ ] добавить команды в `cmd/templates.go`
+- [ ] запустить тесты — должны пройти
+
+---
+
+### Phase 15: Organization
+
+#### Task 31: Organization — View + Invites
+
+- [ ] добавить тип `Organization` в queries.go (id, name, urlKey, logoUrl, createdAt, periodUploadVolume)
+- [ ] написать тесты для `GetOrganization()`
+- [ ] добавить метод `GetOrganization()` в queries.go
+- [ ] добавить тип `OrganizationInvite` в queries.go
+- [ ] написать тесты для `ListOrganizationInvites()`
+- [ ] добавить метод в queries.go
+- [ ] написать тесты для мутаций `organizationInviteCreate`, `organizationInviteDelete`, `resendOrganizationInvite`
+- [ ] добавить методы в mutations.go
+- [ ] написать тесты для cmd `org view`, `org invites list`, `org invites create`, `org invites delete`, `org invites resend`
+- [ ] добавить команды в `cmd/org.go`
+- [ ] запустить тесты — должны пройти
+
+---
+
+### Phase 16: Custom Views
+
+#### Task 32: Custom Views — CRUD
+
+- [ ] добавить тип `CustomView` в queries.go (id, name, description, filters, icon, color, owner)
+- [ ] написать тесты для `ListCustomViews()`, `GetCustomView(id)`
+- [ ] добавить методы в queries.go
+- [ ] написать тесты для мутаций `customViewCreate`, `customViewUpdate`, `customViewDelete`
+- [ ] добавить методы в mutations.go
+- [ ] написать тесты для cmd `views list`, `views view <ID>`, `views create`, `views update <ID>`, `views delete <ID>`
+- [ ] добавить команды в `cmd/custom_views.go`
+- [ ] запустить тесты — должны пройти
+
+---
+
+### Phase 17: Favorites + Reactions + Emoji
+
+#### Task 33: Favorites
+
+- [ ] добавить тип `Favorite` в queries.go (id, type, issue, project, cycle, label, custom view)
+- [ ] написать тесты для `ListFavorites()`
+- [ ] добавить метод в queries.go
+- [ ] написать тесты для мутаций `favoriteCreate`, `favoriteDelete`, `favoriteUpdate`
+- [ ] добавить методы в mutations.go
+- [ ] написать тесты для cmd `favorites list`, `favorites add`, `favorites remove`
+- [ ] добавить команды в `cmd/favorites.go`
+- [ ] запустить тесты — должны пройти
+
+#### Task 34: Comment Reactions + Emojis
+
+- [ ] написать тесты для мутаций `reactionCreate`, `reactionDelete`
+- [ ] добавить методы в mutations.go
+- [ ] написать тесты для `ListEmojis()`
+- [ ] добавить метод в queries.go
+- [ ] написать тесты для мутаций `emojiCreate`, `emojiDelete`
+- [ ] добавить методы в mutations.go
+- [ ] написать тесты для cmd `issues comment react <COMMENT-ID> <emoji>`, `emojis list`, `emojis create`, `emojis delete`
+- [ ] добавить команды в `cmd/reactions.go`, `cmd/emojis.go`
+- [ ] запустить тесты — должны пройти
+
+---
+
+### Phase 18: Releases [ALPHA]
+
+#### Task 35: Releases — CRUD + Pipelines
+
+- [ ] добавить типы `Release`, `ReleasePipeline`, `ReleaseStage` в queries.go
+- [ ] написать тесты для `ListReleases()`, `ListReleasePipelines()`, `SearchReleases(query)`
+- [ ] добавить методы в queries.go
+- [ ] написать тесты для мутаций `releaseCreate`, `releaseUpdate`, `releaseDelete`, `releaseComplete`
+- [ ] добавить методы в mutations.go
+- [ ] написать тесты для мутаций `releasePipelineCreate`, `releasePipelineUpdate`, `releasePipelineDelete`
+- [ ] добавить методы в mutations.go
+- [ ] написать тесты для cmd `releases list`, `releases view <ID>`, `releases create`, `releases complete <ID>`, `releases pipelines list`, `releases pipelines create`
+- [ ] добавить команды в `cmd/releases.go`
+- [ ] запустить тесты — должны пройти
+
+---
+
+### Phase 19: Integrations + Git Automation
+
+#### Task 36: Integrations — List + View
+
+- [ ] добавить тип `Integration` в queries.go (id, service, createdAt, team, organization)
+- [ ] написать тесты для `ListIntegrations()`
+- [ ] добавить метод в queries.go
+- [ ] написать тесты для мутаций `integrationArchive`, `integrationDelete`
+- [ ] добавить методы в mutations.go
+- [ ] написать тесты для cmd `integrations list`, `integrations delete <ID>`
+- [ ] добавить команды в `cmd/integrations.go`
+- [ ] запустить тесты — должны пройти
+
+#### Task 37: Git Automation States + Branch Automation
+
+- [ ] добавить типы `GitAutomationState`, `GitAutomationTargetBranch` в queries.go
+- [ ] написать тесты для мутаций `gitAutomationStateCreate`, `gitAutomationStateUpdate`, `gitAutomationStateDelete`
+- [ ] добавить методы в mutations.go
+- [ ] написать тесты для мутаций `gitAutomationTargetBranchCreate`, `gitAutomationTargetBranchUpdate`, `gitAutomationTargetBranchDelete`
+- [ ] добавить методы в mutations.go
+- [ ] написать тесты для cmd `git-automation states list --team <KEY>`, `git-automation states create`, `git-automation states delete <ID>`
+- [ ] добавить команды в `cmd/git_automation.go`
+- [ ] запустить тесты — должны пройти
+
+---
+
+### Phase 20: Audit Log + Rate Limit + Misc
+
+#### Task 38: Audit Entries
+
+- [ ] добавить тип `AuditEntry` в queries.go (id, type, actorId, createdAt, ip, country, metadata)
+- [ ] написать тесты для `ListAuditEntries(filter, limit, after)`
+- [ ] добавить метод в queries.go
+- [ ] написать тесты для `ListAuditEntryTypes()`
+- [ ] добавить метод в queries.go
+- [ ] написать тесты для cmd `audit list`, `audit types`
+- [ ] добавить команды в `cmd/audit.go`
+- [ ] запустить тесты — должны пройти
+
+#### Task 39: Rate Limit + Time Schedules + Triage
+
+- [ ] написать тесты для `GetRateLimitStatus()` в queries.go
+- [ ] добавить метод в queries.go
+- [ ] добавить тип `TimeSchedule` в queries.go
+- [ ] написать тесты для `ListTimeSchedules()`
+- [ ] добавить метод в queries.go
+- [ ] написать тесты для мутаций `timeScheduleCreate`, `timeScheduleUpdate`, `timeScheduleDelete`
+- [ ] добавить методы в mutations.go
+- [ ] добавить тип `TriageResponsibility` в queries.go
+- [ ] написать тесты для `ListTriageResponsibilities(teamID)`
+- [ ] добавить метод в queries.go
+- [ ] написать тесты для cmd `rate-limit`, `time-schedules list/create/update/delete`, `triage-responsibilities list`
+- [ ] добавить команды в `cmd/misc.go`
+- [ ] запустить тесты — должны пройти
+
+---
+
+### Task 40: Финальная проверка
+
+- [ ] проверить, что все команды зарегистрированы в root command (rootCmd.AddCommand)
+- [ ] проверить, что все команды имеют --output/-o json флаг
+- [ ] запустить полный набор тестов (`go test ./...`)
+- [ ] запустить линтер (`go vet ./...`)
+- [ ] проверить покрытие тестов (`go test -cover ./...`)
+
+### Task 41: Обновить документацию
+
+- [ ] обновить README.md: добавить все новые команды с примерами
+- [ ] добавить секцию с полным списком команд в README.md
+
+---
+
+## Technical Details
+
+### Паттерн реализации команды (на примере существующего кода)
+
+```go
+// Структура типа в queries.go
+type Foo struct {
+    ID   string `json:"id"`
+    Name string `json:"name"`
+}
+
+// Query метод в queries.go
+func (c *Client) ListFoos() ([]Foo, error) {
+    query := `query { foos { nodes { id name } } }`
+    var result struct { Foos struct { Nodes []Foo `json:"nodes"` } `json:"foos"` }
+    if err := c.Do(query, nil, &result); err != nil { return nil, err }
+    return result.Foos.Nodes, nil
+}
+
+// Mutation метод в mutations.go
+func (c *Client) CreateFoo(name string) (*Foo, error) {
+    mutation := `mutation CreateFoo($input: FooCreateInput!) { fooCreate(input: $input) { success foo { id name } } }`
+    var result struct { FooCreate struct { Foo Foo `json:"foo"`; Success bool `json:"success"` } `json:"fooCreate"` }
+    if err := c.Do(mutation, map[string]any{"input": map[string]any{"name": name}}, &result); err != nil { return nil, err }
+    if !result.FooCreate.Success { return nil, fmt.Errorf("fooCreate вернул success=false") }
+    return &result.FooCreate.Foo, nil
+}
+
+// Команда в cmd/foos.go — использует паттерн из cmd/issues.go
+```
+
+### Паттерн тестов
+
+```go
+// Тест для client метода
+func TestListFoos(t *testing.T) {
+    srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        json.NewEncoder(w).Encode(map[string]any{"data": map[string]any{"foos": map[string]any{"nodes": []map[string]any{{"id": "foo1", "name": "Test Foo"}}}}})
+    }))
+    defer srv.Close()
+    c := client.New("test-token")
+    // переопределить endpoint...
+    foos, err := c.ListFoos()
+    // assert...
+}
+```
+
+### Организация файлов
+
+```
+cmd/
+  issue_labels.go          # issues labels
+  issue_relations.go       # issues relations
+  issue_archive.go         # issues archive/delete/unarchive
+  issue_search.go          # issues search
+  issue_subscribe.go       # issues subscribe/unsubscribe
+  issue_batch.go           # issues batch-update
+  issue_attachments.go     # issues attachments
+  project_mutations.go     # projects create/update/delete/archive
+  project_milestones.go    # projects milestones
+  project_updates.go       # projects updates
+  project_labels.go        # projects labels
+  project_statuses.go      # projects statuses
+  project_relations.go     # projects relations
+  cycles.go                # cycles CRUD
+  workflow_states.go       # workflow-states
+  team_members.go          # teams members
+  users.go                 # users
+  notifications.go         # notifications
+  webhooks.go              # webhooks
+  documents.go             # documents
+  initiatives.go           # initiatives
+  roadmaps.go              # roadmaps
+  customers.go             # customers (CRM)
+  templates.go             # templates
+  org.go                   # org
+  custom_views.go          # views
+  favorites.go             # favorites
+  reactions.go             # comment reactions
+  emojis.go                # emojis
+  releases.go              # releases [ALPHA]
+  integrations.go          # integrations
+  git_automation.go        # git automation
+  audit.go                 # audit log
+  misc.go                  # rate-limit, time-schedules, triage
+```
+
+## Post-Completion
+
+**Ручное тестирование:**
+- Тестирование каждой команды с реальным Linear API токеном
+- Проверка форматов вывода (table и json) для каждой команды
+- Тестирование edge cases: пустые результаты, несуществующие ID, ошибки авторизации
+
+**Внешние зависимости:**
+- Некоторые команды требуют платного тарифа Linear (releases, roadmaps)
+- Customers (CRM) может быть недоступен для всех тарифов
+- Команды помеченные [ALPHA] или [INTERNAL] в API могут быть нестабильны
