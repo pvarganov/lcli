@@ -82,11 +82,11 @@
 
 #### Task 5: Issue Archive/Delete/Unarchive
 
-- [ ] написать тесты для мутаций `issueArchive`, `issueUnarchive`, `issueDelete`
-- [ ] добавить методы `ArchiveIssue(id)`, `UnarchiveIssue(id)`, `DeleteIssue(id)` в mutations.go
-- [ ] написать тесты для cmd `issues archive <ID>`, `issues unarchive <ID>`, `issues delete <ID>`
-- [ ] добавить команды в `cmd/issue_archive.go`
-- [ ] запустить тесты — должны пройти
+- [x] написать тесты для мутаций `issueArchive`, `issueUnarchive`, `issueDelete`
+- [x] добавить методы `ArchiveIssue(id)`, `UnarchiveIssue(id)`, `DeleteIssue(id)` в mutations.go
+- [x] написать тесты для cmd `issues archive <ID>`, `issues unarchive <ID>`, `issues delete <ID>`
+- [x] добавить команды в `cmd/issue_archive.go`
+- [x] запустить тесты — должны пройти
 
 #### Task 6: Issue Search
 

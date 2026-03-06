@@ -482,6 +482,72 @@ mutation DeleteIssueRelation($id: String!) {
 	return nil
 }
 
+// ArchiveIssue архивирует задачу по ID.
+func (c *Client) ArchiveIssue(id string) error {
+	mutation := `
+mutation ArchiveIssue($id: String!) {
+  issueArchive(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		IssueArchive struct {
+			Success bool `json:"success"`
+		} `json:"issueArchive"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.IssueArchive.Success {
+		return fmt.Errorf("issueArchive вернул success=false")
+	}
+	return nil
+}
+
+// UnarchiveIssue разархивирует задачу по ID.
+func (c *Client) UnarchiveIssue(id string) error {
+	mutation := `
+mutation UnarchiveIssue($id: String!) {
+  issueUnarchive(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		IssueUnarchive struct {
+			Success bool `json:"success"`
+		} `json:"issueUnarchive"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.IssueUnarchive.Success {
+		return fmt.Errorf("issueUnarchive вернул success=false")
+	}
+	return nil
+}
+
+// DeleteIssue удаляет задачу по ID.
+func (c *Client) DeleteIssue(id string) error {
+	mutation := `
+mutation DeleteIssue($id: String!) {
+  issueDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		IssueDelete struct {
+			Success bool `json:"success"`
+		} `json:"issueDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.IssueDelete.Success {
+		return fmt.Errorf("issueDelete вернул success=false")
+	}
+	return nil
+}
+
 // FindUserByName ищет пользователя по displayName или email.
 func (c *Client) FindUserByName(name string) (*User, error) {
 	query := `

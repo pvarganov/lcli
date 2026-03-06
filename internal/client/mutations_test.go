@@ -529,3 +529,75 @@ func TestFindUserByName(t *testing.T) {
 		t.Errorf("expected user u2 by email, got %+v", byEmail)
 	}
 }
+
+func TestArchiveIssue(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"issueArchive": map[string]any{"success": true},
+		})
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.ArchiveIssue("issue1"); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"issueArchive": map[string]any{"success": false},
+		})
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.ArchiveIssue("issue1"); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestUnarchiveIssue(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"issueUnarchive": map[string]any{"success": true},
+		})
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.UnarchiveIssue("issue1"); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"issueUnarchive": map[string]any{"success": false},
+		})
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.UnarchiveIssue("issue1"); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestDeleteIssue(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"issueDelete": map[string]any{"success": true},
+		})
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.DeleteIssue("issue1"); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"issueDelete": map[string]any{"success": false},
+		})
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.DeleteIssue("issue1"); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
