@@ -3930,3 +3930,47 @@ mutation ReleasePipelineDelete($id: String!) {
 	}
 	return nil
 }
+
+// ArchiveIntegration архивирует интеграцию.
+func (c *Client) ArchiveIntegration(id string) error {
+	mutation := `
+mutation IntegrationArchive($id: String!) {
+  integrationArchive(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		IntegrationArchive struct {
+			Success bool `json:"success"`
+		} `json:"integrationArchive"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.IntegrationArchive.Success {
+		return fmt.Errorf("integrationArchive вернул success=false")
+	}
+	return nil
+}
+
+// DeleteIntegration удаляет интеграцию.
+func (c *Client) DeleteIntegration(id string) error {
+	mutation := `
+mutation IntegrationDelete($id: String!) {
+  integrationDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		IntegrationDelete struct {
+			Success bool `json:"success"`
+		} `json:"integrationDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.IntegrationDelete.Success {
+		return fmt.Errorf("integrationDelete вернул success=false")
+	}
+	return nil
+}

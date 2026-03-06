@@ -3366,3 +3366,35 @@ func TestDeleteReleasePipeline(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
+
+func TestArchiveIntegration(t *testing.T) {
+	responseData := map[string]any{
+		"integrationArchive": map[string]any{
+			"success": true,
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	if err := c.ArchiveIntegration("int1"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestDeleteIntegration(t *testing.T) {
+	responseData := map[string]any{
+		"integrationDelete": map[string]any{
+			"success": true,
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	if err := c.DeleteIntegration("int1"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}

@@ -487,14 +487,14 @@
 
 #### Task 36: Integrations — List + View
 
-- [ ] добавить тип `Integration` в queries.go (id, service, createdAt, team, organization)
-- [ ] написать тесты для `ListIntegrations()`
-- [ ] добавить метод в queries.go
-- [ ] написать тесты для мутаций `integrationArchive`, `integrationDelete`
-- [ ] добавить методы в mutations.go
-- [ ] написать тесты для cmd `integrations list`, `integrations delete <ID>`
-- [ ] добавить команды в `cmd/integrations.go`
-- [ ] запустить тесты — должны пройти
+- [x] добавить тип `Integration` в queries.go (id, service, createdAt, team, organization)
+- [x] написать тесты для `ListIntegrations()`
+- [x] добавить метод в queries.go
+- [x] написать тесты для мутаций `integrationArchive`, `integrationDelete`
+- [x] добавить методы в mutations.go
+- [x] написать тесты для cmd `integrations list`, `integrations delete <ID>`
+- [x] добавить команды в `cmd/integrations.go`
+- [x] запустить тесты — должны пройти
 
 #### Task 37: Git Automation States + Branch Automation
 

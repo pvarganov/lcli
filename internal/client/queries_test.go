@@ -2238,3 +2238,56 @@ func TestListReleasePipelinesEmpty(t *testing.T) {
 		t.Errorf("expected 0 pipelines, got %d", len(pipelines))
 	}
 }
+
+func TestListIntegrations(t *testing.T) {
+	responseData := map[string]any{
+		"integrations": map[string]any{
+			"nodes": []map[string]any{
+				{
+					"id":        "int1",
+					"service":   "github",
+					"createdAt": "2024-01-01T00:00:00Z",
+					"team":      map[string]any{"id": "t1", "key": "ENG", "name": "Engineering"},
+				},
+			},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	integrations, err := c.ListIntegrations()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(integrations) != 1 {
+		t.Fatalf("expected 1 integration, got %d", len(integrations))
+	}
+	if integrations[0].Service != "github" {
+		t.Errorf("expected service 'github', got %q", integrations[0].Service)
+	}
+	if integrations[0].Team == nil || integrations[0].Team.Key != "ENG" {
+		t.Errorf("expected team key 'ENG'")
+	}
+}
+
+func TestListIntegrationsEmpty(t *testing.T) {
+	responseData := map[string]any{
+		"integrations": map[string]any{
+			"nodes": []map[string]any{},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	integrations, err := c.ListIntegrations()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(integrations) != 0 {
+		t.Errorf("expected 0 integrations, got %d", len(integrations))
+	}
+}

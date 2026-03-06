@@ -1866,3 +1866,39 @@ query ListReleasePipelines {
 	}
 	return result.ReleasePipelines.Nodes, nil
 }
+
+// Integration представляет интеграцию Linear с внешним сервисом.
+type Integration struct {
+	ID           string  `json:"id"`
+	Service      string  `json:"service"`
+	CreatedAt    string  `json:"createdAt"`
+	Team         *Team   `json:"team"`
+	Organization *struct {
+		ID   string `json:"id"`
+		Name string `json:"name"`
+	} `json:"organization"`
+}
+
+// ListIntegrations возвращает список интеграций организации.
+func (c *Client) ListIntegrations() ([]Integration, error) {
+	query := `
+query ListIntegrations {
+  integrations {
+    nodes {
+      id
+      service
+      createdAt
+      team { id key name }
+    }
+  }
+}`
+	var result struct {
+		Integrations struct {
+			Nodes []Integration `json:"nodes"`
+		} `json:"integrations"`
+	}
+	if err := c.Do(query, nil, &result); err != nil {
+		return nil, err
+	}
+	return result.Integrations.Nodes, nil
+}
