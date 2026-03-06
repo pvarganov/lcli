@@ -52,6 +52,8 @@ lcli auth status
 lcli issues list
 lcli issues list --team ENG --status "In Progress" --assignee "John Doe" --limit 50
 lcli issues list --after <cursor>     # следующая страница
+lcli issues list --priority 1 --label "Bug" --order-by priority
+lcli issues list --project-id <PROJECT-ID> --cycle-id <CYCLE-ID> --creator "John Doe"
 
 # просмотр задачи
 lcli issue view ENG-123
@@ -61,11 +63,18 @@ lcli issue view ENG-123 -o json
 lcli issue create --title "Новая задача" --team ENG
 lcli issue create --title "Баг" --team ENG --description "Описание" --priority 1
 lcli issue create --title "Задача" --team ENG --assignee "Jane Doe"
+lcli issue create --title "Задача" --team ENG --due-date 2026-04-01 --estimate 3 --labels "Bug,Feature"
+lcli issue create --title "Задача" --team ENG --state "In Progress" --project-id <PROJECT-ID> --cycle-id <CYCLE-ID>
+lcli issue create --title "Подзадача" --team ENG --parent ENG-100 --milestone-id <MILESTONE-ID>
 
 # обновить задачу
 lcli issue update ENG-123 --status "Done"
 lcli issue update ENG-123 --assignee "Jane Doe" --priority 2
 lcli issue update ENG-123 --title "Новый заголовок"
+lcli issue update ENG-123 --description "Новое описание" --due-date 2026-04-01 --estimate 5
+lcli issue update ENG-123 --add-labels "Bug" --remove-labels "Feature"
+lcli issue update ENG-123 --project-id <PROJECT-ID> --cycle-id <CYCLE-ID> --milestone-id <MILESTONE-ID>
+lcli issue update ENG-123 --snooze-until 2026-04-01T10:00:00Z
 
 # поиск задач
 lcli issues search "текст поиска"
@@ -93,6 +102,7 @@ lcli issue comments ENG-123 -o json
 
 # добавить комментарий
 lcli issue comment ENG-123 --body "Комментарий"
+lcli issue comment ENG-123 --body "Ответ на комментарий" --parent-id <COMMENT-ID>
 
 # обновить комментарий
 lcli issue comment update <COMMENT-ID> --body "Новый текст"
@@ -165,9 +175,13 @@ lcli projects view <PROJECT-ID>
 # создать проект
 lcli projects create --name "Новый проект" --team ENG
 lcli projects create --name "Проект" --team ENG --description "Описание" --state "started"
+lcli projects create --name "Проект" --team ENG --color "#ff0000" --icon "🚀" --priority 1
+lcli projects create --name "Проект" --team ENG --member-ids "user1,user2" --content "Описание проекта"
 
 # обновить проект
 lcli projects update <PROJECT-ID> --name "Новое название" --state "completed"
+lcli projects update <PROJECT-ID> --color "#00ff00" --icon "✅" --priority 2
+lcli projects update <PROJECT-ID> --member-ids "user1,user2,user3" --content "Обновлённое описание"
 
 # архивирование и удаление
 lcli projects archive <PROJECT-ID>
