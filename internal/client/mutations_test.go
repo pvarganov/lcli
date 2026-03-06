@@ -2124,3 +2124,159 @@ func TestArchiveNotification(t *testing.T) {
 		}
 	})
 }
+
+func TestCreateWebhook(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"webhookCreate": map[string]any{
+				"success": true,
+				"webhook": map[string]any{
+					"id":            "wh1",
+					"url":           "https://example.com/hook",
+					"enabled":       true,
+					"secret":        "mysecret",
+					"resourceTypes": []string{"Issue"},
+					"team":          map[string]any{"id": "t1", "key": "ENG", "name": "Engineering"},
+				},
+			},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		wh, err := c.CreateWebhook(WebhookCreateInput{
+			URL:           "https://example.com/hook",
+			TeamID:        "t1",
+			Enabled:       true,
+			ResourceTypes: []string{"Issue"},
+		})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if wh.ID != "wh1" {
+			t.Errorf("expected id wh1, got %s", wh.ID)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		responseData := map[string]any{
+			"webhookCreate": map[string]any{"success": false},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		_, err := c.CreateWebhook(WebhookCreateInput{URL: "https://example.com/hook", TeamID: "t1"})
+		if err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestUpdateWebhook(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"webhookUpdate": map[string]any{
+				"success": true,
+				"webhook": map[string]any{
+					"id":      "wh1",
+					"url":     "https://example.com/hook2",
+					"enabled": false,
+				},
+			},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		wh, err := c.UpdateWebhook("wh1", map[string]any{"url": "https://example.com/hook2", "enabled": false})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if wh.ID != "wh1" {
+			t.Errorf("expected id wh1, got %s", wh.ID)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		responseData := map[string]any{
+			"webhookUpdate": map[string]any{"success": false},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		_, err := c.UpdateWebhook("wh1", map[string]any{"url": "x"})
+		if err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestDeleteWebhook(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"webhookDelete": map[string]any{"success": true},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.DeleteWebhook("wh1"); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		responseData := map[string]any{
+			"webhookDelete": map[string]any{"success": false},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.DeleteWebhook("wh1"); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestRotateWebhookSecret(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"webhookRotateSecret": map[string]any{
+				"success": true,
+				"webhook": map[string]any{
+					"id":     "wh1",
+					"url":    "https://example.com/hook",
+					"secret": "newsecret",
+				},
+			},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		wh, err := c.RotateWebhookSecret("wh1")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if wh.ID != "wh1" {
+			t.Errorf("expected id wh1, got %s", wh.ID)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		responseData := map[string]any{
+			"webhookRotateSecret": map[string]any{"success": false},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		_, err := c.RotateWebhookSecret("wh1")
+		if err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}

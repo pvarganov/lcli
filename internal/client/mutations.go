@@ -2006,3 +2006,139 @@ mutation ArchiveNotification($id: String!) {
 	}
 	return nil
 }
+
+// WebhookCreateInput — входные данные для создания вебхука.
+type WebhookCreateInput struct {
+	URL           string
+	TeamID        string
+	Enabled       bool
+	Secret        string
+	ResourceTypes []string
+}
+
+// CreateWebhook создаёт вебхук.
+func (c *Client) CreateWebhook(input WebhookCreateInput) (*Webhook, error) {
+	mutation := `
+mutation CreateWebhook($input: WebhookCreateInput!) {
+  webhookCreate(input: $input) {
+    success
+    webhook {
+      id
+      url
+      enabled
+      secret
+      resourceTypes
+      team { id key name }
+    }
+  }
+}`
+	inp := map[string]any{
+		"url":    input.URL,
+		"teamId": input.TeamID,
+	}
+	if input.Secret != "" {
+		inp["secret"] = input.Secret
+	}
+	if len(input.ResourceTypes) > 0 {
+		inp["resourceTypes"] = input.ResourceTypes
+	}
+	inp["enabled"] = input.Enabled
+
+	var result struct {
+		WebhookCreate struct {
+			Webhook Webhook `json:"webhook"`
+			Success bool    `json:"success"`
+		} `json:"webhookCreate"`
+	}
+	if err := c.Do(mutation, map[string]any{"input": inp}, &result); err != nil {
+		return nil, err
+	}
+	if !result.WebhookCreate.Success {
+		return nil, fmt.Errorf("webhookCreate вернул success=false")
+	}
+	return &result.WebhookCreate.Webhook, nil
+}
+
+// UpdateWebhook обновляет вебхук по ID.
+func (c *Client) UpdateWebhook(id string, input map[string]any) (*Webhook, error) {
+	mutation := `
+mutation UpdateWebhook($id: String!, $input: WebhookUpdateInput!) {
+  webhookUpdate(id: $id, input: $input) {
+    success
+    webhook {
+      id
+      url
+      enabled
+      secret
+      resourceTypes
+      team { id key name }
+    }
+  }
+}`
+	var result struct {
+		WebhookUpdate struct {
+			Webhook Webhook `json:"webhook"`
+			Success bool    `json:"success"`
+		} `json:"webhookUpdate"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id, "input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.WebhookUpdate.Success {
+		return nil, fmt.Errorf("webhookUpdate вернул success=false")
+	}
+	return &result.WebhookUpdate.Webhook, nil
+}
+
+// DeleteWebhook удаляет вебхук по ID.
+func (c *Client) DeleteWebhook(id string) error {
+	mutation := `
+mutation DeleteWebhook($id: String!) {
+  webhookDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		WebhookDelete struct {
+			Success bool `json:"success"`
+		} `json:"webhookDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.WebhookDelete.Success {
+		return fmt.Errorf("webhookDelete вернул success=false")
+	}
+	return nil
+}
+
+// RotateWebhookSecret обновляет секрет вебхука по ID.
+func (c *Client) RotateWebhookSecret(id string) (*Webhook, error) {
+	mutation := `
+mutation RotateWebhookSecret($id: String!) {
+  webhookRotateSecret(id: $id) {
+    success
+    webhook {
+      id
+      url
+      enabled
+      secret
+      resourceTypes
+      team { id key name }
+    }
+  }
+}`
+	var result struct {
+		WebhookRotateSecret struct {
+			Webhook Webhook `json:"webhook"`
+			Success bool    `json:"success"`
+		} `json:"webhookRotateSecret"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return nil, err
+	}
+	if !result.WebhookRotateSecret.Success {
+		return nil, fmt.Errorf("webhookRotateSecret вернул success=false")
+	}
+	return &result.WebhookRotateSecret.Webhook, nil
+}

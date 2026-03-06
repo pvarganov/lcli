@@ -1191,3 +1191,106 @@ func TestGetNotificationsUnreadCount(t *testing.T) {
 		t.Errorf("expected 3 unread, got %d", count)
 	}
 }
+
+func TestListWebhooks(t *testing.T) {
+	responseData := map[string]any{
+		"webhooks": map[string]any{
+			"nodes": []map[string]any{
+				{
+					"id":            "wh1",
+					"url":           "https://example.com/hook",
+					"enabled":       true,
+					"secret":        "mysecret",
+					"resourceTypes": []string{"Issue", "Comment"},
+					"team":          map[string]any{"id": "t1", "key": "ENG", "name": "Engineering"},
+				},
+			},
+		},
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	webhooks, err := c.ListWebhooks()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(webhooks) != 1 {
+		t.Fatalf("expected 1 webhook, got %d", len(webhooks))
+	}
+	if webhooks[0].ID != "wh1" {
+		t.Errorf("expected id wh1, got %s", webhooks[0].ID)
+	}
+	if webhooks[0].URL != "https://example.com/hook" {
+		t.Errorf("expected url https://example.com/hook, got %s", webhooks[0].URL)
+	}
+}
+
+func TestListWebhooksEmpty(t *testing.T) {
+	responseData := map[string]any{
+		"webhooks": map[string]any{
+			"nodes": []map[string]any{},
+		},
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	webhooks, err := c.ListWebhooks()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(webhooks) != 0 {
+		t.Fatalf("expected 0 webhooks, got %d", len(webhooks))
+	}
+}
+
+func TestGetWebhook(t *testing.T) {
+	responseData := map[string]any{
+		"webhook": map[string]any{
+			"id":            "wh1",
+			"url":           "https://example.com/hook",
+			"enabled":       true,
+			"secret":        "mysecret",
+			"resourceTypes": []string{"Issue"},
+			"team":          map[string]any{"id": "t1", "key": "ENG", "name": "Engineering"},
+		},
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	wh, err := c.GetWebhook("wh1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if wh.ID != "wh1" {
+		t.Errorf("expected id wh1, got %s", wh.ID)
+	}
+}
+
+func TestGetWebhookNotFound(t *testing.T) {
+	responseData := map[string]any{
+		"webhook": nil,
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	_, err := c.GetWebhook("nonexistent")
+	if err == nil {
+		t.Fatal("expected error for not found webhook")
+	}
+}

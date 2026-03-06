@@ -279,14 +279,14 @@
 
 #### Task 22: Webhooks — CRUD
 
-- [ ] добавить тип `Webhook` в queries.go (id, url, enabled, secret, resourceTypes, team)
-- [ ] написать тесты для `ListWebhooks()`, `GetWebhook(id)`
-- [ ] добавить методы в queries.go
-- [ ] написать тесты для мутаций `webhookCreate`, `webhookUpdate`, `webhookDelete`, `webhookRotateSecret`
-- [ ] добавить методы в mutations.go
-- [ ] написать тесты для cmd `webhooks list`, `webhooks view <ID>`, `webhooks create`, `webhooks update <ID>`, `webhooks delete <ID>`, `webhooks rotate-secret <ID>`
-- [ ] добавить команды в `cmd/webhooks.go`
-- [ ] запустить тесты — должны пройти
+- [x] добавить тип `Webhook` в queries.go (id, url, enabled, secret, resourceTypes, team)
+- [x] написать тесты для `ListWebhooks()`, `GetWebhook(id)`
+- [x] добавить методы в queries.go
+- [x] написать тесты для мутаций `webhookCreate`, `webhookUpdate`, `webhookDelete`, `webhookRotateSecret`
+- [x] добавить методы в mutations.go
+- [x] написать тесты для cmd `webhooks list`, `webhooks view <ID>`, `webhooks create`, `webhooks update <ID>`, `webhooks delete <ID>`, `webhooks rotate-secret <ID>`
+- [x] добавить команды в `cmd/webhooks.go`
+- [x] запустить тесты — должны пройти
 
 ---
 

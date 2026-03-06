@@ -917,3 +917,64 @@ query GetNotificationsUnreadCount {
 	}
 	return len(result.Notifications.Nodes), nil
 }
+
+// Webhook представляет вебхук Linear.
+type Webhook struct {
+	ID            string   `json:"id"`
+	URL           string   `json:"url"`
+	Enabled       bool     `json:"enabled"`
+	Secret        string   `json:"secret"`
+	ResourceTypes []string `json:"resourceTypes"`
+	Team          *Team    `json:"team"`
+}
+
+// ListWebhooks возвращает список всех вебхуков организации.
+func (c *Client) ListWebhooks() ([]Webhook, error) {
+	query := `
+query ListWebhooks {
+  webhooks {
+    nodes {
+      id
+      url
+      enabled
+      secret
+      resourceTypes
+      team { id key name }
+    }
+  }
+}`
+	var result struct {
+		Webhooks struct {
+			Nodes []Webhook `json:"nodes"`
+		} `json:"webhooks"`
+	}
+	if err := c.Do(query, nil, &result); err != nil {
+		return nil, err
+	}
+	return result.Webhooks.Nodes, nil
+}
+
+// GetWebhook возвращает вебхук по ID.
+func (c *Client) GetWebhook(id string) (*Webhook, error) {
+	query := `
+query GetWebhook($id: String!) {
+  webhook(id: $id) {
+    id
+    url
+    enabled
+    secret
+    resourceTypes
+    team { id key name }
+  }
+}`
+	var result struct {
+		Webhook *Webhook `json:"webhook"`
+	}
+	if err := c.Do(query, map[string]any{"id": id}, &result); err != nil {
+		return nil, err
+	}
+	if result.Webhook == nil {
+		return nil, fmt.Errorf("вебхук не найден: %s", id)
+	}
+	return result.Webhook, nil
+}
