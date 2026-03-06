@@ -12,6 +12,284 @@ import (
 	"github.com/pavelvarganov/lcli/internal/client"
 )
 
+// captureIssuesListServer создаёт тестовый сервер, захватывающий переменные запроса ListIssues.
+func captureIssuesListServer(t *testing.T, captured *map[string]any, responseData any) *httptest.Server {
+	t.Helper()
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req struct {
+			Query     string         `json:"query"`
+			Variables map[string]any `json:"variables"`
+		}
+		_ = json.NewDecoder(r.Body).Decode(&req)
+		if strings.Contains(req.Query, "ListIssues") {
+			*captured = req.Variables
+		}
+		w.Header().Set("Content-Type", "application/json")
+		body, _ := json.Marshal(map[string]any{"data": responseData})
+		w.Write(body)
+	}))
+}
+
+func issuesListResponseData() any {
+	return map[string]any{
+		"issues": map[string]any{
+			"nodes":    []map[string]any{},
+			"pageInfo": map[string]any{"hasNextPage": false, "endCursor": ""},
+		},
+	}
+}
+
+func TestIssuesListFilterPriority(t *testing.T) {
+	var captured map[string]any
+	srv := captureIssuesListServer(t, &captured, issuesListResponseData())
+	defer srv.Close()
+
+	origFactory := newLinearClient
+	newLinearClient = func(tok string) *client.Client { return client.NewWithURL(tok, srv.URL) }
+	defer func() { newLinearClient = origFactory }()
+
+	token = "test-token"
+	defer func() { token = "" }()
+
+	issuesPriority = 2
+	defer func() { issuesPriority = -1 }()
+
+	cmd := issuesListCmd
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	_ = cmd.RunE(cmd, []string{})
+
+	filter, _ := captured["filter"].(map[string]any)
+	if filter == nil {
+		t.Fatal("expected filter in request variables")
+	}
+	priority, _ := filter["priority"].(map[string]any)
+	if priority == nil {
+		t.Fatal("expected priority filter")
+	}
+	if priority["eq"] == nil {
+		t.Errorf("expected priority.eq to be set, got %v", priority)
+	}
+}
+
+func TestIssuesListFilterPriorityNotSentWhenDefault(t *testing.T) {
+	var captured map[string]any
+	srv := captureIssuesListServer(t, &captured, issuesListResponseData())
+	defer srv.Close()
+
+	origFactory := newLinearClient
+	newLinearClient = func(tok string) *client.Client { return client.NewWithURL(tok, srv.URL) }
+	defer func() { newLinearClient = origFactory }()
+
+	token = "test-token"
+	defer func() { token = "" }()
+
+	issuesPriority = -1
+	defer func() { issuesPriority = -1 }()
+
+	cmd := issuesListCmd
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	_ = cmd.RunE(cmd, []string{})
+
+	filter, _ := captured["filter"].(map[string]any)
+	if filter != nil {
+		if _, ok := filter["priority"]; ok {
+			t.Errorf("expected priority not sent when -1, but it was present")
+		}
+	}
+}
+
+func TestIssuesListFilterLabel(t *testing.T) {
+	var captured map[string]any
+	srv := captureIssuesListServer(t, &captured, issuesListResponseData())
+	defer srv.Close()
+
+	origFactory := newLinearClient
+	newLinearClient = func(tok string) *client.Client { return client.NewWithURL(tok, srv.URL) }
+	defer func() { newLinearClient = origFactory }()
+
+	token = "test-token"
+	defer func() { token = "" }()
+
+	issuesLabel = "Bug"
+	defer func() { issuesLabel = "" }()
+
+	cmd := issuesListCmd
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	_ = cmd.RunE(cmd, []string{})
+
+	filter, _ := captured["filter"].(map[string]any)
+	if filter == nil {
+		t.Fatal("expected filter in request variables")
+	}
+	labels, _ := filter["labels"].(map[string]any)
+	if labels == nil {
+		t.Fatal("expected labels filter")
+	}
+	some, _ := labels["some"].(map[string]any)
+	if some == nil {
+		t.Fatal("expected labels.some filter")
+	}
+	name, _ := some["name"].(map[string]any)
+	if name == nil || name["eqIgnoreCase"] != "Bug" {
+		t.Errorf("expected labels.some.name.eqIgnoreCase=Bug, got %v", some)
+	}
+}
+
+func TestIssuesListFilterProjectID(t *testing.T) {
+	var captured map[string]any
+	srv := captureIssuesListServer(t, &captured, issuesListResponseData())
+	defer srv.Close()
+
+	origFactory := newLinearClient
+	newLinearClient = func(tok string) *client.Client { return client.NewWithURL(tok, srv.URL) }
+	defer func() { newLinearClient = origFactory }()
+
+	token = "test-token"
+	defer func() { token = "" }()
+
+	issuesProjectID = "proj-123"
+	defer func() { issuesProjectID = "" }()
+
+	cmd := issuesListCmd
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	_ = cmd.RunE(cmd, []string{})
+
+	filter, _ := captured["filter"].(map[string]any)
+	if filter == nil {
+		t.Fatal("expected filter in request variables")
+	}
+	project, _ := filter["project"].(map[string]any)
+	if project == nil {
+		t.Fatal("expected project filter")
+	}
+	id, _ := project["id"].(map[string]any)
+	if id == nil || id["eq"] != "proj-123" {
+		t.Errorf("expected project.id.eq=proj-123, got %v", project)
+	}
+}
+
+func TestIssuesListFilterCycleID(t *testing.T) {
+	var captured map[string]any
+	srv := captureIssuesListServer(t, &captured, issuesListResponseData())
+	defer srv.Close()
+
+	origFactory := newLinearClient
+	newLinearClient = func(tok string) *client.Client { return client.NewWithURL(tok, srv.URL) }
+	defer func() { newLinearClient = origFactory }()
+
+	token = "test-token"
+	defer func() { token = "" }()
+
+	issuesCycleID = "cycle-456"
+	defer func() { issuesCycleID = "" }()
+
+	cmd := issuesListCmd
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	_ = cmd.RunE(cmd, []string{})
+
+	filter, _ := captured["filter"].(map[string]any)
+	if filter == nil {
+		t.Fatal("expected filter in request variables")
+	}
+	cycle, _ := filter["cycle"].(map[string]any)
+	if cycle == nil {
+		t.Fatal("expected cycle filter")
+	}
+	id, _ := cycle["id"].(map[string]any)
+	if id == nil || id["eq"] != "cycle-456" {
+		t.Errorf("expected cycle.id.eq=cycle-456, got %v", cycle)
+	}
+}
+
+func TestIssuesListFilterCreator(t *testing.T) {
+	var captured map[string]any
+	srv := captureIssuesListServer(t, &captured, issuesListResponseData())
+	defer srv.Close()
+
+	origFactory := newLinearClient
+	newLinearClient = func(tok string) *client.Client { return client.NewWithURL(tok, srv.URL) }
+	defer func() { newLinearClient = origFactory }()
+
+	token = "test-token"
+	defer func() { token = "" }()
+
+	issuesCreator = "Alice"
+	defer func() { issuesCreator = "" }()
+
+	cmd := issuesListCmd
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	_ = cmd.RunE(cmd, []string{})
+
+	filter, _ := captured["filter"].(map[string]any)
+	if filter == nil {
+		t.Fatal("expected filter in request variables")
+	}
+	creator, _ := filter["creator"].(map[string]any)
+	if creator == nil {
+		t.Fatal("expected creator filter")
+	}
+	dn, _ := creator["displayName"].(map[string]any)
+	if dn == nil || dn["eq"] != "Alice" {
+		t.Errorf("expected creator.displayName.eq=Alice, got %v", creator)
+	}
+}
+
+func TestIssuesListFilterOrderBy(t *testing.T) {
+	var captured map[string]any
+	srv := captureIssuesListServer(t, &captured, issuesListResponseData())
+	defer srv.Close()
+
+	origFactory := newLinearClient
+	newLinearClient = func(tok string) *client.Client { return client.NewWithURL(tok, srv.URL) }
+	defer func() { newLinearClient = origFactory }()
+
+	token = "test-token"
+	defer func() { token = "" }()
+
+	issuesOrderBy = "updatedAt"
+	defer func() { issuesOrderBy = "" }()
+
+	cmd := issuesListCmd
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	_ = cmd.RunE(cmd, []string{})
+
+	if captured["orderBy"] != "updatedAt" {
+		t.Errorf("expected orderBy=updatedAt, got %v", captured["orderBy"])
+	}
+}
+
+func TestIssuesListFilterOrderByNotSentWhenEmpty(t *testing.T) {
+	var captured map[string]any
+	srv := captureIssuesListServer(t, &captured, issuesListResponseData())
+	defer srv.Close()
+
+	origFactory := newLinearClient
+	newLinearClient = func(tok string) *client.Client { return client.NewWithURL(tok, srv.URL) }
+	defer func() { newLinearClient = origFactory }()
+
+	token = "test-token"
+	defer func() { token = "" }()
+
+	issuesOrderBy = ""
+	defer func() { issuesOrderBy = "" }()
+
+	cmd := issuesListCmd
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	_ = cmd.RunE(cmd, []string{})
+
+	if _, ok := captured["orderBy"]; ok {
+		t.Errorf("expected orderBy not sent when empty, but it was present")
+	}
+}
+
 func newIssuesTestServer(t *testing.T, responseData any) *httptest.Server {
 	t.Helper()
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

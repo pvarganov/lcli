@@ -20,11 +20,17 @@ var issuesCmd = &cobra.Command{
 }
 
 var (
-	issuesAssignee string
-	issuesStatus   string
-	issuesTeam     string
-	issuesLimit    int
-	issuesAfter    string
+	issuesAssignee  string
+	issuesStatus    string
+	issuesTeam      string
+	issuesLimit     int
+	issuesAfter     string
+	issuesPriority  int
+	issuesLabel     string
+	issuesProjectID string
+	issuesCycleID   string
+	issuesCreator   string
+	issuesOrderBy   string
 )
 
 var issuesListCmd = &cobra.Command{
@@ -41,11 +47,17 @@ var issuesListCmd = &cobra.Command{
 
 		c := newLinearClient(t)
 		issues, pageInfo, err := c.ListIssues(client.IssueFilter{
-			Assignee: issuesAssignee,
-			Status:   issuesStatus,
-			Team:     issuesTeam,
-			Limit:    issuesLimit,
-			After:    issuesAfter,
+			Assignee:  issuesAssignee,
+			Status:    issuesStatus,
+			Team:      issuesTeam,
+			Limit:     issuesLimit,
+			After:     issuesAfter,
+			Priority:  issuesPriority,
+			Label:     issuesLabel,
+			ProjectID: issuesProjectID,
+			CycleID:   issuesCycleID,
+			Creator:   issuesCreator,
+			OrderBy:   issuesOrderBy,
 		})
 		if err != nil {
 			return err
@@ -95,6 +107,12 @@ func init() {
 	issuesListCmd.Flags().StringVar(&issuesTeam, "team", "", "Фильтр по команде (key)")
 	issuesListCmd.Flags().IntVar(&issuesLimit, "limit", 25, "Максимальное количество задач")
 	issuesListCmd.Flags().StringVar(&issuesAfter, "after", "", "Курсор для пагинации (из предыдущего запроса)")
+	issuesListCmd.Flags().IntVar(&issuesPriority, "priority", -1, "Фильтр по приоритету (0=нет, 1=срочно, 2=высокий, 3=средний, 4=низкий)")
+	issuesListCmd.Flags().StringVar(&issuesLabel, "label", "", "Фильтр по метке (имя)")
+	issuesListCmd.Flags().StringVar(&issuesProjectID, "project-id", "", "Фильтр по ID проекта")
+	issuesListCmd.Flags().StringVar(&issuesCycleID, "cycle-id", "", "Фильтр по ID цикла")
+	issuesListCmd.Flags().StringVar(&issuesCreator, "creator", "", "Фильтр по создателю (displayName)")
+	issuesListCmd.Flags().StringVar(&issuesOrderBy, "order-by", "", "Сортировка: updatedAt, createdAt, manualOrder")
 
 	issuesCmd.AddCommand(issuesListCmd)
 	rootCmd.AddCommand(issuesCmd)

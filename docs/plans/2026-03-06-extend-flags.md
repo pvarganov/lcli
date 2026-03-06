@@ -77,11 +77,11 @@
 
 ### Task 5: Расширить IssueFilter и ListIssues (issues list)
 
-- [ ] добавить поля в `IssueFilter` в `internal/client/queries.go`: `Priority int`, `Label string`, `ProjectID string`, `CycleID string`, `Creator string`, `OrderBy string`
-- [ ] расширить `ListIssues` — добавить новые поля в GraphQL filter и `orderBy` переменную
-- [ ] написать тесты в `cmd/issues_test.go` для каждого нового фильтра
-- [ ] добавить флаги в `cmd/issues.go`: `--priority`, `--label`, `--project-id`, `--cycle-id`, `--creator`, `--order-by`
-- [ ] запустить `go test ./...` — все зелёные
+- [x] добавить поля в `IssueFilter` в `internal/client/queries.go`: `Priority int`, `Label string`, `ProjectID string`, `CycleID string`, `Creator string`, `OrderBy string`
+- [x] расширить `ListIssues` — добавить новые поля в GraphQL filter и `orderBy` переменную
+- [x] написать тесты в `cmd/issues_test.go` для каждого нового фильтра
+- [x] добавить флаги в `cmd/issues.go`: `--priority`, `--label`, `--project-id`, `--cycle-id`, `--creator`, `--order-by`
+- [x] запустить `go test ./...` — все зелёные
 
 ### Task 6: Добавить --parent-id к comment create
 

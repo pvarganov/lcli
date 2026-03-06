@@ -46,11 +46,17 @@ type Team struct {
 
 // IssueFilter — параметры фильтрации для списка задач.
 type IssueFilter struct {
-	Assignee string
-	Status   string
-	Team     string
-	Limit    int
-	After    string // курсор для пагинации
+	Assignee  string
+	Status    string
+	Team      string
+	Limit     int
+	After     string // курсор для пагинации
+	Priority  int    // -1 = не задан; 0=нет, 1=срочно, 2=высокий, 3=средний, 4=низкий
+	Label     string
+	ProjectID string
+	CycleID   string
+	Creator   string
+	OrderBy   string
 }
 
 // PageInfo — информация о пагинации.
@@ -75,8 +81,8 @@ type IssueResult struct {
 // ListIssues возвращает список задач по фильтрам и информацию о пагинации.
 func (c *Client) ListIssues(filter IssueFilter) ([]Issue, *PageInfo, error) {
 	query := `
-query ListIssues($first: Int, $after: String, $filter: IssueFilter) {
-  issues(first: $first, after: $after, filter: $filter) {
+query ListIssues($first: Int, $after: String, $filter: IssueFilter, $orderBy: PaginationOrderBy) {
+  issues(first: $first, after: $after, filter: $filter, orderBy: $orderBy) {
     nodes {
       id
       identifier
@@ -100,6 +106,9 @@ query ListIssues($first: Int, $after: String, $filter: IssueFilter) {
 	if filter.After != "" {
 		variables["after"] = filter.After
 	}
+	if filter.OrderBy != "" {
+		variables["orderBy"] = filter.OrderBy
+	}
 
 	issueFilter := map[string]any{}
 	if filter.Team != "" {
@@ -115,6 +124,33 @@ query ListIssues($first: Int, $after: String, $filter: IssueFilter) {
 	if filter.Assignee != "" {
 		issueFilter["assignee"] = map[string]any{
 			"displayName": map[string]any{"eq": filter.Assignee},
+		}
+	}
+	if filter.Priority >= 0 {
+		issueFilter["priority"] = map[string]any{
+			"eq": filter.Priority,
+		}
+	}
+	if filter.Label != "" {
+		issueFilter["labels"] = map[string]any{
+			"some": map[string]any{
+				"name": map[string]any{"eqIgnoreCase": filter.Label},
+			},
+		}
+	}
+	if filter.ProjectID != "" {
+		issueFilter["project"] = map[string]any{
+			"id": map[string]any{"eq": filter.ProjectID},
+		}
+	}
+	if filter.CycleID != "" {
+		issueFilter["cycle"] = map[string]any{
+			"id": map[string]any{"eq": filter.CycleID},
+		}
+	}
+	if filter.Creator != "" {
+		issueFilter["creator"] = map[string]any{
+			"displayName": map[string]any{"eq": filter.Creator},
 		}
 	}
 	if len(issueFilter) > 0 {
