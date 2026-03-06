@@ -1,7 +1,7 @@
 BINARY=bin/lcli
 MODULE=github.com/pavelvarganov/lcli
 
-.PHONY: build test lint install clean
+.PHONY: build test lint install clean release
 
 build:
 	go build -o $(BINARY) .
@@ -21,4 +21,8 @@ install:
 	go install .
 
 clean:
-	rm -rf bin/
+	rm -rf bin/ dist/
+
+release:
+	@test -n "$(VERSION)" || (echo "Укажи версию: make release VERSION=v0.1.0" && exit 1)
+	./scripts/release.sh $(VERSION)
