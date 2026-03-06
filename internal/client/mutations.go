@@ -1,5 +1,37 @@
 package client
 
+// CreateComment добавляет комментарий к задаче.
+func (c *Client) CreateComment(issueID, body string) (*Comment, error) {
+	mutation := `
+mutation CreateComment($input: CommentCreateInput!) {
+  commentCreate(input: $input) {
+    success
+    comment {
+      id
+      body
+      createdAt
+      user { id name displayName email }
+    }
+  }
+}`
+
+	var result struct {
+		CommentCreate struct {
+			Comment Comment `json:"comment"`
+			Success bool    `json:"success"`
+		} `json:"commentCreate"`
+	}
+	if err := c.Do(mutation, map[string]any{
+		"input": map[string]any{
+			"issueId": issueID,
+			"body":    body,
+		},
+	}, &result); err != nil {
+		return nil, err
+	}
+	return &result.CommentCreate.Comment, nil
+}
+
 // CreateIssueInput — входные данные для создания задачи.
 type CreateIssueInput struct {
 	TeamID      string

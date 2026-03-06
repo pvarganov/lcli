@@ -2,6 +2,14 @@ package client
 
 import "time"
 
+// Comment представляет комментарий к задаче Linear.
+type Comment struct {
+	ID        string    `json:"id"`
+	Body      string    `json:"body"`
+	CreatedAt time.Time `json:"createdAt"`
+	User      *User     `json:"user"`
+}
+
 // Issue представляет задачу Linear.
 type Issue struct {
 	ID         string     `json:"id"`
@@ -128,6 +136,35 @@ query GetIssue($id: String!) {
 		return nil, err
 	}
 	return &result.Issue, nil
+}
+
+// ListComments возвращает список комментариев к задаче по её ID.
+func (c *Client) ListComments(issueID string) ([]Comment, error) {
+	query := `
+query ListComments($issueId: String!) {
+  issue(id: $issueId) {
+    comments {
+      nodes {
+        id
+        body
+        createdAt
+        user { id name displayName email }
+      }
+    }
+  }
+}`
+
+	var result struct {
+		Issue struct {
+			Comments struct {
+				Nodes []Comment `json:"nodes"`
+			} `json:"comments"`
+		} `json:"issue"`
+	}
+	if err := c.Do(query, map[string]any{"issueId": issueID}, &result); err != nil {
+		return nil, err
+	}
+	return result.Issue.Comments.Nodes, nil
 }
 
 // PriorityLabel возвращает текстовое обозначение приоритета.
