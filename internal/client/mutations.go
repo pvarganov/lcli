@@ -59,10 +59,20 @@ type CreateIssueInput struct {
 
 // UpdateIssueInput — входные данные для обновления задачи.
 type UpdateIssueInput struct {
-	Title      string
-	StateID    string
-	AssigneeID string
-	Priority   *int
+	Title           string
+	StateID         string
+	AssigneeID      string
+	Priority        *int
+	Description     string
+	DueDate         string
+	Estimate        *int
+	ParentID        string
+	CycleID         string
+	ProjectID       string
+	MilestoneID     string
+	AddedLabelIDs   []string
+	RemovedLabelIDs []string
+	SnoozedUntilAt  string
 }
 
 type createIssueResult struct {
@@ -179,6 +189,36 @@ mutation UpdateIssue($id: String!, $input: IssueUpdateInput!) {
 	}
 	if input.Priority != nil {
 		gqlInput["priority"] = *input.Priority
+	}
+	if input.Description != "" {
+		gqlInput["description"] = input.Description
+	}
+	if input.DueDate != "" {
+		gqlInput["dueDate"] = input.DueDate
+	}
+	if input.Estimate != nil {
+		gqlInput["estimate"] = *input.Estimate
+	}
+	if input.ParentID != "" {
+		gqlInput["parentId"] = input.ParentID
+	}
+	if input.CycleID != "" {
+		gqlInput["cycleId"] = input.CycleID
+	}
+	if input.ProjectID != "" {
+		gqlInput["projectId"] = input.ProjectID
+	}
+	if input.MilestoneID != "" {
+		gqlInput["projectMilestoneId"] = input.MilestoneID
+	}
+	if len(input.AddedLabelIDs) > 0 {
+		gqlInput["labelIds"] = input.AddedLabelIDs
+	}
+	if len(input.RemovedLabelIDs) > 0 {
+		gqlInput["removedLabelIds"] = input.RemovedLabelIDs
+	}
+	if input.SnoozedUntilAt != "" {
+		gqlInput["snoozedUntilAt"] = input.SnoozedUntilAt
 	}
 
 	var result updateIssueResult

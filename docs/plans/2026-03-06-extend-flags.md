@@ -62,10 +62,10 @@
 
 ### Task 3: Расширить UpdateIssueInput и клиент issues update
 
-- [ ] добавить поля в `UpdateIssueInput` в `internal/client/mutations.go`: `Description string`, `DueDate string`, `Estimate *int`, `ParentID string`, `CycleID string`, `ProjectID string`, `MilestoneID string`, `AddedLabelIDs []string`, `RemovedLabelIDs []string`, `SnoozedUntilAt string`
-- [ ] расширить `UpdateIssue` — передавать новые поля в `gqlInput` если не пусты
-- [ ] написать тесты в `cmd/issue_mutations_test.go` для каждого нового update-поля
-- [ ] запустить `go test ./...` — все зелёные
+- [x] добавить поля в `UpdateIssueInput` в `internal/client/mutations.go`: `Description string`, `DueDate string`, `Estimate *int`, `ParentID string`, `CycleID string`, `ProjectID string`, `MilestoneID string`, `AddedLabelIDs []string`, `RemovedLabelIDs []string`, `SnoozedUntilAt string`
+- [x] расширить `UpdateIssue` — передавать новые поля в `gqlInput` если не пусты
+- [x] написать тесты в `cmd/issue_mutations_test.go` для каждого нового update-поля
+- [x] запустить `go test ./...` — все зелёные
 
 ### Task 4: Добавить флаги в `issues update` (cmd-слой)
 

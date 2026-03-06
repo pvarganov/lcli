@@ -774,6 +774,210 @@ func TestIssueCreateCmdLabels(t *testing.T) {
 	}
 }
 
+// ---- UpdateIssue client-layer tests ----
+
+func issueUpdateResponseData() any {
+	return map[string]any{
+		"issueUpdate": map[string]any{
+			"success": true,
+			"issue": map[string]any{
+				"id":          "existing-id",
+				"identifier":  "ENG-42",
+				"title":       "Test",
+				"description": "",
+				"updatedAt":   "2024-01-01T00:00:00Z",
+				"priority":    0,
+				"state":       map[string]any{"name": "Todo", "type": "unstarted"},
+				"assignee":    nil,
+				"team":        map[string]any{"id": "t1", "key": "ENG", "name": "Engineering"},
+			},
+		},
+	}
+}
+
+func TestUpdateIssueInputDescription(t *testing.T) {
+	var captured map[string]any
+	srv := captureRequestServer(t, &captured, issueUpdateResponseData())
+	defer srv.Close()
+
+	c := client.NewWithURL("tok", srv.URL)
+	_, _ = c.UpdateIssue("ENG-42", client.UpdateIssueInput{Description: "new desc"})
+
+	input, _ := captured["input"].(map[string]any)
+	if v, ok := input["description"]; !ok || v != "new desc" {
+		t.Errorf("expected description=new desc, got %v", input["description"])
+	}
+}
+
+func TestUpdateIssueInputDueDate(t *testing.T) {
+	var captured map[string]any
+	srv := captureRequestServer(t, &captured, issueUpdateResponseData())
+	defer srv.Close()
+
+	c := client.NewWithURL("tok", srv.URL)
+	_, _ = c.UpdateIssue("ENG-42", client.UpdateIssueInput{DueDate: "2026-05-01"})
+
+	input, _ := captured["input"].(map[string]any)
+	if v, ok := input["dueDate"]; !ok || v != "2026-05-01" {
+		t.Errorf("expected dueDate=2026-05-01, got %v", input["dueDate"])
+	}
+}
+
+func TestUpdateIssueInputEstimate(t *testing.T) {
+	var captured map[string]any
+	srv := captureRequestServer(t, &captured, issueUpdateResponseData())
+	defer srv.Close()
+
+	c := client.NewWithURL("tok", srv.URL)
+	est := 5
+	_, _ = c.UpdateIssue("ENG-42", client.UpdateIssueInput{Estimate: &est})
+
+	input, _ := captured["input"].(map[string]any)
+	if _, ok := input["estimate"]; !ok {
+		t.Errorf("expected estimate to be sent")
+	}
+}
+
+func TestUpdateIssueInputEstimateNotSentWhenNil(t *testing.T) {
+	var captured map[string]any
+	srv := captureRequestServer(t, &captured, issueUpdateResponseData())
+	defer srv.Close()
+
+	c := client.NewWithURL("tok", srv.URL)
+	_, _ = c.UpdateIssue("ENG-42", client.UpdateIssueInput{Title: "x"})
+
+	input, _ := captured["input"].(map[string]any)
+	if _, ok := input["estimate"]; ok {
+		t.Errorf("expected estimate not sent when nil")
+	}
+}
+
+func TestUpdateIssueInputParentID(t *testing.T) {
+	var captured map[string]any
+	srv := captureRequestServer(t, &captured, issueUpdateResponseData())
+	defer srv.Close()
+
+	c := client.NewWithURL("tok", srv.URL)
+	_, _ = c.UpdateIssue("ENG-42", client.UpdateIssueInput{ParentID: "parent-xyz"})
+
+	input, _ := captured["input"].(map[string]any)
+	if v, ok := input["parentId"]; !ok || v != "parent-xyz" {
+		t.Errorf("expected parentId=parent-xyz, got %v", input["parentId"])
+	}
+}
+
+func TestUpdateIssueInputCycleID(t *testing.T) {
+	var captured map[string]any
+	srv := captureRequestServer(t, &captured, issueUpdateResponseData())
+	defer srv.Close()
+
+	c := client.NewWithURL("tok", srv.URL)
+	_, _ = c.UpdateIssue("ENG-42", client.UpdateIssueInput{CycleID: "cycle-456"})
+
+	input, _ := captured["input"].(map[string]any)
+	if v, ok := input["cycleId"]; !ok || v != "cycle-456" {
+		t.Errorf("expected cycleId=cycle-456, got %v", input["cycleId"])
+	}
+}
+
+func TestUpdateIssueInputProjectID(t *testing.T) {
+	var captured map[string]any
+	srv := captureRequestServer(t, &captured, issueUpdateResponseData())
+	defer srv.Close()
+
+	c := client.NewWithURL("tok", srv.URL)
+	_, _ = c.UpdateIssue("ENG-42", client.UpdateIssueInput{ProjectID: "proj-111"})
+
+	input, _ := captured["input"].(map[string]any)
+	if v, ok := input["projectId"]; !ok || v != "proj-111" {
+		t.Errorf("expected projectId=proj-111, got %v", input["projectId"])
+	}
+}
+
+func TestUpdateIssueInputMilestoneID(t *testing.T) {
+	var captured map[string]any
+	srv := captureRequestServer(t, &captured, issueUpdateResponseData())
+	defer srv.Close()
+
+	c := client.NewWithURL("tok", srv.URL)
+	_, _ = c.UpdateIssue("ENG-42", client.UpdateIssueInput{MilestoneID: "ms-222"})
+
+	input, _ := captured["input"].(map[string]any)
+	if v, ok := input["projectMilestoneId"]; !ok || v != "ms-222" {
+		t.Errorf("expected projectMilestoneId=ms-222, got %v", input["projectMilestoneId"])
+	}
+}
+
+func TestUpdateIssueInputAddedLabelIDs(t *testing.T) {
+	var captured map[string]any
+	srv := captureRequestServer(t, &captured, issueUpdateResponseData())
+	defer srv.Close()
+
+	c := client.NewWithURL("tok", srv.URL)
+	_, _ = c.UpdateIssue("ENG-42", client.UpdateIssueInput{AddedLabelIDs: []string{"lbl-1", "lbl-2"}})
+
+	input, _ := captured["input"].(map[string]any)
+	raw, ok := input["labelIds"]
+	if !ok {
+		t.Fatal("expected labelIds in request")
+	}
+	labels, _ := raw.([]any)
+	if len(labels) != 2 {
+		t.Errorf("expected 2 labelIds, got %v", labels)
+	}
+}
+
+func TestUpdateIssueInputRemovedLabelIDs(t *testing.T) {
+	var captured map[string]any
+	srv := captureRequestServer(t, &captured, issueUpdateResponseData())
+	defer srv.Close()
+
+	c := client.NewWithURL("tok", srv.URL)
+	_, _ = c.UpdateIssue("ENG-42", client.UpdateIssueInput{RemovedLabelIDs: []string{"lbl-3"}})
+
+	input, _ := captured["input"].(map[string]any)
+	raw, ok := input["removedLabelIds"]
+	if !ok {
+		t.Fatal("expected removedLabelIds in request")
+	}
+	labels, _ := raw.([]any)
+	if len(labels) != 1 {
+		t.Errorf("expected 1 removedLabelId, got %v", labels)
+	}
+}
+
+func TestUpdateIssueInputSnoozedUntilAt(t *testing.T) {
+	var captured map[string]any
+	srv := captureRequestServer(t, &captured, issueUpdateResponseData())
+	defer srv.Close()
+
+	c := client.NewWithURL("tok", srv.URL)
+	_, _ = c.UpdateIssue("ENG-42", client.UpdateIssueInput{SnoozedUntilAt: "2026-04-01T10:00:00Z"})
+
+	input, _ := captured["input"].(map[string]any)
+	if v, ok := input["snoozedUntilAt"]; !ok || v != "2026-04-01T10:00:00Z" {
+		t.Errorf("expected snoozedUntilAt=2026-04-01T10:00:00Z, got %v", input["snoozedUntilAt"])
+	}
+}
+
+func TestUpdateIssueInputEmptyFieldsNotSent(t *testing.T) {
+	var captured map[string]any
+	srv := captureRequestServer(t, &captured, issueUpdateResponseData())
+	defer srv.Close()
+
+	c := client.NewWithURL("tok", srv.URL)
+	_, _ = c.UpdateIssue("ENG-42", client.UpdateIssueInput{Title: "only-title"})
+
+	input, _ := captured["input"].(map[string]any)
+	for _, field := range []string{"description", "dueDate", "estimate", "parentId", "cycleId", "projectId", "projectMilestoneId", "labelIds", "removedLabelIds", "snoozedUntilAt"} {
+		if _, ok := input[field]; ok {
+			t.Errorf("expected %s not sent when empty, but it was present", field)
+		}
+	}
+}
+
+// ---- IssueCreateCmd state test ----
+
 func TestIssueCreateCmdState(t *testing.T) {
 	var captured map[string]any
 	responses := baseCreateResponses()
