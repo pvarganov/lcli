@@ -2966,3 +2966,77 @@ func TestResendOrganizationInvite(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
+
+func TestCreateCustomView(t *testing.T) {
+	responseData := map[string]any{
+		"customViewCreate": map[string]any{
+			"success": true,
+			"customView": map[string]any{
+				"id":          "cv1",
+				"name":        "My View",
+				"description": "A custom view",
+			},
+		},
+	}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	view, err := c.CreateCustomView("My View", "A custom view", "", "")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if view.ID != "cv1" {
+		t.Errorf("expected cv1, got %q", view.ID)
+	}
+}
+
+func TestUpdateCustomView(t *testing.T) {
+	responseData := map[string]any{
+		"customViewUpdate": map[string]any{
+			"success": true,
+			"customView": map[string]any{
+				"id":   "cv1",
+				"name": "Updated View",
+			},
+		},
+	}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	view, err := c.UpdateCustomView("cv1", "Updated View", "")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if view.Name != "Updated View" {
+		t.Errorf("expected 'Updated View', got %q", view.Name)
+	}
+}
+
+func TestDeleteCustomView(t *testing.T) {
+	responseData := map[string]any{
+		"customViewDelete": map[string]any{
+			"success": true,
+		},
+	}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	if err := c.DeleteCustomView("cv1"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}

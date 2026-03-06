@@ -1840,3 +1840,105 @@ func TestListOrganizationInvitesEmpty(t *testing.T) {
 		t.Fatalf("expected 0 invites, got %d", len(invites))
 	}
 }
+
+func TestListCustomViews(t *testing.T) {
+	responseData := map[string]any{
+		"customViews": map[string]any{
+			"nodes": []map[string]any{
+				{"id": "cv1", "name": "My View", "description": "A custom view", "icon": "eye", "color": "#ff0000"},
+			},
+		},
+	}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	views, err := c.ListCustomViews()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(views) != 1 {
+		t.Fatalf("expected 1 view, got %d", len(views))
+	}
+	if views[0].ID != "cv1" {
+		t.Errorf("expected cv1, got %q", views[0].ID)
+	}
+	if views[0].Name != "My View" {
+		t.Errorf("expected 'My View', got %q", views[0].Name)
+	}
+}
+
+func TestListCustomViewsEmpty(t *testing.T) {
+	responseData := map[string]any{
+		"customViews": map[string]any{
+			"nodes": []map[string]any{},
+		},
+	}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	views, err := c.ListCustomViews()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(views) != 0 {
+		t.Fatalf("expected 0 views, got %d", len(views))
+	}
+}
+
+func TestGetCustomView(t *testing.T) {
+	responseData := map[string]any{
+		"customView": map[string]any{
+			"id":          "cv1",
+			"name":        "My View",
+			"description": "A custom view",
+			"icon":        "eye",
+			"color":       "#ff0000",
+		},
+	}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	view, err := c.GetCustomView("cv1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if view.ID != "cv1" {
+		t.Errorf("expected cv1, got %q", view.ID)
+	}
+	if view.Name != "My View" {
+		t.Errorf("expected 'My View', got %q", view.Name)
+	}
+}
+
+func TestGetCustomViewNotFound(t *testing.T) {
+	responseData := map[string]any{
+		"customView": nil,
+	}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	_, err := c.GetCustomView("cv-unknown")
+	if err == nil {
+		t.Fatal("expected error for not found custom view")
+	}
+}

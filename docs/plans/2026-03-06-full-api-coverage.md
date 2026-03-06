@@ -428,14 +428,14 @@
 
 #### Task 32: Custom Views — CRUD
 
-- [ ] добавить тип `CustomView` в queries.go (id, name, description, filters, icon, color, owner)
-- [ ] написать тесты для `ListCustomViews()`, `GetCustomView(id)`
-- [ ] добавить методы в queries.go
-- [ ] написать тесты для мутаций `customViewCreate`, `customViewUpdate`, `customViewDelete`
-- [ ] добавить методы в mutations.go
-- [ ] написать тесты для cmd `views list`, `views view <ID>`, `views create`, `views update <ID>`, `views delete <ID>`
-- [ ] добавить команды в `cmd/custom_views.go`
-- [ ] запустить тесты — должны пройти
+- [x] добавить тип `CustomView` в queries.go (id, name, description, filters, icon, color, owner)
+- [x] написать тесты для `ListCustomViews()`, `GetCustomView(id)`
+- [x] добавить методы в queries.go
+- [x] написать тесты для мутаций `customViewCreate`, `customViewUpdate`, `customViewDelete`
+- [x] добавить методы в mutations.go
+- [x] написать тесты для cmd `views list`, `views view <ID>`, `views create`, `views update <ID>`, `views delete <ID>`
+- [x] добавить команды в `cmd/custom_views.go`
+- [x] запустить тесты — должны пройти
 
 ---
 

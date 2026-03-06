@@ -3416,3 +3416,104 @@ mutation ResendOrganizationInvite($id: String!) {
 	}
 	return nil
 }
+
+// CreateCustomView создаёт новое пользовательское представление.
+func (c *Client) CreateCustomView(name, description, icon, color string) (*CustomView, error) {
+	mutation := `
+mutation CustomViewCreate($input: CustomViewCreateInput!) {
+  customViewCreate(input: $input) {
+    success
+    customView {
+      id
+      name
+      description
+      icon
+      color
+      owner { id name displayName email }
+    }
+  }
+}`
+	var result struct {
+		CustomViewCreate struct {
+			CustomView CustomView `json:"customView"`
+			Success    bool       `json:"success"`
+		} `json:"customViewCreate"`
+	}
+	input := map[string]any{"name": name}
+	if description != "" {
+		input["description"] = description
+	}
+	if icon != "" {
+		input["icon"] = icon
+	}
+	if color != "" {
+		input["color"] = color
+	}
+	if err := c.Do(mutation, map[string]any{"input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.CustomViewCreate.Success {
+		return nil, fmt.Errorf("customViewCreate вернул success=false")
+	}
+	return &result.CustomViewCreate.CustomView, nil
+}
+
+// UpdateCustomView обновляет пользовательское представление по ID.
+func (c *Client) UpdateCustomView(id, name, description string) (*CustomView, error) {
+	mutation := `
+mutation CustomViewUpdate($id: String!, $input: CustomViewUpdateInput!) {
+  customViewUpdate(id: $id, input: $input) {
+    success
+    customView {
+      id
+      name
+      description
+      icon
+      color
+      owner { id name displayName email }
+    }
+  }
+}`
+	var result struct {
+		CustomViewUpdate struct {
+			CustomView CustomView `json:"customView"`
+			Success    bool       `json:"success"`
+		} `json:"customViewUpdate"`
+	}
+	input := map[string]any{}
+	if name != "" {
+		input["name"] = name
+	}
+	if description != "" {
+		input["description"] = description
+	}
+	if err := c.Do(mutation, map[string]any{"id": id, "input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.CustomViewUpdate.Success {
+		return nil, fmt.Errorf("customViewUpdate вернул success=false")
+	}
+	return &result.CustomViewUpdate.CustomView, nil
+}
+
+// DeleteCustomView удаляет пользовательское представление по ID.
+func (c *Client) DeleteCustomView(id string) error {
+	mutation := `
+mutation CustomViewDelete($id: String!) {
+  customViewDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		CustomViewDelete struct {
+			Success bool `json:"success"`
+		} `json:"customViewDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.CustomViewDelete.Success {
+		return fmt.Errorf("customViewDelete вернул success=false")
+	}
+	return nil
+}

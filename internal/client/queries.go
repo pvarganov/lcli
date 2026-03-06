@@ -1595,3 +1595,64 @@ query ListOrganizationInvites {
 	}
 	return result.OrganizationInvites.Nodes, nil
 }
+
+// CustomView представляет пользовательское представление в Linear.
+type CustomView struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Icon        string `json:"icon"`
+	Color       string `json:"color"`
+	Owner       *User  `json:"owner"`
+}
+
+// ListCustomViews возвращает список пользовательских представлений.
+func (c *Client) ListCustomViews() ([]CustomView, error) {
+	query := `
+query ListCustomViews {
+  customViews {
+    nodes {
+      id
+      name
+      description
+      icon
+      color
+      owner { id name displayName email }
+    }
+  }
+}`
+	var result struct {
+		CustomViews struct {
+			Nodes []CustomView `json:"nodes"`
+		} `json:"customViews"`
+	}
+	if err := c.Do(query, nil, &result); err != nil {
+		return nil, err
+	}
+	return result.CustomViews.Nodes, nil
+}
+
+// GetCustomView возвращает пользовательское представление по ID.
+func (c *Client) GetCustomView(id string) (*CustomView, error) {
+	query := `
+query GetCustomView($id: String!) {
+  customView(id: $id) {
+    id
+    name
+    description
+    icon
+    color
+    owner { id name displayName email }
+  }
+}`
+	var result struct {
+		CustomView *CustomView `json:"customView"`
+	}
+	if err := c.Do(query, map[string]any{"id": id}, &result); err != nil {
+		return nil, err
+	}
+	if result.CustomView == nil {
+		return nil, fmt.Errorf("представление не найдено: %s", id)
+	}
+	return result.CustomView, nil
+}
