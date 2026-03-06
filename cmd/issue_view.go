@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -30,6 +31,13 @@ var issueViewCmd = &cobra.Command{
 		}
 
 		out := cmd.OutOrStdout()
+
+		if GetOutputFormat() == "json" {
+			enc := json.NewEncoder(out)
+			enc.SetIndent("", "  ")
+			return enc.Encode(issue)
+		}
+
 		fmt.Fprintf(out, "%s  %s\n", issue.Identifier, issue.Title)
 		fmt.Fprintln(out, strings.Repeat("─", 60))
 		fmt.Fprintf(out, "Статус:     %s\n", issue.State.Name)

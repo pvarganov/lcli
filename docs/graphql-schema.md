@@ -121,6 +121,61 @@ query ListTeams {
 }
 ```
 
+### GetTeams (используется в issue create --team)
+
+Получение команды по ключу. Используется при создании задачи для преобразования ключа команды (например, `ENG`) в ID.
+
+```graphql
+query GetTeams {
+  teams {
+    nodes {
+      id
+      key
+      name
+    }
+  }
+}
+```
+
+Матчинг по полю `key` выполняется на стороне клиента.
+
+### GetWorkflowStates (используется в issue update --status)
+
+Список состояний задач в рамках команды. Используется при обновлении статуса задачи для поиска `stateId` по имени.
+
+```graphql
+query GetWorkflowStates($teamId: ID!) {
+  workflowStates(filter: { team: { id: { eq: $teamId } } }) {
+    nodes {
+      id
+      name
+    }
+  }
+}
+```
+
+Переменные:
+- `teamId` (ID!) — ID команды
+
+### GetUsers (используется в --assignee)
+
+Список пользователей для поиска по `displayName`, `email` или `name`. Используется при указании исполнителя в `issue create` и `issue update`.
+
+```graphql
+query GetUsers {
+  users {
+    nodes {
+      id
+      name
+      displayName
+      email
+    }
+  }
+}
+```
+
+Матчинг по `displayName`, `email` или `name` выполняется на стороне клиента.
+
 ## Mutations
 
 ### CreateIssue
@@ -135,6 +190,12 @@ mutation CreateIssue($input: IssueCreateInput!) {
       id
       identifier
       title
+      description
+      updatedAt
+      priority
+      state { name type }
+      assignee { id name displayName email }
+      team { id key name }
     }
   }
 }
@@ -145,7 +206,7 @@ mutation CreateIssue($input: IssueCreateInput!) {
 - `teamId` (String!) — ID команды
 - `description` (String) — описание
 - `assigneeId` (String) — ID исполнителя
-- `priority` (Int) — приоритет (0-4)
+- `priority` (Int) — приоритет (1-4; 0 не передаётся)
 
 ### UpdateIssue
 
@@ -159,6 +220,12 @@ mutation UpdateIssue($id: String!, $input: IssueUpdateInput!) {
       id
       identifier
       title
+      description
+      updatedAt
+      priority
+      state { name type }
+      assignee { id name displayName email }
+      team { id key name }
     }
   }
 }
@@ -167,7 +234,7 @@ mutation UpdateIssue($id: String!, $input: IssueUpdateInput!) {
 Переменные (`input`):
 - `stateId` (String) — ID статуса
 - `assigneeId` (String) — ID исполнителя
-- `priority` (Int) — приоритет (0-4)
+- `priority` (Int) — приоритет (0-4; 0 сбрасывает приоритет)
 - `title` (String) — заголовок
 
 ### CreateComment
@@ -181,6 +248,8 @@ mutation CreateComment($input: CommentCreateInput!) {
     comment {
       id
       body
+      createdAt
+      user { id name displayName email }
     }
   }
 }

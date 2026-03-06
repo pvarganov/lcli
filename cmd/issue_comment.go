@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -48,6 +49,13 @@ var issueCommentsCmd = &cobra.Command{
 		}
 
 		out := cmd.OutOrStdout()
+
+		if GetOutputFormat() == "json" {
+			enc := json.NewEncoder(out)
+			enc.SetIndent("", "  ")
+			return enc.Encode(comments)
+		}
+
 		if len(comments) == 0 {
 			fmt.Fprintln(out, "Комментариев нет")
 			return nil

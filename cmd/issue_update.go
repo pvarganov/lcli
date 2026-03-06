@@ -24,6 +24,11 @@ var issueUpdateCmd = &cobra.Command{
 			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
 		}
 
+		// Проверяем, что задан хотя бы один флаг для обновления
+		if updateTitle == "" && updateStatus == "" && updateAssignee == "" && !cmd.Flags().Changed("priority") {
+			return fmt.Errorf("укажите хотя бы один флаг для обновления: --title, --status, --assignee или --priority")
+		}
+
 		issueID := args[0]
 		c := newLinearClient(t)
 

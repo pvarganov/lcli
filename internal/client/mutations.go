@@ -1,5 +1,7 @@
 package client
 
+import "fmt"
+
 // CreateComment добавляет комментарий к задаче.
 func (c *Client) CreateComment(issueID, body string) (*Comment, error) {
 	mutation := `
@@ -28,6 +30,9 @@ mutation CreateComment($input: CommentCreateInput!) {
 		},
 	}, &result); err != nil {
 		return nil, err
+	}
+	if !result.CommentCreate.Success {
+		return nil, fmt.Errorf("commentCreate вернул success=false")
 	}
 	return &result.CommentCreate.Comment, nil
 }
@@ -101,6 +106,9 @@ mutation CreateIssue($input: IssueCreateInput!) {
 	if err := c.Do(mutation, map[string]any{"input": gqlInput}, &result); err != nil {
 		return nil, err
 	}
+	if !result.IssueCreate.Success {
+		return nil, fmt.Errorf("issueCreate вернул success=false")
+	}
 	return &result.IssueCreate.Issue, nil
 }
 
@@ -141,6 +149,9 @@ mutation UpdateIssue($id: String!, $input: IssueUpdateInput!) {
 	var result updateIssueResult
 	if err := c.Do(mutation, map[string]any{"id": id, "input": gqlInput}, &result); err != nil {
 		return nil, err
+	}
+	if !result.IssueUpdate.Success {
+		return nil, fmt.Errorf("issueUpdate вернул success=false")
 	}
 	return &result.IssueUpdate.Issue, nil
 }

@@ -23,8 +23,8 @@ type graphqlRequest struct {
 
 // graphqlResponse — обёртка вокруг ответа API.
 type graphqlResponse struct {
-	Data   json.RawMessage  `json:"data"`
-	Errors []graphqlError   `json:"errors"`
+	Data   json.RawMessage `json:"data"`
+	Errors []graphqlError  `json:"errors"`
 }
 
 type graphqlError struct {
@@ -75,6 +75,10 @@ func (c *Client) Do(query string, variables map[string]any, result any) error {
 		return fmt.Errorf("http request: %w", err)
 	}
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("http error: %s", resp.Status)
+	}
 
 	raw, err := io.ReadAll(resp.Body)
 	if err != nil {

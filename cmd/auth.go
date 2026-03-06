@@ -44,13 +44,6 @@ var authStatusCmd = &cobra.Command{
 		// Приоритет: флаг --token → LINEAR_API_KEY → файл
 		t := GetToken()
 		if t == "" {
-			var err error
-			t, err = config.LoadToken()
-			if err != nil {
-				return err
-			}
-		}
-		if t == "" {
 			fmt.Fprintln(cmd.OutOrStdout(), "Токен не настроен. Запустите `lcli auth login`.")
 			return nil
 		}

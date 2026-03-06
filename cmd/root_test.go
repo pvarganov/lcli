@@ -25,8 +25,8 @@ func TestRootCmdHasTokenFlag(t *testing.T) {
 
 func TestGetToken(t *testing.T) {
 	token = "test-token"
+	defer func() { token = "" }()
 	if GetToken() != "test-token" {
 		t.Errorf("expected test-token, got %s", GetToken())
 	}
-	token = ""
 }
