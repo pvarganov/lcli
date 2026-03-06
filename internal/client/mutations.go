@@ -1759,3 +1759,180 @@ mutation ArchiveWorkflowState($id: String!) {
 	}
 	return nil
 }
+
+// CreateTeam создаёт новую команду.
+func (c *Client) CreateTeam(name, key string) (*Team, error) {
+	mutation := `
+mutation CreateTeam($input: TeamCreateInput!) {
+  teamCreate(input: $input) {
+    success
+    team {
+      id
+      key
+      name
+    }
+  }
+}`
+	var result struct {
+		TeamCreate struct {
+			Team    Team `json:"team"`
+			Success bool `json:"success"`
+		} `json:"teamCreate"`
+	}
+	input := map[string]any{"name": name, "key": key}
+	if err := c.Do(mutation, map[string]any{"input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.TeamCreate.Success {
+		return nil, fmt.Errorf("teamCreate вернул success=false")
+	}
+	return &result.TeamCreate.Team, nil
+}
+
+// UpdateTeamInput — входные данные для обновления команды.
+type UpdateTeamInput struct {
+	Name string
+	Key  string
+}
+
+// UpdateTeam обновляет команду.
+func (c *Client) UpdateTeam(id string, input UpdateTeamInput) (*Team, error) {
+	mutation := `
+mutation UpdateTeam($id: String!, $input: TeamUpdateInput!) {
+  teamUpdate(id: $id, input: $input) {
+    success
+    team {
+      id
+      key
+      name
+    }
+  }
+}`
+	var result struct {
+		TeamUpdate struct {
+			Team    Team `json:"team"`
+			Success bool `json:"success"`
+		} `json:"teamUpdate"`
+	}
+	gqlInput := map[string]any{}
+	if input.Name != "" {
+		gqlInput["name"] = input.Name
+	}
+	if input.Key != "" {
+		gqlInput["key"] = input.Key
+	}
+	if err := c.Do(mutation, map[string]any{"id": id, "input": gqlInput}, &result); err != nil {
+		return nil, err
+	}
+	if !result.TeamUpdate.Success {
+		return nil, fmt.Errorf("teamUpdate вернул success=false")
+	}
+	return &result.TeamUpdate.Team, nil
+}
+
+// DeleteTeam удаляет команду по ID.
+func (c *Client) DeleteTeam(id string) error {
+	mutation := `
+mutation DeleteTeam($id: String!) {
+  teamDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		TeamDelete struct {
+			Success bool `json:"success"`
+		} `json:"teamDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.TeamDelete.Success {
+		return fmt.Errorf("teamDelete вернул success=false")
+	}
+	return nil
+}
+
+// CreateTeamMembership добавляет пользователя в команду.
+func (c *Client) CreateTeamMembership(teamID, userID string) (*TeamMembership, error) {
+	mutation := `
+mutation CreateTeamMembership($input: TeamMembershipCreateInput!) {
+  teamMembershipCreate(input: $input) {
+    success
+    teamMembership {
+      id
+      user { id name displayName email }
+      team { id key name }
+      role
+    }
+  }
+}`
+	var result struct {
+		TeamMembershipCreate struct {
+			TeamMembership TeamMembership `json:"teamMembership"`
+			Success        bool           `json:"success"`
+		} `json:"teamMembershipCreate"`
+	}
+	input := map[string]any{"teamId": teamID, "userId": userID}
+	if err := c.Do(mutation, map[string]any{"input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.TeamMembershipCreate.Success {
+		return nil, fmt.Errorf("teamMembershipCreate вернул success=false")
+	}
+	return &result.TeamMembershipCreate.TeamMembership, nil
+}
+
+// UpdateTeamMembership обновляет роль члена команды.
+func (c *Client) UpdateTeamMembership(id, role string) (*TeamMembership, error) {
+	mutation := `
+mutation UpdateTeamMembership($id: String!, $input: TeamMembershipUpdateInput!) {
+  teamMembershipUpdate(id: $id, input: $input) {
+    success
+    teamMembership {
+      id
+      user { id name displayName email }
+      team { id key name }
+      role
+    }
+  }
+}`
+	var result struct {
+		TeamMembershipUpdate struct {
+			TeamMembership TeamMembership `json:"teamMembership"`
+			Success        bool           `json:"success"`
+		} `json:"teamMembershipUpdate"`
+	}
+	gqlInput := map[string]any{}
+	if role != "" {
+		gqlInput["role"] = role
+	}
+	if err := c.Do(mutation, map[string]any{"id": id, "input": gqlInput}, &result); err != nil {
+		return nil, err
+	}
+	if !result.TeamMembershipUpdate.Success {
+		return nil, fmt.Errorf("teamMembershipUpdate вернул success=false")
+	}
+	return &result.TeamMembershipUpdate.TeamMembership, nil
+}
+
+// DeleteTeamMembership удаляет членство в команде по ID.
+func (c *Client) DeleteTeamMembership(id string) error {
+	mutation := `
+mutation DeleteTeamMembership($id: String!) {
+  teamMembershipDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		TeamMembershipDelete struct {
+			Success bool `json:"success"`
+		} `json:"teamMembershipDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.TeamMembershipDelete.Success {
+		return fmt.Errorf("teamMembershipDelete вернул success=false")
+	}
+	return nil
+}

@@ -1834,3 +1834,209 @@ func TestArchiveWorkflowState(t *testing.T) {
 		}
 	})
 }
+
+func TestCreateTeam(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"teamCreate": map[string]any{
+				"success": true,
+				"team":    map[string]any{"id": "t1", "key": "ENG", "name": "Engineering"},
+			},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		team, err := c.CreateTeam("Engineering", "ENG")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if team.Name != "Engineering" {
+			t.Errorf("expected name 'Engineering', got %s", team.Name)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		responseData := map[string]any{
+			"teamCreate": map[string]any{"success": false},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if _, err := c.CreateTeam("Engineering", "ENG"); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestUpdateTeam(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"teamUpdate": map[string]any{
+				"success": true,
+				"team":    map[string]any{"id": "t1", "key": "ENG", "name": "Engineering Updated"},
+			},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		team, err := c.UpdateTeam("t1", UpdateTeamInput{Name: "Engineering Updated"})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if team.Name != "Engineering Updated" {
+			t.Errorf("expected updated name, got %s", team.Name)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		responseData := map[string]any{
+			"teamUpdate": map[string]any{"success": false},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if _, err := c.UpdateTeam("t1", UpdateTeamInput{Name: "X"}); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestDeleteTeam(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"teamDelete": map[string]any{"success": true},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.DeleteTeam("t1"); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		responseData := map[string]any{
+			"teamDelete": map[string]any{"success": false},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.DeleteTeam("t1"); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestCreateTeamMembership(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"teamMembershipCreate": map[string]any{
+				"success": true,
+				"teamMembership": map[string]any{
+					"id":   "tm1",
+					"user": map[string]any{"id": "u1", "name": "Alice", "displayName": "Alice Smith", "email": "alice@test.com"},
+					"team": map[string]any{"id": "t1", "key": "ENG", "name": "Engineering"},
+					"role": "member",
+				},
+			},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		m, err := c.CreateTeamMembership("t1", "u1")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if m.User.Name != "Alice" {
+			t.Errorf("expected user Alice, got %s", m.User.Name)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		responseData := map[string]any{
+			"teamMembershipCreate": map[string]any{"success": false},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if _, err := c.CreateTeamMembership("t1", "u1"); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestDeleteTeamMembership(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"teamMembershipDelete": map[string]any{"success": true},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.DeleteTeamMembership("tm1"); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		responseData := map[string]any{
+			"teamMembershipDelete": map[string]any{"success": false},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.DeleteTeamMembership("tm1"); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestUpdateTeamMembership(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"teamMembershipUpdate": map[string]any{
+				"success": true,
+				"teamMembership": map[string]any{
+					"id":   "tm1",
+					"user": map[string]any{"id": "u1", "name": "Alice", "displayName": "Alice Smith", "email": "alice@test.com"},
+					"team": map[string]any{"id": "t1", "key": "ENG", "name": "Engineering"},
+					"role": "admin",
+				},
+			},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		m, err := c.UpdateTeamMembership("tm1", "admin")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if m.Role != "admin" {
+			t.Errorf("expected role admin, got %s", m.Role)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		responseData := map[string]any{
+			"teamMembershipUpdate": map[string]any{"success": false},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if _, err := c.UpdateTeamMembership("tm1", "admin"); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}

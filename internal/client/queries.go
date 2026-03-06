@@ -724,3 +724,39 @@ query ListWorkflowStates($teamId: String!) {
 	}
 	return result.WorkflowStates.Nodes, nil
 }
+
+// TeamMembership представляет членство пользователя в команде.
+type TeamMembership struct {
+	ID   string `json:"id"`
+	User User   `json:"user"`
+	Team Team   `json:"team"`
+	Role string `json:"role"`
+}
+
+// ListTeamMembers возвращает список членов команды.
+func (c *Client) ListTeamMembers(teamID string) ([]TeamMembership, error) {
+	query := `
+query ListTeamMembers($teamId: String!) {
+  team(id: $teamId) {
+    members(first: 250) {
+      nodes {
+        id
+        user { id name displayName email }
+        team { id key name }
+        role
+      }
+    }
+  }
+}`
+	var result struct {
+		Team struct {
+			Members struct {
+				Nodes []TeamMembership `json:"nodes"`
+			} `json:"members"`
+		} `json:"team"`
+	}
+	if err := c.Do(query, map[string]any{"teamId": teamID}, &result); err != nil {
+		return nil, err
+	}
+	return result.Team.Members.Nodes, nil
+}

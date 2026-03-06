@@ -234,17 +234,17 @@
 
 #### Task 19: Teams — Create/Update/Delete + Memberships
 
-- [ ] написать тесты для мутаций `teamCreate`, `teamUpdate`, `teamDelete`
-- [ ] добавить методы `CreateTeam`, `UpdateTeam`, `DeleteTeam` в mutations.go
-- [ ] написать тесты для cmd `teams create`, `teams update <ID>`, `teams delete <ID>`
-- [ ] добавить тип `TeamMembership` в queries.go (id, user, team, role)
-- [ ] написать тесты для `ListTeamMembers(teamID)`
-- [ ] добавить метод `ListTeamMembers(teamID)` в queries.go
-- [ ] написать тесты для мутаций `teamMembershipCreate`, `teamMembershipDelete`, `teamMembershipUpdate`
-- [ ] добавить методы в mutations.go
-- [ ] написать тесты для cmd `teams members list <TEAM-ID>`, `teams members add`, `teams members remove`
-- [ ] добавить команды в `cmd/teams.go` (расширить) и `cmd/team_members.go`
-- [ ] запустить тесты — должны пройти
+- [x] написать тесты для мутаций `teamCreate`, `teamUpdate`, `teamDelete`
+- [x] добавить методы `CreateTeam`, `UpdateTeam`, `DeleteTeam` в mutations.go
+- [x] написать тесты для cmd `teams create`, `teams update <ID>`, `teams delete <ID>`
+- [x] добавить тип `TeamMembership` в queries.go (id, user, team, role)
+- [x] написать тесты для `ListTeamMembers(teamID)`
+- [x] добавить метод `ListTeamMembers(teamID)` в queries.go
+- [x] написать тесты для мутаций `teamMembershipCreate`, `teamMembershipDelete`, `teamMembershipUpdate`
+- [x] добавить методы в mutations.go
+- [x] написать тесты для cmd `teams members list <TEAM-ID>`, `teams members add`, `teams members remove`
+- [x] добавить команды в `cmd/teams.go` (расширить) и `cmd/team_members.go`
+- [x] запустить тесты — должны пройти
 
 ---
 

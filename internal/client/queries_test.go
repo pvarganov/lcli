@@ -925,3 +925,66 @@ func TestListWorkflowStates(t *testing.T) {
 		}
 	})
 }
+
+func TestListTeamMembers(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"team": map[string]any{
+				"members": map[string]any{
+					"nodes": []map[string]any{
+						{
+							"id":   "tm1",
+							"user": map[string]any{"id": "u1", "name": "Alice", "displayName": "Alice Smith", "email": "alice@test.com"},
+							"team": map[string]any{"id": "t1", "key": "ENG", "name": "Engineering"},
+							"role": "member",
+						},
+					},
+				},
+			},
+		}
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+		}))
+		defer srv.Close()
+
+		c := NewWithURL("token", srv.URL)
+		members, err := c.ListTeamMembers("t1")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(members) != 1 {
+			t.Fatalf("expected 1 member, got %d", len(members))
+		}
+		if members[0].User.Name != "Alice" {
+			t.Errorf("expected Alice, got %s", members[0].User.Name)
+		}
+		if members[0].Role != "member" {
+			t.Errorf("expected role 'member', got %s", members[0].Role)
+		}
+	})
+
+	t.Run("empty", func(t *testing.T) {
+		responseData := map[string]any{
+			"team": map[string]any{
+				"members": map[string]any{
+					"nodes": []map[string]any{},
+				},
+			},
+		}
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+		}))
+		defer srv.Close()
+
+		c := NewWithURL("token", srv.URL)
+		members, err := c.ListTeamMembers("t1")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(members) != 0 {
+			t.Fatalf("expected 0 members, got %d", len(members))
+		}
+	})
+}
