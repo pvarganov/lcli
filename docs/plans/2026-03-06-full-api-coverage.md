@@ -160,14 +160,14 @@
 
 #### Task 13: Project Labels (метки проекта)
 
-- [ ] добавить тип `ProjectLabel` в queries.go
-- [ ] написать тесты для `ListProjectLabels()`
-- [ ] добавить метод `ListProjectLabels()` в queries.go
-- [ ] написать тесты для мутаций `projectLabelCreate`, `projectLabelUpdate`, `projectLabelDelete`
-- [ ] добавить методы в mutations.go
-- [ ] написать тесты для cmd `projects labels list`, `projects labels create`, `projects labels update`, `projects labels delete`
-- [ ] добавить команды в `cmd/project_labels.go`
-- [ ] запустить тесты — должны пройти
+- [x] добавить тип `ProjectLabel` в queries.go
+- [x] написать тесты для `ListProjectLabels()`
+- [x] добавить метод `ListProjectLabels()` в queries.go
+- [x] написать тесты для мутаций `projectLabelCreate`, `projectLabelUpdate`, `projectLabelDelete`
+- [x] добавить методы в mutations.go
+- [x] написать тесты для cmd `projects labels list`, `projects labels create`, `projects labels update`, `projects labels delete`
+- [x] добавить команды в `cmd/project_labels.go`
+- [x] запустить тесты — должны пройти
 
 #### Task 14: Project Statuses
 

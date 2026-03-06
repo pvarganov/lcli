@@ -510,6 +510,38 @@ query ListProjectUpdates($id: String!) {
 	return result.Project.ProjectUpdates.Nodes, nil
 }
 
+// ProjectLabel представляет метку проекта Linear.
+type ProjectLabel struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Color       string `json:"color"`
+	Description string `json:"description"`
+}
+
+// ListProjectLabels возвращает все метки проектов организации.
+func (c *Client) ListProjectLabels() ([]ProjectLabel, error) {
+	query := `
+query ListProjectLabels {
+  projectLabels(first: 250) {
+    nodes {
+      id
+      name
+      color
+      description
+    }
+  }
+}`
+	var result struct {
+		ProjectLabels struct {
+			Nodes []ProjectLabel `json:"nodes"`
+		} `json:"projectLabels"`
+	}
+	if err := c.Do(query, nil, &result); err != nil {
+		return nil, err
+	}
+	return result.ProjectLabels.Nodes, nil
+}
+
 // PriorityLabel возвращает текстовое обозначение приоритета.
 func PriorityLabel(p int) string {
 	switch p {

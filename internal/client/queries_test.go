@@ -487,6 +487,64 @@ func TestListProjectMilestones(t *testing.T) {
 	})
 }
 
+func TestListProjectLabels(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{
+				"data": map[string]any{
+					"projectLabels": map[string]any{
+						"nodes": []map[string]any{
+							{"id": "pl1", "name": "Frontend", "color": "#ff0000", "description": "Frontend work"},
+							{"id": "pl2", "name": "Backend", "color": "#0000ff", "description": ""},
+						},
+					},
+				},
+			})
+		}))
+		defer srv.Close()
+
+		c := NewWithURL("token", srv.URL)
+		labels, err := c.ListProjectLabels()
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(labels) != 2 {
+			t.Fatalf("expected 2 labels, got %d", len(labels))
+		}
+		if labels[0].ID != "pl1" {
+			t.Errorf("expected id pl1, got %q", labels[0].ID)
+		}
+		if labels[0].Name != "Frontend" {
+			t.Errorf("expected name Frontend, got %q", labels[0].Name)
+		}
+		if labels[0].Color != "#ff0000" {
+			t.Errorf("expected color #ff0000, got %q", labels[0].Color)
+		}
+	})
+
+	t.Run("empty", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{
+				"data": map[string]any{
+					"projectLabels": map[string]any{"nodes": []map[string]any{}},
+				},
+			})
+		}))
+		defer srv.Close()
+
+		c := NewWithURL("token", srv.URL)
+		labels, err := c.ListProjectLabels()
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(labels) != 0 {
+			t.Errorf("expected 0 labels, got %d", len(labels))
+		}
+	})
+}
+
 func TestListProjectUpdates(t *testing.T) {
 	now := time.Date(2024, 6, 1, 10, 0, 0, 0, time.UTC)
 

@@ -1255,6 +1255,114 @@ func TestUpdateProjectUpdate(t *testing.T) {
 	})
 }
 
+func TestCreateProjectLabel(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"projectLabelCreate": map[string]any{
+				"success": true,
+				"projectLabel": map[string]any{
+					"id": "pl-new", "name": "Design", "color": "#00ff00", "description": "Design work",
+				},
+			},
+		})
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		label, err := c.CreateProjectLabel(CreateProjectLabelInput{
+			Name:        "Design",
+			Color:       "#00ff00",
+			Description: "Design work",
+		})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if label.ID != "pl-new" {
+			t.Errorf("expected id pl-new, got %s", label.ID)
+		}
+		if label.Name != "Design" {
+			t.Errorf("expected name Design, got %s", label.Name)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"projectLabelCreate": map[string]any{"success": false},
+		})
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		_, err := c.CreateProjectLabel(CreateProjectLabelInput{Name: "Test"})
+		if err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestUpdateProjectLabel(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"projectLabelUpdate": map[string]any{
+				"success": true,
+				"projectLabel": map[string]any{
+					"id": "pl1", "name": "Updated Label", "color": "#ff00ff", "description": "",
+				},
+			},
+		})
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		label, err := c.UpdateProjectLabel("pl1", UpdateProjectLabelInput{
+			Name:  "Updated Label",
+			Color: "#ff00ff",
+		})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if label.Name != "Updated Label" {
+			t.Errorf("expected name 'Updated Label', got %s", label.Name)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"projectLabelUpdate": map[string]any{"success": false},
+		})
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		_, err := c.UpdateProjectLabel("pl1", UpdateProjectLabelInput{Name: "Test"})
+		if err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestDeleteProjectLabel(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"projectLabelDelete": map[string]any{"success": true},
+		})
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.DeleteProjectLabel("pl1"); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"projectLabelDelete": map[string]any{"success": false},
+		})
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.DeleteProjectLabel("pl1"); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
 func TestArchiveProjectUpdate(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		srv := newMutationTestServer(t, map[string]any{

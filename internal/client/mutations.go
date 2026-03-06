@@ -1233,6 +1233,119 @@ mutation ArchiveProjectUpdate($id: String!) {
 	return nil
 }
 
+// CreateProjectLabelInput — входные данные для создания метки проекта.
+type CreateProjectLabelInput struct {
+	Name        string
+	Color       string
+	Description string
+}
+
+// UpdateProjectLabelInput — входные данные для обновления метки проекта.
+type UpdateProjectLabelInput struct {
+	Name        string
+	Color       string
+	Description string
+}
+
+// CreateProjectLabel создаёт новую метку проекта.
+func (c *Client) CreateProjectLabel(input CreateProjectLabelInput) (*ProjectLabel, error) {
+	mutation := `
+mutation CreateProjectLabel($input: ProjectLabelCreateInput!) {
+  projectLabelCreate(input: $input) {
+    success
+    projectLabel {
+      id
+      name
+      color
+      description
+    }
+  }
+}`
+	gqlInput := map[string]any{
+		"name": input.Name,
+	}
+	if input.Color != "" {
+		gqlInput["color"] = input.Color
+	}
+	if input.Description != "" {
+		gqlInput["description"] = input.Description
+	}
+	var result struct {
+		ProjectLabelCreate struct {
+			ProjectLabel ProjectLabel `json:"projectLabel"`
+			Success      bool         `json:"success"`
+		} `json:"projectLabelCreate"`
+	}
+	if err := c.Do(mutation, map[string]any{"input": gqlInput}, &result); err != nil {
+		return nil, err
+	}
+	if !result.ProjectLabelCreate.Success {
+		return nil, fmt.Errorf("projectLabelCreate вернул success=false")
+	}
+	return &result.ProjectLabelCreate.ProjectLabel, nil
+}
+
+// UpdateProjectLabel обновляет метку проекта.
+func (c *Client) UpdateProjectLabel(id string, input UpdateProjectLabelInput) (*ProjectLabel, error) {
+	mutation := `
+mutation UpdateProjectLabel($id: String!, $input: ProjectLabelUpdateInput!) {
+  projectLabelUpdate(id: $id, input: $input) {
+    success
+    projectLabel {
+      id
+      name
+      color
+      description
+    }
+  }
+}`
+	gqlInput := map[string]any{}
+	if input.Name != "" {
+		gqlInput["name"] = input.Name
+	}
+	if input.Color != "" {
+		gqlInput["color"] = input.Color
+	}
+	if input.Description != "" {
+		gqlInput["description"] = input.Description
+	}
+	var result struct {
+		ProjectLabelUpdate struct {
+			ProjectLabel ProjectLabel `json:"projectLabel"`
+			Success      bool         `json:"success"`
+		} `json:"projectLabelUpdate"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id, "input": gqlInput}, &result); err != nil {
+		return nil, err
+	}
+	if !result.ProjectLabelUpdate.Success {
+		return nil, fmt.Errorf("projectLabelUpdate вернул success=false")
+	}
+	return &result.ProjectLabelUpdate.ProjectLabel, nil
+}
+
+// DeleteProjectLabel удаляет метку проекта.
+func (c *Client) DeleteProjectLabel(id string) error {
+	mutation := `
+mutation DeleteProjectLabel($id: String!) {
+  projectLabelDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		ProjectLabelDelete struct {
+			Success bool `json:"success"`
+		} `json:"projectLabelDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.ProjectLabelDelete.Success {
+		return fmt.Errorf("projectLabelDelete вернул success=false")
+	}
+	return nil
+}
+
 // UnarchiveProject разархивирует проект в Linear.
 func (c *Client) UnarchiveProject(id string) error {
 	mutation := `
