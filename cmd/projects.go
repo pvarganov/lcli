@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/pavelvarganov/lcli/internal/format"
@@ -27,8 +28,16 @@ var projectsListCmd = &cobra.Command{
 			return err
 		}
 
+		out := cmd.OutOrStdout()
+
+		if GetOutputFormat() == "json" {
+			enc := json.NewEncoder(out)
+			enc.SetIndent("", "  ")
+			return enc.Encode(projects)
+		}
+
 		if len(projects) == 0 {
-			fmt.Fprintln(cmd.OutOrStdout(), "Проекты не найдены.")
+			fmt.Fprintln(out, "Проекты не найдены.")
 			return nil
 		}
 
@@ -41,7 +50,7 @@ var projectsListCmd = &cobra.Command{
 			}
 			rows = append(rows, []string{p.ID, p.Name, p.State, desc})
 		}
-		format.TableWriter(cmd.OutOrStdout(), headers, rows)
+		format.TableWriter(out, headers, rows)
 		return nil
 	},
 }

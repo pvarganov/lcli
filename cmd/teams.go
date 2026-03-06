@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/pavelvarganov/lcli/internal/format"
@@ -27,8 +28,16 @@ var teamsListCmd = &cobra.Command{
 			return err
 		}
 
+		out := cmd.OutOrStdout()
+
+		if GetOutputFormat() == "json" {
+			enc := json.NewEncoder(out)
+			enc.SetIndent("", "  ")
+			return enc.Encode(teams)
+		}
+
 		if len(teams) == 0 {
-			fmt.Fprintln(cmd.OutOrStdout(), "Команды не найдены.")
+			fmt.Fprintln(out, "Команды не найдены.")
 			return nil
 		}
 
@@ -37,7 +46,7 @@ var teamsListCmd = &cobra.Command{
 		for _, team := range teams {
 			rows = append(rows, []string{team.ID, team.Key, team.Name})
 		}
-		format.TableWriter(cmd.OutOrStdout(), headers, rows)
+		format.TableWriter(out, headers, rows)
 		return nil
 	},
 }

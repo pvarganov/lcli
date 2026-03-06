@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/pavelvarganov/lcli/internal/client"
@@ -23,6 +24,7 @@ var (
 	issuesStatus   string
 	issuesTeam     string
 	issuesLimit    int
+	issuesAfter    string
 )
 
 var issuesListCmd = &cobra.Command{
@@ -35,18 +37,27 @@ var issuesListCmd = &cobra.Command{
 		}
 
 		c := newLinearClient(t)
-		issues, err := c.ListIssues(client.IssueFilter{
+		issues, pageInfo, err := c.ListIssues(client.IssueFilter{
 			Assignee: issuesAssignee,
 			Status:   issuesStatus,
 			Team:     issuesTeam,
 			Limit:    issuesLimit,
+			After:    issuesAfter,
 		})
 		if err != nil {
 			return err
 		}
 
+		out := cmd.OutOrStdout()
+
+		if GetOutputFormat() == "json" {
+			enc := json.NewEncoder(out)
+			enc.SetIndent("", "  ")
+			return enc.Encode(issues)
+		}
+
 		if len(issues) == 0 {
-			fmt.Fprintln(cmd.OutOrStdout(), "Задачи не найдены.")
+			fmt.Fprintln(out, "Задачи не найдены.")
 			return nil
 		}
 
@@ -60,13 +71,17 @@ var issuesListCmd = &cobra.Command{
 			rows = append(rows, []string{
 				issue.Identifier,
 				issue.Title,
-				issue.State.Name,
+				format.ColorStatus(issue.State.Name, issue.State.Type),
 				assignee,
 				client.PriorityLabel(issue.Priority),
 				issue.UpdatedAt.Format("2006-01-02"),
 			})
 		}
-		format.TableWriter(cmd.OutOrStdout(), headers, rows)
+		format.TableWriter(out, headers, rows)
+
+		if pageInfo != nil && pageInfo.HasNextPage {
+			fmt.Fprintf(out, "\nСледующая страница: --after %s\n", pageInfo.EndCursor)
+		}
 		return nil
 	},
 }
@@ -76,6 +91,7 @@ func init() {
 	issuesListCmd.Flags().StringVar(&issuesStatus, "status", "", "Фильтр по статусу")
 	issuesListCmd.Flags().StringVar(&issuesTeam, "team", "", "Фильтр по команде (key)")
 	issuesListCmd.Flags().IntVar(&issuesLimit, "limit", 25, "Максимальное количество задач")
+	issuesListCmd.Flags().StringVar(&issuesAfter, "after", "", "Курсор для пагинации (из предыдущего запроса)")
 
 	issuesCmd.AddCommand(issuesListCmd)
 	rootCmd.AddCommand(issuesCmd)

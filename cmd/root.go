@@ -6,6 +6,7 @@ import (
 )
 
 var token string
+var outputFormat string
 
 var rootCmd = &cobra.Command{
 	Use:   "lcli",
@@ -19,6 +20,7 @@ func Execute() error {
 
 func init() {
 	rootCmd.PersistentFlags().StringVar(&token, "token", "", "Linear API токен (или установите LINEAR_API_KEY)")
+	rootCmd.PersistentFlags().StringVarP(&outputFormat, "output", "o", "", "Формат вывода: table (default), json")
 }
 
 // GetToken возвращает токен: сначала флаг --token, затем env LINEAR_API_KEY и файл конфига.
@@ -28,4 +30,9 @@ func GetToken() string {
 	}
 	t, _ := config.LoadToken()
 	return t
+}
+
+// GetOutputFormat возвращает текущий формат вывода.
+func GetOutputFormat() string {
+	return outputFormat
 }

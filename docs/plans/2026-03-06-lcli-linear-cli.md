@@ -118,11 +118,11 @@
 
 ### Task 8: Форматирование вывода и UX
 
-- [ ] Добавить флаг `--output json` для machine-readable вывода
-- [ ] Цветовое выделение статусов (In Progress — синий, Done — зелёный, Cancelled — серый)
-- [ ] Пагинация для больших списков (`--limit` + `after`-cursor)
-- [ ] Написать тесты для JSON-вывода
-- [ ] Запустить `go test ./...` — должен пройти
+- [x] Добавить флаг `--output json` для machine-readable вывода
+- [x] Цветовое выделение статусов (In Progress — синий, Done — зелёный, Cancelled — серый)
+- [x] Пагинация для больших списков (`--limit` + `after`-cursor)
+- [x] Написать тесты для JSON-вывода
+- [x] Запустить `go test ./...` — должен пройти
 
 ### Task 9: Verify acceptance criteria
 

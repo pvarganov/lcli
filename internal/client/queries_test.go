@@ -34,7 +34,7 @@ func TestListIssues(t *testing.T) {
 	defer srv.Close()
 
 	c := NewWithURL("token", srv.URL)
-	issues, err := c.ListIssues(IssueFilter{Limit: 10})
+	issues, pageInfo, err := c.ListIssues(IssueFilter{Limit: 10})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -46,6 +46,9 @@ func TestListIssues(t *testing.T) {
 	}
 	if issues[0].Assignee == nil || issues[0].Assignee.DisplayName != "Bob Smith" {
 		t.Errorf("expected assignee Bob Smith")
+	}
+	if pageInfo == nil {
+		t.Error("expected pageInfo to be non-nil")
 	}
 }
 

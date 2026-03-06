@@ -156,6 +156,93 @@ func TestTeamsListNoToken(t *testing.T) {
 	}
 }
 
+func TestProjectsListJSONOutput(t *testing.T) {
+	responseData := map[string]any{
+		"projects": map[string]any{
+			"nodes": []map[string]any{
+				{
+					"id":          "proj1",
+					"name":        "Mobile App",
+					"description": "iOS and Android app",
+					"state":       "started",
+				},
+			},
+		},
+	}
+
+	srv := newProjectsTeamsTestServer(t, responseData)
+	defer srv.Close()
+
+	origFactory := newLinearClient
+	newLinearClient = func(tok string) *client.Client {
+		return client.NewWithURL(tok, srv.URL)
+	}
+	defer func() { newLinearClient = origFactory }()
+
+	token = "test-token"
+	defer func() { token = "" }()
+
+	outputFormat = "json"
+	defer func() { outputFormat = "" }()
+
+	cmd := projectsListCmd
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+
+	if err := cmd.RunE(cmd, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	var projects []map[string]any
+	if err := json.Unmarshal(buf.Bytes(), &projects); err != nil {
+		t.Fatalf("expected valid JSON, got: %v\noutput: %s", err, buf.String())
+	}
+	if len(projects) != 1 || projects[0]["name"] != "Mobile App" {
+		t.Errorf("unexpected JSON output: %v", projects)
+	}
+}
+
+func TestTeamsListJSONOutput(t *testing.T) {
+	responseData := map[string]any{
+		"teams": map[string]any{
+			"nodes": []map[string]any{
+				{"id": "team1", "key": "ENG", "name": "Engineering"},
+			},
+		},
+	}
+
+	srv := newProjectsTeamsTestServer(t, responseData)
+	defer srv.Close()
+
+	origFactory := newLinearClient
+	newLinearClient = func(tok string) *client.Client {
+		return client.NewWithURL(tok, srv.URL)
+	}
+	defer func() { newLinearClient = origFactory }()
+
+	token = "test-token"
+	defer func() { token = "" }()
+
+	outputFormat = "json"
+	defer func() { outputFormat = "" }()
+
+	cmd := teamsListCmd
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+
+	if err := cmd.RunE(cmd, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	var teams []map[string]any
+	if err := json.Unmarshal(buf.Bytes(), &teams); err != nil {
+		t.Fatalf("expected valid JSON, got: %v\noutput: %s", err, buf.String())
+	}
+	if len(teams) != 1 || teams[0]["key"] != "ENG" {
+		t.Errorf("unexpected JSON output: %v", teams)
+	}
+}
+
 func TestTeamsListEmpty(t *testing.T) {
 	responseData := map[string]any{
 		"teams": map[string]any{

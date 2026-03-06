@@ -47,12 +47,20 @@ type IssueFilter struct {
 	Status   string
 	Team     string
 	Limit    int
+	After    string // курсор для пагинации
+}
+
+// PageInfo — информация о пагинации.
+type PageInfo struct {
+	HasNextPage bool   `json:"hasNextPage"`
+	EndCursor   string `json:"endCursor"`
 }
 
 // IssueConnection — ответ на запрос списка задач.
 type IssueConnection struct {
 	Issues struct {
-		Nodes []Issue `json:"nodes"`
+		Nodes    []Issue  `json:"nodes"`
+		PageInfo PageInfo `json:"pageInfo"`
 	} `json:"issues"`
 }
 
@@ -61,11 +69,11 @@ type IssueResult struct {
 	Issue Issue `json:"issue"`
 }
 
-// ListIssues возвращает список задач по фильтрам.
-func (c *Client) ListIssues(filter IssueFilter) ([]Issue, error) {
+// ListIssues возвращает список задач по фильтрам и информацию о пагинации.
+func (c *Client) ListIssues(filter IssueFilter) ([]Issue, *PageInfo, error) {
 	query := `
-query ListIssues($first: Int, $filter: IssueFilter) {
-  issues(first: $first, filter: $filter) {
+query ListIssues($first: Int, $after: String, $filter: IssueFilter) {
+  issues(first: $first, after: $after, filter: $filter) {
     nodes {
       id
       identifier
@@ -76,11 +84,18 @@ query ListIssues($first: Int, $filter: IssueFilter) {
       assignee { id name displayName email }
       team { id key name }
     }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
   }
 }`
 
 	variables := map[string]any{
 		"first": filter.Limit,
+	}
+	if filter.After != "" {
+		variables["after"] = filter.After
 	}
 
 	issueFilter := map[string]any{}
@@ -105,9 +120,10 @@ query ListIssues($first: Int, $filter: IssueFilter) {
 
 	var result IssueConnection
 	if err := c.Do(query, variables, &result); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return result.Issues.Nodes, nil
+	pi := result.Issues.PageInfo
+	return result.Issues.Nodes, &pi, nil
 }
 
 // GetIssue возвращает задачу по ID.
