@@ -42,7 +42,7 @@ func TestDo_Success(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := newWithURL("test-token", srv.URL)
+	c := NewWithURL("test-token", srv.URL)
 	var result response
 	err := c.Do(`{ viewer { name } }`, nil, &result)
 	if err != nil {
@@ -64,7 +64,7 @@ func TestDo_GraphQLError(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := newWithURL("bad-token", srv.URL)
+	c := NewWithURL("bad-token", srv.URL)
 	err := c.Do(`{ viewer { name } }`, nil, nil)
 	if err == nil {
 		t.Fatal("expected error, got nil")
@@ -76,7 +76,7 @@ func TestDo_GraphQLError(t *testing.T) {
 
 func TestDo_NetworkError(t *testing.T) {
 	// Сервер не запускаем — используем недоступный адрес
-	c := newWithURL("token", "http://127.0.0.1:19999")
+	c := NewWithURL("token", "http://127.0.0.1:19999")
 	err := c.Do(`{ viewer { name } }`, nil, nil)
 	if err == nil {
 		t.Fatal("expected network error, got nil")
@@ -97,7 +97,7 @@ func TestDo_WithVariables(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := newWithURL("token", srv.URL)
+	c := NewWithURL("token", srv.URL)
 	err := c.Do(`query($id: String!) { issue(id: $id) { id } }`, map[string]any{"id": "issue-123"}, nil)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)

@@ -47,8 +47,8 @@ func New(token string) *Client {
 	}
 }
 
-// newWithURL создаёт Client с произвольным URL (для тестов).
-func newWithURL(token, url string) *Client {
+// NewWithURL создаёт Client с произвольным URL (для тестов).
+func NewWithURL(token, url string) *Client {
 	return &Client{
 		httpClient: &http.Client{},
 		token:      token,

@@ -80,15 +80,15 @@
 
 ### Task 4: Команды для Issues — просмотр
 
-- [ ] Создать `cmd/issues.go` с субкомандой `lcli issues list`
+- [x] Создать `cmd/issues.go` с субкомандой `lcli issues list`
   - Флаги: `--assignee`, `--status`, `--team`, `--limit` (default: 25)
   - Вывод: таблица (ID, Title, Status, Assignee, Priority, Updated)
-- [ ] Создать `cmd/issue_view.go` с командой `lcli issue view <ID>`
+- [x] Создать `cmd/issue_view.go` с командой `lcli issue view <ID>`
   - Вывод: детальная информация + описание
-- [ ] GraphQL-запросы в `internal/client/queries.go`
-- [ ] Написать тесты для форматирования таблицы
-- [ ] Написать тест с моком клиента для `issues list`
-- [ ] Запустить `go test ./...` — должен пройти
+- [x] GraphQL-запросы в `internal/client/queries.go`
+- [x] Написать тесты для форматирования таблицы
+- [x] Написать тест с моком клиента для `issues list`
+- [x] Запустить `go test ./...` — должен пройти
 
 ### Task 5: Команды для Issues — создание и обновление
 
