@@ -2739,3 +2739,164 @@ func TestDeleteInitiativeToProject(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
+
+func TestCreateRoadmap(t *testing.T) {
+	responseData := map[string]any{
+		"roadmapCreate": map[string]any{
+			"success": true,
+			"roadmap": map[string]any{
+				"id":          "rm1",
+				"name":        "New Roadmap",
+				"description": "Roadmap desc",
+				"createdAt":   "2024-01-01T00:00:00Z",
+			},
+		},
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	rm, err := c.CreateRoadmap("New Roadmap", "Roadmap desc", "")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if rm.Name != "New Roadmap" {
+		t.Errorf("expected name 'New Roadmap', got %s", rm.Name)
+	}
+}
+
+func TestCreateRoadmapFailure(t *testing.T) {
+	responseData := map[string]any{
+		"roadmapCreate": map[string]any{
+			"success": false,
+		},
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	_, err := c.CreateRoadmap("New Roadmap", "", "")
+	if err == nil {
+		t.Fatal("expected error")
+	}
+}
+
+func TestUpdateRoadmap(t *testing.T) {
+	responseData := map[string]any{
+		"roadmapUpdate": map[string]any{
+			"success": true,
+			"roadmap": map[string]any{
+				"id":        "rm1",
+				"name":      "Updated Roadmap",
+				"createdAt": "2024-01-01T00:00:00Z",
+			},
+		},
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	rm, err := c.UpdateRoadmap("rm1", map[string]any{"name": "Updated Roadmap"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if rm.Name != "Updated Roadmap" {
+		t.Errorf("expected name 'Updated Roadmap', got %s", rm.Name)
+	}
+}
+
+func TestDeleteRoadmap(t *testing.T) {
+	responseData := map[string]any{
+		"roadmapDelete": map[string]any{
+			"success": true,
+		},
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	err := c.DeleteRoadmap("rm1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestArchiveRoadmap(t *testing.T) {
+	responseData := map[string]any{
+		"roadmapArchive": map[string]any{
+			"success": true,
+		},
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	err := c.ArchiveRoadmap("rm1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestCreateRoadmapToProject(t *testing.T) {
+	responseData := map[string]any{
+		"roadmapToProjectCreate": map[string]any{
+			"success": true,
+			"roadmapToProject": map[string]any{
+				"id":      "rel1",
+				"roadmap": map[string]any{"id": "rm1", "name": "Q1 Roadmap"},
+				"project": map[string]any{"id": "p1", "name": "My Project"},
+			},
+		},
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	rel, err := c.CreateRoadmapToProject("rm1", "p1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if rel.ID != "rel1" {
+		t.Errorf("expected id 'rel1', got %s", rel.ID)
+	}
+	if rel.Roadmap.Name != "Q1 Roadmap" {
+		t.Errorf("expected roadmap name 'Q1 Roadmap', got %s", rel.Roadmap.Name)
+	}
+}
+
+func TestDeleteRoadmapToProject(t *testing.T) {
+	responseData := map[string]any{
+		"roadmapToProjectDelete": map[string]any{
+			"success": true,
+		},
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	err := c.DeleteRoadmapToProject("rel1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}

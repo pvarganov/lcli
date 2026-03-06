@@ -1639,3 +1639,107 @@ func TestListInitiativeUpdatesEmpty(t *testing.T) {
 		t.Errorf("expected empty updates, got %d", len(updates))
 	}
 }
+
+func TestListRoadmaps(t *testing.T) {
+	responseData := map[string]any{
+		"roadmaps": map[string]any{
+			"nodes": []map[string]any{
+				{
+					"id":          "rm1",
+					"name":        "Q1 Roadmap",
+					"description": "First quarter goals",
+					"createdAt":   "2024-01-01T00:00:00Z",
+					"owner":       map[string]any{"id": "u1", "name": "Alice", "displayName": "Alice Smith", "email": "alice@test.com"},
+				},
+			},
+		},
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	roadmaps, err := c.ListRoadmaps()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(roadmaps) != 1 {
+		t.Fatalf("expected 1 roadmap, got %d", len(roadmaps))
+	}
+	if roadmaps[0].Name != "Q1 Roadmap" {
+		t.Errorf("expected name 'Q1 Roadmap', got %s", roadmaps[0].Name)
+	}
+	if roadmaps[0].Owner == nil || roadmaps[0].Owner.Name != "Alice" {
+		t.Errorf("expected owner Alice")
+	}
+}
+
+func TestListRoadmapsEmpty(t *testing.T) {
+	responseData := map[string]any{
+		"roadmaps": map[string]any{
+			"nodes": []map[string]any{},
+		},
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	roadmaps, err := c.ListRoadmaps()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(roadmaps) != 0 {
+		t.Errorf("expected 0 roadmaps, got %d", len(roadmaps))
+	}
+}
+
+func TestGetRoadmap(t *testing.T) {
+	responseData := map[string]any{
+		"roadmap": map[string]any{
+			"id":          "rm1",
+			"name":        "Q1 Roadmap",
+			"description": "First quarter goals",
+			"createdAt":   "2024-01-01T00:00:00Z",
+			"owner":       nil,
+		},
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	rm, err := c.GetRoadmap("rm1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if rm.ID != "rm1" {
+		t.Errorf("expected id 'rm1', got %s", rm.ID)
+	}
+	if rm.Name != "Q1 Roadmap" {
+		t.Errorf("expected name 'Q1 Roadmap', got %s", rm.Name)
+	}
+}
+
+func TestGetRoadmapNotFound(t *testing.T) {
+	responseData := map[string]any{
+		"roadmap": nil,
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	_, err := c.GetRoadmap("nonexistent")
+	if err == nil {
+		t.Fatal("expected error for not found roadmap")
+	}
+}

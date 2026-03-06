@@ -351,16 +351,16 @@
 
 #### Task 27: Roadmaps — CRUD + Projects
 
-- [ ] добавить тип `Roadmap` в queries.go (id, name, description, owner)
-- [ ] написать тесты для `ListRoadmaps()`, `GetRoadmap(id)`
-- [ ] добавить методы в queries.go
-- [ ] написать тесты для мутаций `roadmapCreate`, `roadmapUpdate`, `roadmapDelete`, `roadmapArchive`
-- [ ] добавить методы в mutations.go
-- [ ] написать тесты для мутаций `roadmapToProjectCreate`, `roadmapToProjectDelete`
-- [ ] добавить методы в mutations.go
-- [ ] написать тесты для cmd `roadmaps list`, `roadmaps view <ID>`, `roadmaps create`, `roadmaps update <ID>`, `roadmaps delete <ID>`, `roadmaps add-project`, `roadmaps remove-project`
-- [ ] добавить команды в `cmd/roadmaps.go`
-- [ ] запустить тесты — должны пройти
+- [x] добавить тип `Roadmap` в queries.go (id, name, description, owner)
+- [x] написать тесты для `ListRoadmaps()`, `GetRoadmap(id)`
+- [x] добавить методы в queries.go
+- [x] написать тесты для мутаций `roadmapCreate`, `roadmapUpdate`, `roadmapDelete`, `roadmapArchive`
+- [x] добавить методы в mutations.go
+- [x] написать тесты для мутаций `roadmapToProjectCreate`, `roadmapToProjectDelete`
+- [x] добавить методы в mutations.go
+- [x] написать тесты для cmd `roadmaps list`, `roadmaps view <ID>`, `roadmaps create`, `roadmaps update <ID>`, `roadmaps delete <ID>`, `roadmaps add-project`, `roadmaps remove-project`
+- [x] добавить команды в `cmd/roadmaps.go`
+- [x] запустить тесты — должны пройти
 
 ---
 

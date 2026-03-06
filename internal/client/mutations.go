@@ -2696,3 +2696,168 @@ mutation DeleteInitiativeToProject($id: String!) {
 	}
 	return nil
 }
+
+// CreateRoadmap создаёт новую дорожную карту.
+func (c *Client) CreateRoadmap(name, description, ownerID string) (*Roadmap, error) {
+	mutation := `
+mutation CreateRoadmap($input: RoadmapCreateInput!) {
+  roadmapCreate(input: $input) {
+    success
+    roadmap {
+      id
+      name
+      description
+      createdAt
+      owner { id name displayName email }
+    }
+  }
+}`
+	input := map[string]any{"name": name}
+	if description != "" {
+		input["description"] = description
+	}
+	if ownerID != "" {
+		input["ownerId"] = ownerID
+	}
+	var result struct {
+		RoadmapCreate struct {
+			Roadmap Roadmap `json:"roadmap"`
+			Success bool    `json:"success"`
+		} `json:"roadmapCreate"`
+	}
+	if err := c.Do(mutation, map[string]any{"input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.RoadmapCreate.Success {
+		return nil, fmt.Errorf("roadmapCreate вернул success=false")
+	}
+	return &result.RoadmapCreate.Roadmap, nil
+}
+
+// UpdateRoadmap обновляет дорожную карту по ID.
+func (c *Client) UpdateRoadmap(id string, input map[string]any) (*Roadmap, error) {
+	mutation := `
+mutation UpdateRoadmap($id: String!, $input: RoadmapUpdateInput!) {
+  roadmapUpdate(id: $id, input: $input) {
+    success
+    roadmap {
+      id
+      name
+      description
+      createdAt
+      owner { id name displayName email }
+    }
+  }
+}`
+	var result struct {
+		RoadmapUpdate struct {
+			Roadmap Roadmap `json:"roadmap"`
+			Success bool    `json:"success"`
+		} `json:"roadmapUpdate"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id, "input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.RoadmapUpdate.Success {
+		return nil, fmt.Errorf("roadmapUpdate вернул success=false")
+	}
+	return &result.RoadmapUpdate.Roadmap, nil
+}
+
+// DeleteRoadmap удаляет дорожную карту по ID.
+func (c *Client) DeleteRoadmap(id string) error {
+	mutation := `
+mutation DeleteRoadmap($id: String!) {
+  roadmapDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		RoadmapDelete struct {
+			Success bool `json:"success"`
+		} `json:"roadmapDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.RoadmapDelete.Success {
+		return fmt.Errorf("roadmapDelete вернул success=false")
+	}
+	return nil
+}
+
+// ArchiveRoadmap архивирует дорожную карту по ID.
+func (c *Client) ArchiveRoadmap(id string) error {
+	mutation := `
+mutation ArchiveRoadmap($id: String!) {
+  roadmapArchive(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		RoadmapArchive struct {
+			Success bool `json:"success"`
+		} `json:"roadmapArchive"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.RoadmapArchive.Success {
+		return fmt.Errorf("roadmapArchive вернул success=false")
+	}
+	return nil
+}
+
+// CreateRoadmapToProject создаёт связь дорожной карты с проектом.
+func (c *Client) CreateRoadmapToProject(roadmapID, projectID string) (*RoadmapToProject, error) {
+	mutation := `
+mutation CreateRoadmapToProject($input: RoadmapToProjectCreateInput!) {
+  roadmapToProjectCreate(input: $input) {
+    success
+    roadmapToProject {
+      id
+      roadmap { id name }
+      project { id name }
+    }
+  }
+}`
+	input := map[string]any{
+		"roadmapId": roadmapID,
+		"projectId": projectID,
+	}
+	var result struct {
+		RoadmapToProjectCreate struct {
+			RoadmapToProject RoadmapToProject `json:"roadmapToProject"`
+			Success          bool             `json:"success"`
+		} `json:"roadmapToProjectCreate"`
+	}
+	if err := c.Do(mutation, map[string]any{"input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.RoadmapToProjectCreate.Success {
+		return nil, fmt.Errorf("roadmapToProjectCreate вернул success=false")
+	}
+	return &result.RoadmapToProjectCreate.RoadmapToProject, nil
+}
+
+// DeleteRoadmapToProject удаляет связь дорожной карты с проектом.
+func (c *Client) DeleteRoadmapToProject(id string) error {
+	mutation := `
+mutation DeleteRoadmapToProject($id: String!) {
+  roadmapToProjectDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		RoadmapToProjectDelete struct {
+			Success bool `json:"success"`
+		} `json:"roadmapToProjectDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.RoadmapToProjectDelete.Success {
+		return fmt.Errorf("roadmapToProjectDelete вернул success=false")
+	}
+	return nil
+}

@@ -1217,3 +1217,68 @@ type InitiativeToProject struct {
 	Initiative Initiative `json:"initiative"`
 	Project    Project    `json:"project"`
 }
+
+// Roadmap представляет дорожную карту Linear.
+type Roadmap struct {
+	ID          string    `json:"id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	CreatedAt   time.Time `json:"createdAt"`
+	Owner       *User     `json:"owner"`
+}
+
+// RoadmapToProject представляет связь дорожной карты с проектом.
+type RoadmapToProject struct {
+	ID      string  `json:"id"`
+	Roadmap Roadmap `json:"roadmap"`
+	Project Project `json:"project"`
+}
+
+// ListRoadmaps возвращает список всех дорожных карт организации.
+func (c *Client) ListRoadmaps() ([]Roadmap, error) {
+	query := `
+query ListRoadmaps {
+  roadmaps(first: 250) {
+    nodes {
+      id
+      name
+      description
+      createdAt
+      owner { id name displayName email }
+    }
+  }
+}`
+	var result struct {
+		Roadmaps struct {
+			Nodes []Roadmap `json:"nodes"`
+		} `json:"roadmaps"`
+	}
+	if err := c.Do(query, nil, &result); err != nil {
+		return nil, err
+	}
+	return result.Roadmaps.Nodes, nil
+}
+
+// GetRoadmap возвращает дорожную карту по ID.
+func (c *Client) GetRoadmap(id string) (*Roadmap, error) {
+	query := `
+query GetRoadmap($id: String!) {
+  roadmap(id: $id) {
+    id
+    name
+    description
+    createdAt
+    owner { id name displayName email }
+  }
+}`
+	var result struct {
+		Roadmap *Roadmap `json:"roadmap"`
+	}
+	if err := c.Do(query, map[string]any{"id": id}, &result); err != nil {
+		return nil, err
+	}
+	if result.Roadmap == nil {
+		return nil, fmt.Errorf("дорожная карта не найдена: %s", id)
+	}
+	return result.Roadmap, nil
+}
