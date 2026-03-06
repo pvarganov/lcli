@@ -2547,3 +2547,152 @@ mutation InitiativeArchive($id: String!) {
 	}
 	return nil
 }
+
+// CreateInitiativeUpdateInput — входные данные для создания обновления инициативы.
+type CreateInitiativeUpdateInput struct {
+	InitiativeID string `json:"initiativeId"`
+	Body         string `json:"body,omitempty"`
+	Health       string `json:"health,omitempty"`
+}
+
+// UpdateInitiativeUpdateInput — входные данные для изменения обновления инициативы.
+type UpdateInitiativeUpdateInput struct {
+	Body   string `json:"body,omitempty"`
+	Health string `json:"health,omitempty"`
+}
+
+// CreateInitiativeUpdate создаёт новую запись журнала инициативы.
+func (c *Client) CreateInitiativeUpdate(input CreateInitiativeUpdateInput) (*InitiativeUpdate, error) {
+	mutation := `
+mutation CreateInitiativeUpdate($input: InitiativeUpdateCreateInput!) {
+  initiativeUpdateCreate(input: $input) {
+    success
+    initiativeUpdate {
+      id
+      body
+      health
+      createdAt
+      user { id name displayName email }
+    }
+  }
+}`
+	var result struct {
+		InitiativeUpdateCreate struct {
+			InitiativeUpdate InitiativeUpdate `json:"initiativeUpdate"`
+			Success          bool             `json:"success"`
+		} `json:"initiativeUpdateCreate"`
+	}
+	if err := c.Do(mutation, map[string]any{"input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.InitiativeUpdateCreate.Success {
+		return nil, fmt.Errorf("initiativeUpdateCreate вернул success=false")
+	}
+	return &result.InitiativeUpdateCreate.InitiativeUpdate, nil
+}
+
+// UpdateInitiativeUpdate обновляет запись журнала инициативы.
+func (c *Client) UpdateInitiativeUpdate(id string, input UpdateInitiativeUpdateInput) (*InitiativeUpdate, error) {
+	mutation := `
+mutation UpdateInitiativeUpdate($id: String!, $input: InitiativeUpdateUpdateInput!) {
+  initiativeUpdateUpdate(id: $id, input: $input) {
+    success
+    initiativeUpdate {
+      id
+      body
+      health
+      createdAt
+      user { id name displayName email }
+    }
+  }
+}`
+	var result struct {
+		InitiativeUpdateUpdate struct {
+			InitiativeUpdate InitiativeUpdate `json:"initiativeUpdate"`
+			Success          bool             `json:"success"`
+		} `json:"initiativeUpdateUpdate"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id, "input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.InitiativeUpdateUpdate.Success {
+		return nil, fmt.Errorf("initiativeUpdateUpdate вернул success=false")
+	}
+	return &result.InitiativeUpdateUpdate.InitiativeUpdate, nil
+}
+
+// ArchiveInitiativeUpdate архивирует запись журнала инициативы.
+func (c *Client) ArchiveInitiativeUpdate(id string) error {
+	mutation := `
+mutation ArchiveInitiativeUpdate($id: String!) {
+  initiativeUpdateArchive(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		InitiativeUpdateArchive struct {
+			Success bool `json:"success"`
+		} `json:"initiativeUpdateArchive"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.InitiativeUpdateArchive.Success {
+		return fmt.Errorf("initiativeUpdateArchive вернул success=false")
+	}
+	return nil
+}
+
+// CreateInitiativeToProject создаёт связь инициативы с проектом.
+func (c *Client) CreateInitiativeToProject(initiativeID, projectID string) (*InitiativeToProject, error) {
+	mutation := `
+mutation CreateInitiativeToProject($input: InitiativeToProjectCreateInput!) {
+  initiativeToProjectCreate(input: $input) {
+    success
+    initiativeToProject {
+      id
+      initiative { id name }
+      project { id name }
+    }
+  }
+}`
+	var result struct {
+		InitiativeToProjectCreate struct {
+			InitiativeToProject InitiativeToProject `json:"initiativeToProject"`
+			Success             bool                `json:"success"`
+		} `json:"initiativeToProjectCreate"`
+	}
+	input := map[string]any{
+		"initiativeId": initiativeID,
+		"projectId":    projectID,
+	}
+	if err := c.Do(mutation, map[string]any{"input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.InitiativeToProjectCreate.Success {
+		return nil, fmt.Errorf("initiativeToProjectCreate вернул success=false")
+	}
+	return &result.InitiativeToProjectCreate.InitiativeToProject, nil
+}
+
+// DeleteInitiativeToProject удаляет связь инициативы с проектом.
+func (c *Client) DeleteInitiativeToProject(id string) error {
+	mutation := `
+mutation DeleteInitiativeToProject($id: String!) {
+  initiativeToProjectDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		InitiativeToProjectDelete struct {
+			Success bool `json:"success"`
+		} `json:"initiativeToProjectDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.InitiativeToProjectDelete.Success {
+		return fmt.Errorf("initiativeToProjectDelete вернул success=false")
+	}
+	return nil
+}

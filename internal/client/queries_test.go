@@ -1580,3 +1580,62 @@ func TestGetInitiativeNotFound(t *testing.T) {
 		t.Fatal("expected error for not found initiative")
 	}
 }
+
+func TestListInitiativeUpdates(t *testing.T) {
+	responseData := map[string]any{
+		"initiative": map[string]any{
+			"initiativeUpdates": map[string]any{
+				"nodes": []map[string]any{
+					{
+						"id":        "upd1",
+						"body":      "All on track",
+						"health":    "onTrack",
+						"createdAt": "2024-01-15T10:00:00Z",
+						"user":      map[string]any{"id": "u1", "name": "Alice", "displayName": "Alice"},
+					},
+				},
+			},
+		},
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	updates, err := c.ListInitiativeUpdates("init1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(updates) != 1 {
+		t.Fatalf("expected 1 update, got %d", len(updates))
+	}
+	if updates[0].ID != "upd1" {
+		t.Errorf("expected id upd1, got %q", updates[0].ID)
+	}
+}
+
+func TestListInitiativeUpdatesEmpty(t *testing.T) {
+	responseData := map[string]any{
+		"initiative": map[string]any{
+			"initiativeUpdates": map[string]any{
+				"nodes": []map[string]any{},
+			},
+		},
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	updates, err := c.ListInitiativeUpdates("init1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(updates) != 0 {
+		t.Errorf("expected empty updates, got %d", len(updates))
+	}
+}

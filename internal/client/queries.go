@@ -1169,3 +1169,51 @@ query GetInitiative($id: String!) {
 	}
 	return result.Initiative, nil
 }
+
+// InitiativeUpdate представляет обновление (запись журнала) инициативы Linear.
+type InitiativeUpdate struct {
+	ID        string    `json:"id"`
+	Body      string    `json:"body"`
+	Health    string    `json:"health"`
+	CreatedAt time.Time `json:"createdAt"`
+	User      *User     `json:"user"`
+}
+
+// ListInitiativeUpdates возвращает список обновлений инициативы по её ID.
+func (c *Client) ListInitiativeUpdates(initiativeID string) ([]InitiativeUpdate, error) {
+	query := `
+query ListInitiativeUpdates($id: String!) {
+  initiative(id: $id) {
+    initiativeUpdates(first: 250) {
+      nodes {
+        id
+        body
+        health
+        createdAt
+        user { id name displayName email }
+      }
+    }
+  }
+}`
+	var result struct {
+		Initiative *struct {
+			InitiativeUpdates struct {
+				Nodes []InitiativeUpdate `json:"nodes"`
+			} `json:"initiativeUpdates"`
+		} `json:"initiative"`
+	}
+	if err := c.Do(query, map[string]any{"id": initiativeID}, &result); err != nil {
+		return nil, err
+	}
+	if result.Initiative == nil {
+		return nil, fmt.Errorf("инициатива не найдена: %s", initiativeID)
+	}
+	return result.Initiative.InitiativeUpdates.Nodes, nil
+}
+
+// InitiativeToProject представляет связь инициативы с проектом.
+type InitiativeToProject struct {
+	ID         string     `json:"id"`
+	Initiative Initiative `json:"initiative"`
+	Project    Project    `json:"project"`
+}

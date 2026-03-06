@@ -335,15 +335,15 @@
 
 #### Task 26: Initiative Updates + Relations с проектами
 
-- [ ] написать тесты для `ListInitiativeUpdates(initiativeID)`
-- [ ] добавить метод в queries.go
-- [ ] написать тесты для мутаций `initiativeUpdateCreate`, `initiativeUpdateUpdate`, `initiativeUpdateArchive`
-- [ ] добавить методы в mutations.go
-- [ ] написать тесты для мутаций `initiativeToProjectCreate`, `initiativeToProjectDelete`
-- [ ] добавить методы в mutations.go
-- [ ] написать тесты для cmd `initiatives updates list`, `initiatives updates create`, `initiatives link-project`, `initiatives unlink-project`
-- [ ] добавить команды в `cmd/initiatives.go`
-- [ ] запустить тесты — должны пройти
+- [x] написать тесты для `ListInitiativeUpdates(initiativeID)`
+- [x] добавить метод в queries.go
+- [x] написать тесты для мутаций `initiativeUpdateCreate`, `initiativeUpdateUpdate`, `initiativeUpdateArchive`
+- [x] добавить методы в mutations.go
+- [x] написать тесты для мутаций `initiativeToProjectCreate`, `initiativeToProjectDelete`
+- [x] добавить методы в mutations.go
+- [x] написать тесты для cmd `initiatives updates list`, `initiatives updates create`, `initiatives link-project`, `initiatives unlink-project`
+- [x] добавить команды в `cmd/initiatives.go`
+- [x] запустить тесты — должны пройти
 
 ---
 

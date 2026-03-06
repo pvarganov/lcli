@@ -2613,3 +2613,129 @@ func TestArchiveInitiative(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
+
+func TestCreateInitiativeUpdate(t *testing.T) {
+	responseData := map[string]any{
+		"initiativeUpdateCreate": map[string]any{
+			"success": true,
+			"initiativeUpdate": map[string]any{
+				"id":        "upd1",
+				"body":      "Good progress",
+				"health":    "onTrack",
+				"createdAt": "2024-01-15T10:00:00Z",
+			},
+		},
+	}
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	upd, err := c.CreateInitiativeUpdate(CreateInitiativeUpdateInput{
+		InitiativeID: "init1",
+		Body:         "Good progress",
+		Health:       "onTrack",
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if upd.ID != "upd1" {
+		t.Errorf("expected id upd1, got %q", upd.ID)
+	}
+}
+
+func TestCreateInitiativeUpdateFailure(t *testing.T) {
+	responseData := map[string]any{
+		"initiativeUpdateCreate": map[string]any{
+			"success": false,
+		},
+	}
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	_, err := c.CreateInitiativeUpdate(CreateInitiativeUpdateInput{InitiativeID: "init1"})
+	if err == nil {
+		t.Fatal("expected error for success=false")
+	}
+}
+
+func TestUpdateInitiativeUpdate(t *testing.T) {
+	responseData := map[string]any{
+		"initiativeUpdateUpdate": map[string]any{
+			"success": true,
+			"initiativeUpdate": map[string]any{
+				"id":        "upd1",
+				"body":      "Updated body",
+				"health":    "onTrack",
+				"createdAt": "2024-01-15T10:00:00Z",
+			},
+		},
+	}
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	upd, err := c.UpdateInitiativeUpdate("upd1", UpdateInitiativeUpdateInput{Body: "Updated body"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if upd.ID != "upd1" {
+		t.Errorf("expected id upd1, got %q", upd.ID)
+	}
+}
+
+func TestArchiveInitiativeUpdate(t *testing.T) {
+	responseData := map[string]any{
+		"initiativeUpdateArchive": map[string]any{
+			"success": true,
+		},
+	}
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	err := c.ArchiveInitiativeUpdate("upd1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestCreateInitiativeToProject(t *testing.T) {
+	responseData := map[string]any{
+		"initiativeToProjectCreate": map[string]any{
+			"success": true,
+			"initiativeToProject": map[string]any{
+				"id":         "rel1",
+				"initiative": map[string]any{"id": "init1", "name": "My Initiative"},
+				"project":    map[string]any{"id": "proj1", "name": "My Project"},
+			},
+		},
+	}
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	rel, err := c.CreateInitiativeToProject("init1", "proj1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if rel.ID != "rel1" {
+		t.Errorf("expected id rel1, got %q", rel.ID)
+	}
+}
+
+func TestDeleteInitiativeToProject(t *testing.T) {
+	responseData := map[string]any{
+		"initiativeToProjectDelete": map[string]any{
+			"success": true,
+		},
+	}
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	err := c.DeleteInitiativeToProject("rel1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}

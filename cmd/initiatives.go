@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/pavelvarganov/lcli/internal/client"
 	"github.com/pavelvarganov/lcli/internal/format"
 	"github.com/spf13/cobra"
 )
@@ -202,6 +203,215 @@ var initiativesArchiveCmd = &cobra.Command{
 	},
 }
 
+// --- updates subcommands ---
+
+var initiativeUpdatesCmd = &cobra.Command{
+	Use:   "updates",
+	Short: "Управление обновлениями инициативы",
+}
+
+var initiativeUpdatesListCmd = &cobra.Command{
+	Use:   "list <INITIATIVE-ID>",
+	Short: "Список обновлений инициативы",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		t, err := GetToken()
+		if err != nil {
+			return fmt.Errorf("ошибка загрузки токена: %w", err)
+		}
+		if t == "" {
+			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
+		}
+
+		c := newLinearClient(t)
+		updates, err := c.ListInitiativeUpdates(args[0])
+		if err != nil {
+			return err
+		}
+
+		out := cmd.OutOrStdout()
+
+		if GetOutputFormat() == "json" {
+			enc := json.NewEncoder(out)
+			enc.SetIndent("", "  ")
+			return enc.Encode(updates)
+		}
+
+		if len(updates) == 0 {
+			fmt.Fprintln(out, "Обновления не найдены.")
+			return nil
+		}
+
+		headers := []string{"ID", "HEALTH", "AUTHOR", "CREATED AT", "BODY"}
+		rows := make([][]string, 0, len(updates))
+		for _, u := range updates {
+			author := ""
+			if u.User != nil {
+				author = format.StripControlChars(u.User.DisplayName)
+			}
+			body := format.StripControlChars(u.Body)
+			if len(body) > 60 {
+				body = body[:57] + "..."
+			}
+			rows = append(rows, []string{
+				u.ID,
+				u.Health,
+				author,
+				u.CreatedAt.Format("2006-01-02"),
+				body,
+			})
+		}
+		format.TableWriter(out, headers, rows)
+		return nil
+	},
+}
+
+var initiativeUpdatesCreateCmd = &cobra.Command{
+	Use:   "create",
+	Short: "Создать обновление инициативы",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		t, err := GetToken()
+		if err != nil {
+			return fmt.Errorf("ошибка загрузки токена: %w", err)
+		}
+		if t == "" {
+			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
+		}
+
+		initiativeID, _ := cmd.Flags().GetString("initiative-id")
+		body, _ := cmd.Flags().GetString("body")
+		health, _ := cmd.Flags().GetString("health")
+
+		if initiativeID == "" {
+			return fmt.Errorf("требуется --initiative-id")
+		}
+
+		c := newLinearClient(t)
+		update, err := c.CreateInitiativeUpdate(client.CreateInitiativeUpdateInput{
+			InitiativeID: initiativeID,
+			Body:         body,
+			Health:       health,
+		})
+		if err != nil {
+			return err
+		}
+
+		fmt.Fprintf(cmd.OutOrStdout(), "Обновление создано: %s\n", update.ID)
+		return nil
+	},
+}
+
+var initiativeUpdatesUpdateCmd = &cobra.Command{
+	Use:   "update <UPDATE-ID>",
+	Short: "Изменить обновление инициативы",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		t, err := GetToken()
+		if err != nil {
+			return fmt.Errorf("ошибка загрузки токена: %w", err)
+		}
+		if t == "" {
+			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
+		}
+
+		body, _ := cmd.Flags().GetString("body")
+		health, _ := cmd.Flags().GetString("health")
+
+		c := newLinearClient(t)
+		update, err := c.UpdateInitiativeUpdate(args[0], client.UpdateInitiativeUpdateInput{
+			Body:   body,
+			Health: health,
+		})
+		if err != nil {
+			return err
+		}
+
+		fmt.Fprintf(cmd.OutOrStdout(), "Обновление изменено: %s\n", update.ID)
+		return nil
+	},
+}
+
+var initiativeUpdatesDeleteCmd = &cobra.Command{
+	Use:   "delete <UPDATE-ID>",
+	Short: "Архивировать обновление инициативы",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		t, err := GetToken()
+		if err != nil {
+			return fmt.Errorf("ошибка загрузки токена: %w", err)
+		}
+		if t == "" {
+			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
+		}
+
+		c := newLinearClient(t)
+		if err := c.ArchiveInitiativeUpdate(args[0]); err != nil {
+			return err
+		}
+
+		fmt.Fprintf(cmd.OutOrStdout(), "Обновление удалено: %s\n", args[0])
+		return nil
+	},
+}
+
+// --- link-project / unlink-project ---
+
+var initiativesLinkProjectCmd = &cobra.Command{
+	Use:   "link-project",
+	Short: "Связать инициативу с проектом",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		t, err := GetToken()
+		if err != nil {
+			return fmt.Errorf("ошибка загрузки токена: %w", err)
+		}
+		if t == "" {
+			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
+		}
+
+		initiativeID, _ := cmd.Flags().GetString("initiative")
+		projectID, _ := cmd.Flags().GetString("project")
+
+		if initiativeID == "" {
+			return fmt.Errorf("требуется --initiative")
+		}
+		if projectID == "" {
+			return fmt.Errorf("требуется --project")
+		}
+
+		c := newLinearClient(t)
+		rel, err := c.CreateInitiativeToProject(initiativeID, projectID)
+		if err != nil {
+			return err
+		}
+
+		fmt.Fprintf(cmd.OutOrStdout(), "Связь создана: %s (%s → %s)\n", rel.ID, rel.Initiative.Name, rel.Project.Name)
+		return nil
+	},
+}
+
+var initiativesUnlinkProjectCmd = &cobra.Command{
+	Use:   "unlink-project <RELATION-ID>",
+	Short: "Удалить связь инициативы с проектом",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		t, err := GetToken()
+		if err != nil {
+			return fmt.Errorf("ошибка загрузки токена: %w", err)
+		}
+		if t == "" {
+			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
+		}
+
+		c := newLinearClient(t)
+		if err := c.DeleteInitiativeToProject(args[0]); err != nil {
+			return err
+		}
+
+		fmt.Fprintf(cmd.OutOrStdout(), "Связь удалена: %s\n", args[0])
+		return nil
+	},
+}
+
 func init() {
 	initiativesCmd.AddCommand(initiativesListCmd)
 	initiativesCmd.AddCommand(initiativesViewCmd)
@@ -217,6 +427,28 @@ func init() {
 	initiativesCmd.AddCommand(initiativesUpdateCmd)
 
 	initiativesCmd.AddCommand(initiativesArchiveCmd)
+
+	// updates subcommands
+	initiativeUpdatesCreateCmd.Flags().String("initiative-id", "", "ID инициативы (обязательно)")
+	initiativeUpdatesCreateCmd.Flags().String("body", "", "Текст обновления")
+	initiativeUpdatesCreateCmd.Flags().String("health", "", "Статус здоровья (onTrack, atRisk, offTrack)")
+
+	initiativeUpdatesUpdateCmd.Flags().String("body", "", "Новый текст обновления")
+	initiativeUpdatesUpdateCmd.Flags().String("health", "", "Новый статус здоровья")
+
+	initiativeUpdatesCmd.AddCommand(initiativeUpdatesListCmd)
+	initiativeUpdatesCmd.AddCommand(initiativeUpdatesCreateCmd)
+	initiativeUpdatesCmd.AddCommand(initiativeUpdatesUpdateCmd)
+	initiativeUpdatesCmd.AddCommand(initiativeUpdatesDeleteCmd)
+	initiativesCmd.AddCommand(initiativeUpdatesCmd)
+
+	// link/unlink project
+	initiativesLinkProjectCmd.Flags().String("initiative", "", "ID инициативы (обязательно)")
+	initiativesLinkProjectCmd.Flags().String("project", "", "ID проекта (обязательно)")
+	_ = initiativesLinkProjectCmd.MarkFlagRequired("initiative")
+	_ = initiativesLinkProjectCmd.MarkFlagRequired("project")
+	initiativesCmd.AddCommand(initiativesLinkProjectCmd)
+	initiativesCmd.AddCommand(initiativesUnlinkProjectCmd)
 
 	rootCmd.AddCommand(initiativesCmd)
 }
