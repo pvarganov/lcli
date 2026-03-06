@@ -443,14 +443,14 @@
 
 #### Task 33: Favorites
 
-- [ ] добавить тип `Favorite` в queries.go (id, type, issue, project, cycle, label, custom view)
-- [ ] написать тесты для `ListFavorites()`
-- [ ] добавить метод в queries.go
-- [ ] написать тесты для мутаций `favoriteCreate`, `favoriteDelete`, `favoriteUpdate`
-- [ ] добавить методы в mutations.go
-- [ ] написать тесты для cmd `favorites list`, `favorites add`, `favorites remove`
-- [ ] добавить команды в `cmd/favorites.go`
-- [ ] запустить тесты — должны пройти
+- [x] добавить тип `Favorite` в queries.go (id, type, issue, project, cycle, label, custom view)
+- [x] написать тесты для `ListFavorites()`
+- [x] добавить метод в queries.go
+- [x] написать тесты для мутаций `favoriteCreate`, `favoriteDelete`, `favoriteUpdate`
+- [x] добавить методы в mutations.go
+- [x] написать тесты для cmd `favorites list`, `favorites add`, `favorites remove`
+- [x] добавить команды в `cmd/favorites.go`
+- [x] запустить тесты — должны пройти
 
 #### Task 34: Comment Reactions + Emojis
 

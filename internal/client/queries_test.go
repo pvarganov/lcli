@@ -1942,3 +1942,68 @@ func TestGetCustomViewNotFound(t *testing.T) {
 		t.Fatal("expected error for not found custom view")
 	}
 }
+
+func TestListFavorites(t *testing.T) {
+	responseData := map[string]any{
+		"favorites": map[string]any{
+			"nodes": []map[string]any{
+				{
+					"id":   "fav1",
+					"type": "issue",
+					"issue": map[string]any{
+						"id":         "i1",
+						"identifier": "ENG-1",
+						"title":      "Test issue",
+					},
+				},
+			},
+		},
+	}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	favs, err := c.ListFavorites()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(favs) != 1 {
+		t.Fatalf("expected 1 favorite, got %d", len(favs))
+	}
+	if favs[0].ID != "fav1" {
+		t.Errorf("expected id fav1, got %s", favs[0].ID)
+	}
+	if favs[0].Type != "issue" {
+		t.Errorf("expected type issue, got %s", favs[0].Type)
+	}
+	if favs[0].Issue == nil || favs[0].Issue.Identifier != "ENG-1" {
+		t.Errorf("expected issue ENG-1")
+	}
+}
+
+func TestListFavoritesEmpty(t *testing.T) {
+	responseData := map[string]any{
+		"favorites": map[string]any{
+			"nodes": []map[string]any{},
+		},
+	}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	favs, err := c.ListFavorites()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(favs) != 0 {
+		t.Errorf("expected 0 favorites, got %d", len(favs))
+	}
+}

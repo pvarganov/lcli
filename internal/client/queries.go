@@ -1632,6 +1632,42 @@ query ListCustomViews {
 	return result.CustomViews.Nodes, nil
 }
 
+// Favorite представляет избранный элемент в Linear.
+type Favorite struct {
+	ID         string      `json:"id"`
+	Type       string      `json:"type"`
+	Issue      *Issue      `json:"issue"`
+	Project    *Project    `json:"project"`
+	Label      *IssueLabel `json:"label"`
+	CustomView *CustomView `json:"customView"`
+}
+
+// ListFavorites возвращает список всех избранных элементов текущего пользователя.
+func (c *Client) ListFavorites() ([]Favorite, error) {
+	query := `
+query ListFavorites {
+  favorites {
+    nodes {
+      id
+      type
+      issue { id identifier title }
+      project { id name }
+      label { id name color }
+      customView { id name }
+    }
+  }
+}`
+	var result struct {
+		Favorites struct {
+			Nodes []Favorite `json:"nodes"`
+		} `json:"favorites"`
+	}
+	if err := c.Do(query, nil, &result); err != nil {
+		return nil, err
+	}
+	return result.Favorites.Nodes, nil
+}
+
 // GetCustomView возвращает пользовательское представление по ID.
 func (c *Client) GetCustomView(id string) (*CustomView, error) {
 	query := `

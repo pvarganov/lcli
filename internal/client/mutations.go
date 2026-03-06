@@ -3496,6 +3496,105 @@ mutation CustomViewUpdate($id: String!, $input: CustomViewUpdateInput!) {
 	return &result.CustomViewUpdate.CustomView, nil
 }
 
+// CreateFavorite создаёт избранный элемент.
+// entityType: "issue", "project", "label", "customView"
+// entityID: ID соответствующего элемента
+func (c *Client) CreateFavorite(entityType, entityID string) (*Favorite, error) {
+	mutation := `
+mutation FavoriteCreate($input: FavoriteCreateInput!) {
+  favoriteCreate(input: $input) {
+    success
+    favorite {
+      id
+      type
+      issue { id identifier title }
+      project { id name }
+      label { id name color }
+      customView { id name }
+    }
+  }
+}`
+	input := map[string]any{}
+	switch entityType {
+	case "issue":
+		input["issueId"] = entityID
+	case "project":
+		input["projectId"] = entityID
+	case "label":
+		input["issueLabelId"] = entityID
+	case "customView":
+		input["customViewId"] = entityID
+	default:
+		return nil, fmt.Errorf("неизвестный тип избранного: %s", entityType)
+	}
+
+	var result struct {
+		FavoriteCreate struct {
+			Favorite Favorite `json:"favorite"`
+			Success  bool     `json:"success"`
+		} `json:"favoriteCreate"`
+	}
+	if err := c.Do(mutation, map[string]any{"input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.FavoriteCreate.Success {
+		return nil, fmt.Errorf("favoriteCreate вернул success=false")
+	}
+	return &result.FavoriteCreate.Favorite, nil
+}
+
+// DeleteFavorite удаляет избранный элемент по ID.
+func (c *Client) DeleteFavorite(id string) error {
+	mutation := `
+mutation FavoriteDelete($id: String!) {
+  favoriteDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		FavoriteDelete struct {
+			Success bool `json:"success"`
+		} `json:"favoriteDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.FavoriteDelete.Success {
+		return fmt.Errorf("favoriteDelete вернул success=false")
+	}
+	return nil
+}
+
+// UpdateFavorite обновляет избранный элемент по ID (например, порядок сортировки).
+func (c *Client) UpdateFavorite(id string, sortOrder float64) (*Favorite, error) {
+	mutation := `
+mutation FavoriteUpdate($id: String!, $input: FavoriteUpdateInput!) {
+  favoriteUpdate(id: $id, input: $input) {
+    success
+    favorite {
+      id
+      type
+    }
+  }
+}`
+	var result struct {
+		FavoriteUpdate struct {
+			Favorite Favorite `json:"favorite"`
+			Success  bool     `json:"success"`
+		} `json:"favoriteUpdate"`
+	}
+	if err := c.Do(mutation, map[string]any{
+		"id":    id,
+		"input": map[string]any{"sortOrder": sortOrder},
+	}, &result); err != nil {
+		return nil, err
+	}
+	if !result.FavoriteUpdate.Success {
+		return nil, fmt.Errorf("favoriteUpdate вернул success=false")
+	}
+	return &result.FavoriteUpdate.Favorite, nil
+}
+
 // DeleteCustomView удаляет пользовательское представление по ID.
 func (c *Client) DeleteCustomView(id string) error {
 	mutation := `

@@ -3040,3 +3040,83 @@ func TestDeleteCustomView(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
+
+func TestCreateFavorite(t *testing.T) {
+	responseData := map[string]any{
+		"favoriteCreate": map[string]any{
+			"success": true,
+			"favorite": map[string]any{
+				"id":   "fav1",
+				"type": "issue",
+				"issue": map[string]any{
+					"id":         "i1",
+					"identifier": "ENG-1",
+					"title":      "Test issue",
+				},
+			},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	fav, err := c.CreateFavorite("issue", "i1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if fav.ID != "fav1" {
+		t.Errorf("expected id fav1, got %s", fav.ID)
+	}
+	if fav.Type != "issue" {
+		t.Errorf("expected type issue, got %s", fav.Type)
+	}
+}
+
+func TestCreateFavoriteUnknownType(t *testing.T) {
+	c := NewWithURL("test-token", "http://localhost")
+	_, err := c.CreateFavorite("unknown", "id1")
+	if err == nil {
+		t.Fatal("expected error for unknown type")
+	}
+}
+
+func TestDeleteFavorite(t *testing.T) {
+	responseData := map[string]any{
+		"favoriteDelete": map[string]any{
+			"success": true,
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	if err := c.DeleteFavorite("fav1"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestUpdateFavorite(t *testing.T) {
+	responseData := map[string]any{
+		"favoriteUpdate": map[string]any{
+			"success": true,
+			"favorite": map[string]any{
+				"id":   "fav1",
+				"type": "issue",
+			},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	fav, err := c.UpdateFavorite("fav1", 1.0)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if fav.ID != "fav1" {
+		t.Errorf("expected id fav1, got %s", fav.ID)
+	}
+}
