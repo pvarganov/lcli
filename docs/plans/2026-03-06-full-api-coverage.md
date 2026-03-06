@@ -513,14 +513,14 @@
 
 #### Task 38: Audit Entries
 
-- [ ] добавить тип `AuditEntry` в queries.go (id, type, actorId, createdAt, ip, country, metadata)
-- [ ] написать тесты для `ListAuditEntries(filter, limit, after)`
-- [ ] добавить метод в queries.go
-- [ ] написать тесты для `ListAuditEntryTypes()`
-- [ ] добавить метод в queries.go
-- [ ] написать тесты для cmd `audit list`, `audit types`
-- [ ] добавить команды в `cmd/audit.go`
-- [ ] запустить тесты — должны пройти
+- [x] добавить тип `AuditEntry` в queries.go (id, type, actorId, createdAt, ip, country, metadata)
+- [x] написать тесты для `ListAuditEntries(filter, limit, after)`
+- [x] добавить метод в queries.go
+- [x] написать тесты для `ListAuditEntryTypes()`
+- [x] добавить метод в queries.go
+- [x] написать тесты для cmd `audit list`, `audit types`
+- [x] добавить команды в `cmd/audit.go`
+- [x] запустить тесты — должны пройти
 
 #### Task 39: Rate Limit + Time Schedules + Triage
 

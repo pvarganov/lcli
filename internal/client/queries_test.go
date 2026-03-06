@@ -2345,3 +2345,96 @@ func TestListGitAutomationStatesEmpty(t *testing.T) {
 		t.Errorf("expected 0 states, got %d", len(states))
 	}
 }
+
+func TestListAuditEntries(t *testing.T) {
+	responseData := map[string]any{
+		"auditEntries": map[string]any{
+			"nodes": []map[string]any{
+				{
+					"id":        "ae1",
+					"type":      "issueCreate",
+					"actorId":   "u1",
+					"createdAt": "2024-01-01T00:00:00Z",
+					"ip":        "1.2.3.4",
+					"country":   "US",
+				},
+			},
+			"pageInfo": map[string]any{
+				"hasNextPage": false,
+				"endCursor":   "",
+			},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	entries, pageInfo, err := c.ListAuditEntries(AuditEntryFilter{Limit: 10})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(entries) != 1 {
+		t.Fatalf("expected 1 entry, got %d", len(entries))
+	}
+	if entries[0].Type != "issueCreate" {
+		t.Errorf("expected type 'issueCreate', got %q", entries[0].Type)
+	}
+	if pageInfo == nil {
+		t.Fatalf("expected pageInfo, got nil")
+	}
+}
+
+func TestListAuditEntriesEmpty(t *testing.T) {
+	responseData := map[string]any{
+		"auditEntries": map[string]any{
+			"nodes": []map[string]any{},
+			"pageInfo": map[string]any{
+				"hasNextPage": false,
+				"endCursor":   "",
+			},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	entries, _, err := c.ListAuditEntries(AuditEntryFilter{Limit: 10})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(entries) != 0 {
+		t.Errorf("expected 0 entries, got %d", len(entries))
+	}
+}
+
+func TestListAuditEntryTypes(t *testing.T) {
+	responseData := map[string]any{
+		"auditEntryTypes": []map[string]any{
+			{
+				"type":        "issueCreate",
+				"description": "Issue created",
+			},
+			{
+				"type":        "issueDelete",
+				"description": "Issue deleted",
+			},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	types, err := c.ListAuditEntryTypes()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(types) != 2 {
+		t.Fatalf("expected 2 types, got %d", len(types))
+	}
+	if types[0].Type != "issueCreate" {
+		t.Errorf("expected type 'issueCreate', got %q", types[0].Type)
+	}
+}

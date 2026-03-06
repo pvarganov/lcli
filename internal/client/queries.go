@@ -1950,3 +1950,85 @@ query ListGitAutomationStates($teamId: String!) {
 	}
 	return result.Team.GitAutomationStates.Nodes, nil
 }
+
+// AuditEntry представляет запись аудит-лога Linear.
+type AuditEntry struct {
+	ID        string         `json:"id"`
+	Type      string         `json:"type"`
+	ActorID   string         `json:"actorId"`
+	CreatedAt string         `json:"createdAt"`
+	IP        string         `json:"ip"`
+	Country   string         `json:"country"`
+	Metadata  map[string]any `json:"metadata"`
+}
+
+// AuditEntryType представляет тип записи аудит-лога.
+type AuditEntryType struct {
+	Type        string `json:"type"`
+	Description string `json:"description"`
+}
+
+// AuditEntryFilter — параметры фильтрации аудит-лога.
+type AuditEntryFilter struct {
+	Type  string
+	Limit int
+	After string
+}
+
+// ListAuditEntries возвращает список записей аудит-лога.
+func (c *Client) ListAuditEntries(filter AuditEntryFilter) ([]AuditEntry, *PageInfo, error) {
+	query := `
+query ListAuditEntries($first: Int, $after: String, $filter: AuditEntryFilter) {
+  auditEntries(first: $first, after: $after, filter: $filter) {
+    nodes {
+      id
+      type
+      actorId
+      createdAt
+      ip
+      country
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}`
+	variables := map[string]any{
+		"first": filter.Limit,
+	}
+	if filter.After != "" {
+		variables["after"] = filter.After
+	}
+	if filter.Type != "" {
+		variables["filter"] = map[string]any{"type": map[string]any{"eq": filter.Type}}
+	}
+	var result struct {
+		AuditEntries struct {
+			Nodes    []AuditEntry `json:"nodes"`
+			PageInfo PageInfo     `json:"pageInfo"`
+		} `json:"auditEntries"`
+	}
+	if err := c.Do(query, variables, &result); err != nil {
+		return nil, nil, err
+	}
+	return result.AuditEntries.Nodes, &result.AuditEntries.PageInfo, nil
+}
+
+// ListAuditEntryTypes возвращает список типов аудит-лога.
+func (c *Client) ListAuditEntryTypes() ([]AuditEntryType, error) {
+	query := `
+query {
+  auditEntryTypes {
+    type
+    description
+  }
+}`
+	var result struct {
+		AuditEntryTypes []AuditEntryType `json:"auditEntryTypes"`
+	}
+	if err := c.Do(query, nil, &result); err != nil {
+		return nil, err
+	}
+	return result.AuditEntryTypes, nil
+}
