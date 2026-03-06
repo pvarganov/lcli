@@ -5,8 +5,15 @@ import (
 	"time"
 )
 
+// CreateCommentInput — входные данные для создания комментария.
+type CreateCommentInput struct {
+	IssueID  string
+	Body     string
+	ParentID string
+}
+
 // CreateComment добавляет комментарий к задаче.
-func (c *Client) CreateComment(issueID, body string) (*Comment, error) {
+func (c *Client) CreateComment(input CreateCommentInput) (*Comment, error) {
 	mutation := `
 mutation CreateComment($input: CommentCreateInput!) {
   commentCreate(input: $input) {
@@ -20,6 +27,14 @@ mutation CreateComment($input: CommentCreateInput!) {
   }
 }`
 
+	gqlInput := map[string]any{
+		"issueId": input.IssueID,
+		"body":    input.Body,
+	}
+	if input.ParentID != "" {
+		gqlInput["parentId"] = input.ParentID
+	}
+
 	var result struct {
 		CommentCreate struct {
 			Comment Comment `json:"comment"`
@@ -27,10 +42,7 @@ mutation CreateComment($input: CommentCreateInput!) {
 		} `json:"commentCreate"`
 	}
 	if err := c.Do(mutation, map[string]any{
-		"input": map[string]any{
-			"issueId": issueID,
-			"body":    body,
-		},
+		"input": gqlInput,
 	}, &result); err != nil {
 		return nil, err
 	}

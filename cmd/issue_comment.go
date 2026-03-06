@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/pavelvarganov/lcli/internal/client"
 	"github.com/pavelvarganov/lcli/internal/format"
 	"github.com/spf13/cobra"
 )
 
 var commentBody string
+var commentParentID string
 
 var issueCommentCmd = &cobra.Command{
 	Use:   "comment <ID>",
@@ -25,7 +27,11 @@ var issueCommentCmd = &cobra.Command{
 		}
 
 		c := newLinearClient(t)
-		comment, err := c.CreateComment(args[0], commentBody)
+		comment, err := c.CreateComment(client.CreateCommentInput{
+			IssueID:  args[0],
+			Body:     commentBody,
+			ParentID: commentParentID,
+		})
 		if err != nil {
 			return err
 		}
@@ -185,6 +191,7 @@ var issueCommentUnresolveCmd = &cobra.Command{
 func init() {
 	issueCommentCmd.Flags().StringVar(&commentBody, "body", "", "Текст комментария (обязательно)")
 	_ = issueCommentCmd.MarkFlagRequired("body")
+	issueCommentCmd.Flags().StringVar(&commentParentID, "parent-id", "", "ID родительского комментария (для вложенного ответа)")
 
 	issueCommentUpdateCmd.Flags().String("body", "", "Новый текст комментария (обязательно)")
 	_ = issueCommentUpdateCmd.MarkFlagRequired("body")

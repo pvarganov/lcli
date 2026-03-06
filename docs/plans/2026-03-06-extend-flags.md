@@ -85,12 +85,12 @@
 
 ### Task 6: Добавить --parent-id к comment create
 
-- [ ] создать `CreateCommentInput` struct в `internal/client/mutations.go` (тело, issue ID, parent ID)
-- [ ] обновить `CreateComment` чтобы принимал `CreateCommentInput` вместо двух строк (или добавить новый метод)
-- [ ] обновить вызовы `CreateComment` в `cmd/issue_comment.go`
-- [ ] написать тесты в `cmd/issue_comment_test.go` для `--parent-id`
-- [ ] добавить флаг `--parent-id` в `issueCommentCmd`
-- [ ] запустить `go test ./...` — все зелёные
+- [x] создать `CreateCommentInput` struct в `internal/client/mutations.go` (тело, issue ID, parent ID)
+- [x] обновить `CreateComment` чтобы принимал `CreateCommentInput` вместо двух строк (или добавить новый метод)
+- [x] обновить вызовы `CreateComment` в `cmd/issue_comment.go`
+- [x] написать тесты в `cmd/issue_comment_test.go` для `--parent-id`
+- [x] добавить флаг `--parent-id` в `issueCommentCmd`
+- [x] запустить `go test ./...` — все зелёные
 
 ### Task 7: Расширить projects create/update
 

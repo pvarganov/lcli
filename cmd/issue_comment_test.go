@@ -3,6 +3,7 @@ package cmd
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -394,6 +395,122 @@ func TestIssueCommentUnresolveNoToken(t *testing.T) {
 	err := issueCommentUnresolveCmd.RunE(issueCommentUnresolveCmd, []string{"cmt-1"})
 	if err == nil {
 		t.Fatal("expected error when no token, got nil")
+	}
+}
+
+func TestIssueCommentWithParentID(t *testing.T) {
+	var capturedBody []byte
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		capturedBody, _ = io.ReadAll(r.Body)
+		w.Header().Set("Content-Type", "application/json")
+		resp, _ := json.Marshal(map[string]any{
+			"data": map[string]any{
+				"commentCreate": map[string]any{
+					"success": true,
+					"comment": map[string]any{
+						"id":        "cmt-child",
+						"body":      "Reply comment",
+						"createdAt": "2024-01-01T00:00:00Z",
+						"user":      nil,
+					},
+				},
+			},
+		})
+		w.Write(resp)
+	}))
+	defer srv.Close()
+
+	origFactory := newLinearClient
+	newLinearClient = func(tok string) *client.Client {
+		return client.NewWithURL(tok, srv.URL)
+	}
+	defer func() { newLinearClient = origFactory }()
+
+	token = "test-token"
+	defer func() { token = "" }()
+
+	commentBody = "Reply comment"
+	commentParentID = "parent-cmt-uuid"
+	defer func() {
+		commentBody = ""
+		commentParentID = ""
+	}()
+
+	cmd := issueCommentCmd
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+
+	if err := cmd.RunE(cmd, []string{"ENG-1"}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	out := buf.String()
+	if !strings.Contains(out, "cmt-child") {
+		t.Errorf("expected comment id in output, got: %s", out)
+	}
+
+	var payload map[string]any
+	if err := json.Unmarshal(capturedBody, &payload); err != nil {
+		t.Fatalf("failed to parse request body: %v", err)
+	}
+	variables, _ := payload["variables"].(map[string]any)
+	input, _ := variables["input"].(map[string]any)
+	if input["parentId"] != "parent-cmt-uuid" {
+		t.Errorf("expected parentId=parent-cmt-uuid in request, got: %v", input["parentId"])
+	}
+}
+
+func TestIssueCommentWithoutParentID(t *testing.T) {
+	var capturedBody []byte
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		capturedBody, _ = io.ReadAll(r.Body)
+		w.Header().Set("Content-Type", "application/json")
+		resp, _ := json.Marshal(map[string]any{
+			"data": map[string]any{
+				"commentCreate": map[string]any{
+					"success": true,
+					"comment": map[string]any{
+						"id":        "cmt-top",
+						"body":      "Top level comment",
+						"createdAt": "2024-01-01T00:00:00Z",
+						"user":      nil,
+					},
+				},
+			},
+		})
+		w.Write(resp)
+	}))
+	defer srv.Close()
+
+	origFactory := newLinearClient
+	newLinearClient = func(tok string) *client.Client {
+		return client.NewWithURL(tok, srv.URL)
+	}
+	defer func() { newLinearClient = origFactory }()
+
+	token = "test-token"
+	defer func() { token = "" }()
+
+	commentBody = "Top level comment"
+	commentParentID = ""
+	defer func() { commentBody = "" }()
+
+	cmd := issueCommentCmd
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+
+	if err := cmd.RunE(cmd, []string{"ENG-1"}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	var payload map[string]any
+	if err := json.Unmarshal(capturedBody, &payload); err != nil {
+		t.Fatalf("failed to parse request body: %v", err)
+	}
+	variables, _ := payload["variables"].(map[string]any)
+	input, _ := variables["input"].(map[string]any)
+	if _, ok := input["parentId"]; ok {
+		t.Errorf("expected parentId to be absent in request when not set, got: %v", input["parentId"])
 	}
 }
 
