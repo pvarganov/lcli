@@ -20,7 +20,7 @@ type Config struct {
 // LoadToken читает токен из переменной окружения LINEAR_API_KEY или из файла конфига.
 // Возвращает пустую строку, если токен не найден.
 func LoadToken() (string, error) {
-	if token := os.Getenv("LINEAR_API_KEY"); token != "" {
+	if token := strings.TrimSpace(os.Getenv("LINEAR_API_KEY")); token != "" {
 		return token, nil
 	}
 
@@ -42,7 +42,7 @@ func LoadToken() (string, error) {
 		return "", fmt.Errorf("parse config: %w", err)
 	}
 
-	return cfg.Token, nil
+	return strings.TrimSpace(cfg.Token), nil
 }
 
 // SaveToken сохраняет токен в файл конфига.

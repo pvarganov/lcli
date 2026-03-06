@@ -1,6 +1,9 @@
 package client
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 // Comment представляет комментарий к задаче Linear.
 type Comment struct {
@@ -150,6 +153,9 @@ query GetIssue($id: String!) {
 	var result IssueResult
 	if err := c.Do(query, variables, &result); err != nil {
 		return nil, err
+	}
+	if result.Issue.ID == "" {
+		return nil, fmt.Errorf("задача не найдена: %s", id)
 	}
 	return &result.Issue, nil
 }

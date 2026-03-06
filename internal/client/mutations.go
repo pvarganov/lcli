@@ -160,7 +160,7 @@ mutation UpdateIssue($id: String!, $input: IssueUpdateInput!) {
 func (c *Client) GetTeamByKey(key string) (*Team, error) {
 	query := `
 query GetTeams {
-  teams {
+  teams(first: 250) {
     nodes {
       id
       key
@@ -220,7 +220,7 @@ query GetWorkflowStates($teamId: ID!) {
 func (c *Client) FindUserByName(name string) (*User, error) {
 	query := `
 query GetUsers {
-  users {
+  users(first: 250) {
     nodes {
       id
       name
