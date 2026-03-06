@@ -147,8 +147,8 @@ var releasesCreateCmd = &cobra.Command{
 }
 
 var releasesCompleteCmd = &cobra.Command{
-	Use:   "complete <ID>",
-	Short: "Завершить релиз",
+	Use:   "complete <PIPELINE-ID>",
+	Short: "Завершить релиз для пайплайна",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		t, err := GetToken()
@@ -159,8 +159,11 @@ var releasesCompleteCmd = &cobra.Command{
 			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
 		}
 
+		version, _ := cmd.Flags().GetString("version")
+		commitSha, _ := cmd.Flags().GetString("commit-sha")
+
 		c := newLinearClient(t)
-		release, err := c.CompleteRelease(args[0])
+		release, err := c.CompleteRelease(args[0], version, commitSha)
 		if err != nil {
 			return err
 		}
@@ -352,6 +355,9 @@ func init() {
 	releasesCreateCmd.Flags().String("pipeline", "", "ID пайплайна")
 	releasesCreateCmd.Flags().String("description", "", "Описание релиза")
 	releasesCreateCmd.Flags().String("version", "", "Версия релиза")
+
+	releasesCompleteCmd.Flags().String("version", "", "Версия релиза")
+	releasesCompleteCmd.Flags().String("commit-sha", "", "SHA коммита")
 
 	releasesPipelinesCreateCmd.Flags().String("name", "", "Название пайплайна (обязательно)")
 

@@ -36,17 +36,9 @@ func TestLabelAddSuccess(t *testing.T) {
 				},
 			},
 		},
-		// 2: getIssueLabelIDs
+		// 2: issueAddLabel
 		{
-			"issue": map[string]any{
-				"labels": map[string]any{
-					"nodes": []map[string]any{},
-				},
-			},
-		},
-		// 3: issueUpdate
-		{
-			"issueUpdate": map[string]any{"success": true},
+			"issueAddLabel": map[string]any{"success": true},
 		},
 	}
 
@@ -129,19 +121,9 @@ func TestLabelRemoveSuccess(t *testing.T) {
 				},
 			},
 		},
-		// 2: getIssueLabelIDs
+		// 2: issueRemoveLabel
 		{
-			"issue": map[string]any{
-				"labels": map[string]any{
-					"nodes": []map[string]any{
-						{"id": "label-bug"},
-					},
-				},
-			},
-		},
-		// 3: issueUpdate
-		{
-			"issueUpdate": map[string]any{"success": true},
+			"issueRemoveLabel": map[string]any{"success": true},
 		},
 	}
 

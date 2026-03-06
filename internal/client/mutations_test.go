@@ -274,29 +274,11 @@ func TestDeleteIssueLabel(t *testing.T) {
 }
 
 func TestAddLabelToIssue(t *testing.T) {
-	t.Run("success adds new label", func(t *testing.T) {
-		requestNum := 0
-		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Type", "application/json")
-			requestNum++
-			var data any
-			if requestNum == 1 {
-				data = map[string]any{
-					"issue": map[string]any{
-						"labels": map[string]any{
-							"nodes": []map[string]any{
-								{"id": "label-existing"},
-							},
-						},
-					},
-				}
-			} else {
-				data = map[string]any{
-					"issueUpdate": map[string]any{"success": true},
-				}
-			}
-			json.NewEncoder(w).Encode(map[string]any{"data": data})
-		}))
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"issueAddLabel": map[string]any{"success": true},
+		}
+		srv := newMutationTestServer(t, responseData)
 		defer srv.Close()
 		c := NewWithURL("test-token", srv.URL)
 		if err := c.AddLabelToIssue("issue1", "label-new"); err != nil {
@@ -304,51 +286,11 @@ func TestAddLabelToIssue(t *testing.T) {
 		}
 	})
 
-	t.Run("no-op if label already present", func(t *testing.T) {
-		requestNum := 0
-		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Type", "application/json")
-			requestNum++
-			data := map[string]any{
-				"issue": map[string]any{
-					"labels": map[string]any{
-						"nodes": []map[string]any{
-							{"id": "label-existing"},
-						},
-					},
-				},
-			}
-			json.NewEncoder(w).Encode(map[string]any{"data": data})
-		}))
-		defer srv.Close()
-		c := NewWithURL("test-token", srv.URL)
-		if err := c.AddLabelToIssue("issue1", "label-existing"); err != nil {
-			t.Fatalf("unexpected error: %v", err)
+	t.Run("failure", func(t *testing.T) {
+		responseData := map[string]any{
+			"issueAddLabel": map[string]any{"success": false},
 		}
-		if requestNum != 1 {
-			t.Errorf("expected 1 request (no update needed), got %d", requestNum)
-		}
-	})
-
-	t.Run("issueUpdate failure", func(t *testing.T) {
-		requestNum := 0
-		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Type", "application/json")
-			requestNum++
-			var data any
-			if requestNum == 1 {
-				data = map[string]any{
-					"issue": map[string]any{
-						"labels": map[string]any{"nodes": []map[string]any{}},
-					},
-				}
-			} else {
-				data = map[string]any{
-					"issueUpdate": map[string]any{"success": false},
-				}
-			}
-			json.NewEncoder(w).Encode(map[string]any{"data": data})
-		}))
+		srv := newMutationTestServer(t, responseData)
 		defer srv.Close()
 		c := NewWithURL("test-token", srv.URL)
 		if err := c.AddLabelToIssue("issue1", "label-new"); err == nil {
@@ -358,30 +300,11 @@ func TestAddLabelToIssue(t *testing.T) {
 }
 
 func TestRemoveLabelFromIssue(t *testing.T) {
-	t.Run("success removes label", func(t *testing.T) {
-		requestNum := 0
-		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Type", "application/json")
-			requestNum++
-			var data any
-			if requestNum == 1 {
-				data = map[string]any{
-					"issue": map[string]any{
-						"labels": map[string]any{
-							"nodes": []map[string]any{
-								{"id": "label-to-remove"},
-								{"id": "label-keep"},
-							},
-						},
-					},
-				}
-			} else {
-				data = map[string]any{
-					"issueUpdate": map[string]any{"success": true},
-				}
-			}
-			json.NewEncoder(w).Encode(map[string]any{"data": data})
-		}))
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"issueRemoveLabel": map[string]any{"success": true},
+		}
+		srv := newMutationTestServer(t, responseData)
 		defer srv.Close()
 		c := NewWithURL("test-token", srv.URL)
 		if err := c.RemoveLabelFromIssue("issue1", "label-to-remove"); err != nil {
@@ -389,27 +312,11 @@ func TestRemoveLabelFromIssue(t *testing.T) {
 		}
 	})
 
-	t.Run("issueUpdate failure", func(t *testing.T) {
-		requestNum := 0
-		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Type", "application/json")
-			requestNum++
-			var data any
-			if requestNum == 1 {
-				data = map[string]any{
-					"issue": map[string]any{
-						"labels": map[string]any{
-							"nodes": []map[string]any{{"id": "label1"}},
-						},
-					},
-				}
-			} else {
-				data = map[string]any{
-					"issueUpdate": map[string]any{"success": false},
-				}
-			}
-			json.NewEncoder(w).Encode(map[string]any{"data": data})
-		}))
+	t.Run("failure", func(t *testing.T) {
+		responseData := map[string]any{
+			"issueRemoveLabel": map[string]any{"success": false},
+		}
+		srv := newMutationTestServer(t, responseData)
 		defer srv.Close()
 		c := NewWithURL("test-token", srv.URL)
 		if err := c.RemoveLabelFromIssue("issue1", "label1"); err == nil {
@@ -3284,7 +3191,7 @@ func TestCompleteRelease(t *testing.T) {
 	defer srv.Close()
 
 	c := NewWithURL("test-token", srv.URL)
-	release, err := c.CompleteRelease("rel1")
+	release, err := c.CompleteRelease("pipe1", "v1.0.0", "abc123")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

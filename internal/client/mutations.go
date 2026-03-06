@@ -334,92 +334,48 @@ mutation DeleteIssueLabel($id: String!) {
 	return nil
 }
 
-// getIssueLabelIDs возвращает текущие ID меток задачи.
-func (c *Client) getIssueLabelIDs(issueID string) ([]string, error) {
-	query := `
-query GetIssueLabelIDs($id: String!) {
-  issue(id: $id) {
-    labels(first: 250) {
-      nodes {
-        id
-      }
-    }
-  }
-}`
-	var result struct {
-		Issue *struct {
-			Labels struct {
-				Nodes []struct {
-					ID string `json:"id"`
-				} `json:"nodes"`
-			} `json:"labels"`
-		} `json:"issue"`
-	}
-	if err := c.Do(query, map[string]any{"id": issueID}, &result); err != nil {
-		return nil, err
-	}
-	if result.Issue == nil {
-		return nil, fmt.Errorf("задача не найдена: %s", issueID)
-	}
-	ids := make([]string, 0, len(result.Issue.Labels.Nodes))
-	for _, n := range result.Issue.Labels.Nodes {
-		ids = append(ids, n.ID)
-	}
-	return ids, nil
-}
-
-// updateIssueLabelIDs обновляет метки задачи через issueUpdate.
-func (c *Client) updateIssueLabelIDs(issueID string, labelIDs []string) error {
+// AddLabelToIssue добавляет метку к задаче через dedicated mutation issueAddLabel.
+func (c *Client) AddLabelToIssue(issueID, labelID string) error {
 	mutation := `
-mutation UpdateIssueLabels($id: String!, $input: IssueUpdateInput!) {
-  issueUpdate(id: $id, input: $input) {
+mutation IssueAddLabel($id: String!, $labelId: String!) {
+  issueAddLabel(id: $id, labelId: $labelId) {
     success
   }
 }`
 	var result struct {
-		IssueUpdate struct {
+		IssueAddLabel struct {
 			Success bool `json:"success"`
-		} `json:"issueUpdate"`
+		} `json:"issueAddLabel"`
 	}
-	if err := c.Do(mutation, map[string]any{
-		"id":    issueID,
-		"input": map[string]any{"labelIds": labelIDs},
-	}, &result); err != nil {
+	if err := c.Do(mutation, map[string]any{"id": issueID, "labelId": labelID}, &result); err != nil {
 		return err
 	}
-	if !result.IssueUpdate.Success {
-		return fmt.Errorf("issueUpdate вернул success=false")
+	if !result.IssueAddLabel.Success {
+		return fmt.Errorf("issueAddLabel вернул success=false")
 	}
 	return nil
 }
 
-// AddLabelToIssue добавляет метку к задаче по ID метки.
-func (c *Client) AddLabelToIssue(issueID, labelID string) error {
-	currentIDs, err := c.getIssueLabelIDs(issueID)
-	if err != nil {
-		return err
-	}
-	for _, id := range currentIDs {
-		if id == labelID {
-			return nil
-		}
-	}
-	return c.updateIssueLabelIDs(issueID, append(currentIDs, labelID))
-}
-
-// RemoveLabelFromIssue удаляет метку из задачи по ID метки.
+// RemoveLabelFromIssue удаляет метку из задачи через dedicated mutation issueRemoveLabel.
 func (c *Client) RemoveLabelFromIssue(issueID, labelID string) error {
-	currentIDs, err := c.getIssueLabelIDs(issueID)
-	if err != nil {
+	mutation := `
+mutation IssueRemoveLabel($id: String!, $labelId: String!) {
+  issueRemoveLabel(id: $id, labelId: $labelId) {
+    success
+  }
+}`
+	var result struct {
+		IssueRemoveLabel struct {
+			Success bool `json:"success"`
+		} `json:"issueRemoveLabel"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": issueID, "labelId": labelID}, &result); err != nil {
 		return err
 	}
-	newIDs := make([]string, 0, len(currentIDs))
-	for _, id := range currentIDs {
-		if id != labelID {
-			newIDs = append(newIDs, id)
-		}
+	if !result.IssueRemoveLabel.Success {
+		return fmt.Errorf("issueRemoveLabel вернул success=false")
 	}
-	return c.updateIssueLabelIDs(issueID, newIDs)
+	return nil
 }
 
 // CreateIssueRelationInput — входные данные для создания связи.
@@ -1500,13 +1456,23 @@ type ProjectRelation struct {
 
 // CreateProjectRelationInput — входные данные для создания связи между проектами.
 type CreateProjectRelationInput struct {
-	ProjectID        string
-	RelatedProjectID string
-	Type             string
+	ProjectID            string
+	RelatedProjectID     string
+	Type                 string
+	AnchorType           string // обязательно: "project" или "milestone"
+	RelatedAnchorType    string // обязательно: "project" или "milestone"
 }
 
 // CreateProjectRelation создаёт связь между двумя проектами.
 func (c *Client) CreateProjectRelation(input CreateProjectRelationInput) (*ProjectRelation, error) {
+	anchorType := input.AnchorType
+	if anchorType == "" {
+		anchorType = "project"
+	}
+	relatedAnchorType := input.RelatedAnchorType
+	if relatedAnchorType == "" {
+		relatedAnchorType = "project"
+	}
 	mutation := `
 mutation CreateProjectRelation($input: ProjectRelationCreateInput!) {
   projectRelationCreate(input: $input) {
@@ -1527,9 +1493,11 @@ mutation CreateProjectRelation($input: ProjectRelationCreateInput!) {
 	}
 	if err := c.Do(mutation, map[string]any{
 		"input": map[string]any{
-			"projectId":        input.ProjectID,
-			"relatedProjectId": input.RelatedProjectID,
-			"type":             input.Type,
+			"projectId":         input.ProjectID,
+			"relatedProjectId":  input.RelatedProjectID,
+			"type":              input.Type,
+			"anchorType":        anchorType,
+			"relatedAnchorType": relatedAnchorType,
 		},
 	}, &result); err != nil {
 		return nil, err
@@ -3514,7 +3482,7 @@ mutation FavoriteCreate($input: FavoriteCreateInput!) {
 	case "project":
 		input["projectId"] = entityID
 	case "label":
-		input["issueLabelId"] = entityID
+		input["labelId"] = entityID
 	case "customView":
 		input["customViewId"] = entityID
 	default:
@@ -3814,11 +3782,12 @@ mutation ReleaseDelete($id: String!) {
 	return nil
 }
 
-// CompleteRelease завершает релиз.
-func (c *Client) CompleteRelease(id string) (*Release, error) {
+// CompleteRelease завершает релиз для указанного пайплайна.
+// pipelineID — обязательный ID пайплайна релизов; version и commitSha — опциональны.
+func (c *Client) CompleteRelease(pipelineID, version, commitSha string) (*Release, error) {
 	mutation := `
-mutation ReleaseComplete($id: String!) {
-  releaseComplete(id: $id) {
+mutation ReleaseComplete($input: ReleaseCompleteInput!) {
+  releaseComplete(input: $input) {
     success
     release {
       id
@@ -3827,13 +3796,20 @@ mutation ReleaseComplete($id: String!) {
     }
   }
 }`
+	input := map[string]any{"pipelineId": pipelineID}
+	if version != "" {
+		input["version"] = version
+	}
+	if commitSha != "" {
+		input["commitSha"] = commitSha
+	}
 	var result struct {
 		ReleaseComplete struct {
 			Release Release `json:"release"`
 			Success bool    `json:"success"`
 		} `json:"releaseComplete"`
 	}
-	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+	if err := c.Do(mutation, map[string]any{"input": input}, &result); err != nil {
 		return nil, err
 	}
 	if !result.ReleaseComplete.Success {
