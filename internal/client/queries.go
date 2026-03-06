@@ -1218,6 +1218,135 @@ type InitiativeToProject struct {
 	Project    Project    `json:"project"`
 }
 
+// CustomerStatus представляет статус клиента.
+type CustomerStatus struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	DisplayName string `json:"displayName"`
+	Color       string `json:"color"`
+	Description string `json:"description"`
+}
+
+// CustomerTier представляет уровень клиента.
+type CustomerTier struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	DisplayName string `json:"displayName"`
+	Color       string `json:"color"`
+	Description string `json:"description"`
+}
+
+// CustomerNeed представляет потребность клиента, привязанную к задаче или проекту.
+type CustomerNeed struct {
+	ID        string    `json:"id"`
+	Body      string    `json:"body"`
+	Priority  float64   `json:"priority"`
+	CreatedAt time.Time `json:"createdAt"`
+	Creator   *User     `json:"creator"`
+	Customer  *Customer `json:"customer"`
+	Issue     *Issue    `json:"issue"`
+}
+
+// Customer представляет клиента Linear (CRM).
+type Customer struct {
+	ID        string          `json:"id"`
+	Name      string          `json:"name"`
+	LogoURL   string          `json:"logoUrl"`
+	SlugID    string          `json:"slugId"`
+	Revenue   int             `json:"revenue"`
+	Size      float64         `json:"size"`
+	CreatedAt time.Time       `json:"createdAt"`
+	Owner     *User           `json:"owner"`
+	Status    *CustomerStatus `json:"status"`
+	Tier      *CustomerTier   `json:"tier"`
+}
+
+// ListCustomers возвращает список всех клиентов организации.
+func (c *Client) ListCustomers() ([]Customer, error) {
+	query := `
+query ListCustomers {
+  customers(first: 250) {
+    nodes {
+      id
+      name
+      logoUrl
+      slugId
+      revenue
+      size
+      createdAt
+      owner { id name displayName email }
+      status { id name displayName color }
+      tier { id name displayName color }
+    }
+  }
+}`
+	var result struct {
+		Customers struct {
+			Nodes []Customer `json:"nodes"`
+		} `json:"customers"`
+	}
+	if err := c.Do(query, nil, &result); err != nil {
+		return nil, err
+	}
+	return result.Customers.Nodes, nil
+}
+
+// GetCustomer возвращает клиента по ID.
+func (c *Client) GetCustomer(id string) (*Customer, error) {
+	query := `
+query GetCustomer($id: String!) {
+  customer(id: $id) {
+    id
+    name
+    logoUrl
+    slugId
+    revenue
+    size
+    createdAt
+    owner { id name displayName email }
+    status { id name displayName color }
+    tier { id name displayName color }
+  }
+}`
+	var result struct {
+		Customer *Customer `json:"customer"`
+	}
+	if err := c.Do(query, map[string]any{"id": id}, &result); err != nil {
+		return nil, err
+	}
+	if result.Customer == nil {
+		return nil, fmt.Errorf("клиент не найден: %s", id)
+	}
+	return result.Customer, nil
+}
+
+// ListCustomerNeeds возвращает список потребностей клиентов.
+func (c *Client) ListCustomerNeeds() ([]CustomerNeed, error) {
+	query := `
+query ListCustomerNeeds {
+  customerNeeds(first: 250) {
+    nodes {
+      id
+      body
+      priority
+      createdAt
+      creator { id name displayName email }
+      customer { id name }
+      issue { id identifier title }
+    }
+  }
+}`
+	var result struct {
+		CustomerNeeds struct {
+			Nodes []CustomerNeed `json:"nodes"`
+		} `json:"customerNeeds"`
+	}
+	if err := c.Do(query, nil, &result); err != nil {
+		return nil, err
+	}
+	return result.CustomerNeeds.Nodes, nil
+}
+
 // Roadmap представляет дорожную карту Linear.
 type Roadmap struct {
 	ID          string    `json:"id"`

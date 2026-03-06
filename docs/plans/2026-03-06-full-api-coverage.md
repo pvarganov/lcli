@@ -368,14 +368,14 @@
 
 #### Task 28: Customers — CRUD
 
-- [ ] добавить тип `Customer`, `CustomerNeed`, `CustomerStatus`, `CustomerTier` в queries.go
-- [ ] написать тесты для `ListCustomers()`, `GetCustomer(id)`, `ListCustomerNeeds()`
-- [ ] добавить методы в queries.go
-- [ ] написать тесты для мутаций `customerCreate`, `customerUpdate`, `customerDelete`, `customerUpsert`
-- [ ] добавить методы в mutations.go
-- [ ] написать тесты для cmd `customers list`, `customers view <ID>`, `customers create`, `customers update <ID>`, `customers delete <ID>`
-- [ ] добавить команды в `cmd/customers.go`
-- [ ] запустить тесты — должны пройти
+- [x] добавить тип `Customer`, `CustomerNeed`, `CustomerStatus`, `CustomerTier` в queries.go
+- [x] написать тесты для `ListCustomers()`, `GetCustomer(id)`, `ListCustomerNeeds()`
+- [x] добавить методы в queries.go
+- [x] написать тесты для мутаций `customerCreate`, `customerUpdate`, `customerDelete`, `customerUpsert`
+- [x] добавить методы в mutations.go
+- [x] написать тесты для cmd `customers list`, `customers view <ID>`, `customers create`, `customers update <ID>`, `customers delete <ID>`
+- [x] добавить команды в `cmd/customers.go`
+- [x] запустить тесты — должны пройти
 
 #### Task 29: Customer Needs + Statuses + Tiers
 

@@ -2840,6 +2840,137 @@ mutation CreateRoadmapToProject($input: RoadmapToProjectCreateInput!) {
 	return &result.RoadmapToProjectCreate.RoadmapToProject, nil
 }
 
+// CreateCustomer создаёт нового клиента.
+func (c *Client) CreateCustomer(name string, input map[string]any) (*Customer, error) {
+	mutation := `
+mutation CreateCustomer($input: CustomerCreateInput!) {
+  customerCreate(input: $input) {
+    success
+    customer {
+      id
+      name
+      logoUrl
+      slugId
+      revenue
+      size
+      createdAt
+      owner { id name displayName email }
+      status { id name displayName color }
+      tier { id name displayName color }
+    }
+  }
+}`
+	if input == nil {
+		input = map[string]any{}
+	}
+	input["name"] = name
+	var result struct {
+		CustomerCreate struct {
+			Customer Customer `json:"customer"`
+			Success  bool     `json:"success"`
+		} `json:"customerCreate"`
+	}
+	if err := c.Do(mutation, map[string]any{"input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.CustomerCreate.Success {
+		return nil, fmt.Errorf("customerCreate вернул success=false")
+	}
+	return &result.CustomerCreate.Customer, nil
+}
+
+// UpdateCustomer обновляет клиента по ID.
+func (c *Client) UpdateCustomer(id string, input map[string]any) (*Customer, error) {
+	mutation := `
+mutation UpdateCustomer($id: String!, $input: CustomerUpdateInput!) {
+  customerUpdate(id: $id, input: $input) {
+    success
+    customer {
+      id
+      name
+      logoUrl
+      slugId
+      revenue
+      size
+      createdAt
+      owner { id name displayName email }
+      status { id name displayName color }
+      tier { id name displayName color }
+    }
+  }
+}`
+	var result struct {
+		CustomerUpdate struct {
+			Customer Customer `json:"customer"`
+			Success  bool     `json:"success"`
+		} `json:"customerUpdate"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id, "input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.CustomerUpdate.Success {
+		return nil, fmt.Errorf("customerUpdate вернул success=false")
+	}
+	return &result.CustomerUpdate.Customer, nil
+}
+
+// DeleteCustomer удаляет клиента по ID.
+func (c *Client) DeleteCustomer(id string) error {
+	mutation := `
+mutation DeleteCustomer($id: String!) {
+  customerDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		CustomerDelete struct {
+			Success bool `json:"success"`
+		} `json:"customerDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.CustomerDelete.Success {
+		return fmt.Errorf("customerDelete вернул success=false")
+	}
+	return nil
+}
+
+// UpsertCustomer создаёт или обновляет клиента.
+func (c *Client) UpsertCustomer(input map[string]any) (*Customer, error) {
+	mutation := `
+mutation UpsertCustomer($input: CustomerUpsertInput!) {
+  customerUpsert(input: $input) {
+    success
+    customer {
+      id
+      name
+      logoUrl
+      slugId
+      revenue
+      size
+      createdAt
+      owner { id name displayName email }
+      status { id name displayName color }
+      tier { id name displayName color }
+    }
+  }
+}`
+	var result struct {
+		CustomerUpsert struct {
+			Customer Customer `json:"customer"`
+			Success  bool     `json:"success"`
+		} `json:"customerUpsert"`
+	}
+	if err := c.Do(mutation, map[string]any{"input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.CustomerUpsert.Success {
+		return nil, fmt.Errorf("customerUpsert вернул success=false")
+	}
+	return &result.CustomerUpsert.Customer, nil
+}
+
 // DeleteRoadmapToProject удаляет связь дорожной карты с проектом.
 func (c *Client) DeleteRoadmapToProject(id string) error {
 	mutation := `
