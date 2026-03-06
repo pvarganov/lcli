@@ -135,9 +135,9 @@
 
 ### Task 10: [Final] Документация
 
-- [ ] Обновить/создать `README.md`: установка, конфигурация, примеры команд
-- [ ] Добавить `Makefile` с целями: `build`, `test`, `lint`, `install`
-- [ ] Описать схему GraphQL-запросов в `docs/`
+- [x] Обновить/создать `README.md`: установка, конфигурация, примеры команд
+- [x] Добавить `Makefile` с целями: `build`, `test`, `lint`, `install`
+- [x] Описать схему GraphQL-запросов в `docs/`
 
 *Note: ralphex automatically moves completed plans to `docs/plans/completed/`*
 
