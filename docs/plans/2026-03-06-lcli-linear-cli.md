@@ -92,14 +92,14 @@
 
 ### Task 5: Команды для Issues — создание и обновление
 
-- [ ] Команда `lcli issue create` с флагами:
+- [x] Команда `lcli issue create` с флагами:
   - `--title` (required), `--description`, `--team` (required), `--assignee`, `--priority`
-- [ ] Команда `lcli issue update <ID>` с флагами:
+- [x] Команда `lcli issue update <ID>` с флагами:
   - `--status`, `--assignee`, `--priority`, `--title`
-- [ ] GraphQL-мутации в `internal/client/mutations.go`
-- [ ] Написать тест создания issue (мок клиент)
-- [ ] Написать тест обновления issue (мок клиент)
-- [ ] Запустить `go test ./...` — должен пройти
+- [x] GraphQL-мутации в `internal/client/mutations.go`
+- [x] Написать тест создания issue (мок клиент)
+- [x] Написать тест обновления issue (мок клиент)
+- [x] Запустить `go test ./...` — должен пройти
 
 ### Task 6: Команды для комментариев
 
