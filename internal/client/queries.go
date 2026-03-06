@@ -578,6 +578,39 @@ query ListProjectStatuses {
 	return result.ProjectStatuses.Nodes, nil
 }
 
+// SearchProjects выполняет поиск проектов по строке запроса.
+func (c *Client) SearchProjects(query string) ([]Project, error) {
+	gql := `
+query SearchProjects($filter: ProjectFilter) {
+  projects(first: 50, filter: $filter) {
+    nodes {
+      id
+      name
+      description
+      state
+      startDate
+      targetDate
+      url
+      lead { id name displayName email }
+    }
+  }
+}`
+
+	variables := map[string]any{
+		"filter": map[string]any{
+			"name": map[string]any{
+				"containsIgnoreCase": query,
+			},
+		},
+	}
+
+	var result ProjectConnection
+	if err := c.Do(gql, variables, &result); err != nil {
+		return nil, err
+	}
+	return result.Projects.Nodes, nil
+}
+
 // PriorityLabel возвращает текстовое обозначение приоритета.
 func PriorityLabel(p int) string {
 	switch p {

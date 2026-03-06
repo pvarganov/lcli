@@ -1491,3 +1491,100 @@ func TestArchiveProjectStatus(t *testing.T) {
 		}
 	})
 }
+
+func TestCreateProjectRelation(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"projectRelationCreate": map[string]any{
+				"success": true,
+				"projectRelation": map[string]any{
+					"id":   "pr1",
+					"type": "related",
+					"project": map[string]any{
+						"id": "p1", "name": "Project A",
+					},
+					"relatedProject": map[string]any{
+						"id": "p2", "name": "Project B",
+					},
+				},
+			},
+		}
+
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		rel, err := c.CreateProjectRelation(CreateProjectRelationInput{
+			ProjectID:        "p1",
+			RelatedProjectID: "p2",
+			Type:             "related",
+		})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if rel.ID != "pr1" {
+			t.Errorf("expected id 'pr1', got %q", rel.ID)
+		}
+		if rel.Type != "related" {
+			t.Errorf("expected type 'related', got %q", rel.Type)
+		}
+		if rel.Project.Name != "Project A" {
+			t.Errorf("expected project name 'Project A', got %q", rel.Project.Name)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		responseData := map[string]any{
+			"projectRelationCreate": map[string]any{
+				"success":         false,
+				"projectRelation": nil,
+			},
+		}
+
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if _, err := c.CreateProjectRelation(CreateProjectRelationInput{
+			ProjectID:        "p1",
+			RelatedProjectID: "p2",
+			Type:             "related",
+		}); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestDeleteProjectRelation(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"projectRelationDelete": map[string]any{
+				"success": true,
+			},
+		}
+
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.DeleteProjectRelation("pr1"); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		responseData := map[string]any{
+			"projectRelationDelete": map[string]any{
+				"success": false,
+			},
+		}
+
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.DeleteProjectRelation("pr1"); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}

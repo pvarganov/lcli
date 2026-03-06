@@ -1486,3 +1486,75 @@ mutation ArchiveProjectStatus($id: String!) {
 	}
 	return nil
 }
+
+// ProjectRelation представляет связь между проектами.
+type ProjectRelation struct {
+	ID             string  `json:"id"`
+	Type           string  `json:"type"`
+	Project        Project `json:"project"`
+	RelatedProject Project `json:"relatedProject"`
+}
+
+// CreateProjectRelationInput — входные данные для создания связи между проектами.
+type CreateProjectRelationInput struct {
+	ProjectID        string
+	RelatedProjectID string
+	Type             string
+}
+
+// CreateProjectRelation создаёт связь между двумя проектами.
+func (c *Client) CreateProjectRelation(input CreateProjectRelationInput) (*ProjectRelation, error) {
+	mutation := `
+mutation CreateProjectRelation($input: ProjectRelationCreateInput!) {
+  projectRelationCreate(input: $input) {
+    success
+    projectRelation {
+      id
+      type
+      project { id name }
+      relatedProject { id name }
+    }
+  }
+}`
+	var result struct {
+		ProjectRelationCreate struct {
+			ProjectRelation ProjectRelation `json:"projectRelation"`
+			Success         bool            `json:"success"`
+		} `json:"projectRelationCreate"`
+	}
+	if err := c.Do(mutation, map[string]any{
+		"input": map[string]any{
+			"projectId":        input.ProjectID,
+			"relatedProjectId": input.RelatedProjectID,
+			"type":             input.Type,
+		},
+	}, &result); err != nil {
+		return nil, err
+	}
+	if !result.ProjectRelationCreate.Success {
+		return nil, fmt.Errorf("projectRelationCreate вернул success=false")
+	}
+	return &result.ProjectRelationCreate.ProjectRelation, nil
+}
+
+// DeleteProjectRelation удаляет связь между проектами по ID связи.
+func (c *Client) DeleteProjectRelation(id string) error {
+	mutation := `
+mutation DeleteProjectRelation($id: String!) {
+  projectRelationDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		ProjectRelationDelete struct {
+			Success bool `json:"success"`
+		} `json:"projectRelationDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.ProjectRelationDelete.Success {
+		return fmt.Errorf("projectRelationDelete вернул success=false")
+	}
+	return nil
+}

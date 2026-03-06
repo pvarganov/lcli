@@ -182,15 +182,15 @@
 
 #### Task 15: Project Search + Relations
 
-- [ ] написать тесты для `SearchProjects(query)`
-- [ ] добавить метод `SearchProjects(query string)` в queries.go
-- [ ] написать тесты для cmd `projects search <query>`
-- [ ] добавить команду `projects search` в cmd/projects.go
-- [ ] написать тесты для мутаций `projectRelationCreate`, `projectRelationDelete`
-- [ ] добавить методы в mutations.go
-- [ ] написать тесты для cmd `projects relations add`, `projects relations remove`
-- [ ] добавить команды в `cmd/project_relations.go`
-- [ ] запустить тесты — должны пройти
+- [x] написать тесты для `SearchProjects(query)`
+- [x] добавить метод `SearchProjects(query string)` в queries.go
+- [x] написать тесты для cmd `projects search <query>`
+- [x] добавить команду `projects search` в cmd/projects.go
+- [x] написать тесты для мутаций `projectRelationCreate`, `projectRelationDelete`
+- [x] добавить методы в mutations.go
+- [x] написать тесты для cmd `projects relations add`, `projects relations remove`
+- [x] добавить команды в `cmd/project_relations.go`
+- [x] запустить тесты — должны пройти
 
 ---
 

@@ -679,3 +679,63 @@ func TestListProjectStatuses(t *testing.T) {
 		}
 	})
 }
+
+func TestSearchProjects(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"projects": map[string]any{
+				"nodes": []map[string]any{
+					{
+						"id":          "p1",
+						"name":        "Alpha Project",
+						"description": "Test project",
+						"state":       "started",
+						"startDate":   "",
+						"targetDate":  "",
+						"url":         "https://linear.app/p1",
+						"lead":        nil,
+					},
+				},
+			},
+		}
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+		}))
+		defer srv.Close()
+
+		c := NewWithURL("token", srv.URL)
+		projects, err := c.SearchProjects("alpha")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(projects) != 1 {
+			t.Fatalf("expected 1 project, got %d", len(projects))
+		}
+		if projects[0].Name != "Alpha Project" {
+			t.Errorf("expected 'Alpha Project', got %q", projects[0].Name)
+		}
+	})
+
+	t.Run("empty", func(t *testing.T) {
+		responseData := map[string]any{
+			"projects": map[string]any{
+				"nodes": []map[string]any{},
+			},
+		}
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+		}))
+		defer srv.Close()
+
+		c := NewWithURL("token", srv.URL)
+		projects, err := c.SearchProjects("nonexistent")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(projects) != 0 {
+			t.Errorf("expected 0 projects, got %d", len(projects))
+		}
+	})
+}
