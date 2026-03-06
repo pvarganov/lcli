@@ -167,6 +167,69 @@ query ListComments($issueId: String!) {
 	return result.Issue.Comments.Nodes, nil
 }
 
+// Project представляет проект Linear.
+type Project struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	State       string `json:"state"`
+}
+
+// ProjectConnection — ответ на запрос списка проектов.
+type ProjectConnection struct {
+	Projects struct {
+		Nodes []Project `json:"nodes"`
+	} `json:"projects"`
+}
+
+// TeamConnection — ответ на запрос списка команд.
+type TeamConnection struct {
+	Teams struct {
+		Nodes []Team `json:"nodes"`
+	} `json:"teams"`
+}
+
+// ListProjects возвращает список проектов.
+func (c *Client) ListProjects() ([]Project, error) {
+	query := `
+query ListProjects {
+  projects {
+    nodes {
+      id
+      name
+      description
+      state
+    }
+  }
+}`
+
+	var result ProjectConnection
+	if err := c.Do(query, nil, &result); err != nil {
+		return nil, err
+	}
+	return result.Projects.Nodes, nil
+}
+
+// ListTeams возвращает список команд.
+func (c *Client) ListTeams() ([]Team, error) {
+	query := `
+query ListTeams {
+  teams {
+    nodes {
+      id
+      key
+      name
+    }
+  }
+}`
+
+	var result TeamConnection
+	if err := c.Do(query, nil, &result); err != nil {
+		return nil, err
+	}
+	return result.Teams.Nodes, nil
+}
+
 // PriorityLabel возвращает текстовое обозначение приоритета.
 func PriorityLabel(p int) string {
 	switch p {
