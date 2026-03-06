@@ -741,3 +741,147 @@ func TestBatchUpdateIssues(t *testing.T) {
 		}
 	})
 }
+
+func TestUpdateComment(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"commentUpdate": map[string]any{
+				"success": true,
+				"comment": map[string]any{
+					"id":        "cm1",
+					"body":      "Updated body",
+					"createdAt": "2024-01-01T00:00:00Z",
+					"user":      map[string]any{"id": "u1", "name": "Alice", "displayName": "Alice", "email": "alice@example.com"},
+				},
+			},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		comment, err := c.UpdateComment("cm1", "Updated body")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if comment.ID != "cm1" {
+			t.Errorf("expected id 'cm1', got %s", comment.ID)
+		}
+		if comment.Body != "Updated body" {
+			t.Errorf("expected body 'Updated body', got %s", comment.Body)
+		}
+	})
+
+	t.Run("success_false", func(t *testing.T) {
+		responseData := map[string]any{
+			"commentUpdate": map[string]any{"success": false},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		_, err := c.UpdateComment("cm1", "body")
+		if err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestDeleteComment(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"commentDelete": map[string]any{"success": true},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.DeleteComment("cm1"); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	})
+
+	t.Run("success_false", func(t *testing.T) {
+		responseData := map[string]any{
+			"commentDelete": map[string]any{"success": false},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.DeleteComment("cm1"); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestResolveComment(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"commentResolve": map[string]any{
+				"success": true,
+				"comment": map[string]any{
+					"id":        "cm1",
+					"body":      "Some comment",
+					"createdAt": "2024-01-01T00:00:00Z",
+					"user":      nil,
+				},
+			},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		comment, err := c.ResolveComment("cm1")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if comment.ID != "cm1" {
+			t.Errorf("expected id 'cm1', got %s", comment.ID)
+		}
+	})
+
+	t.Run("success_false", func(t *testing.T) {
+		responseData := map[string]any{
+			"commentResolve": map[string]any{"success": false},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		if _, err := c.ResolveComment("cm1"); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestUnresolveComment(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"commentUnresolve": map[string]any{
+				"success": true,
+				"comment": map[string]any{
+					"id":        "cm1",
+					"body":      "Some comment",
+					"createdAt": "2024-01-01T00:00:00Z",
+					"user":      nil,
+				},
+			},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		comment, err := c.UnresolveComment("cm1")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if comment.ID != "cm1" {
+			t.Errorf("expected id 'cm1', got %s", comment.ID)
+		}
+	})
+
+	t.Run("success_false", func(t *testing.T) {
+		responseData := map[string]any{
+			"commentUnresolve": map[string]any{"success": false},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		if _, err := c.UnresolveComment("cm1"); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}

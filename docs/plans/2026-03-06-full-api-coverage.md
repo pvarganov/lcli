@@ -115,11 +115,11 @@
 
 #### Task 9: Comments — Update/Delete/Resolve
 
-- [ ] написать тесты для мутаций `commentUpdate`, `commentDelete`, `commentResolve`, `commentUnresolve`
-- [ ] добавить методы `UpdateComment(id, body)`, `DeleteComment(id)`, `ResolveComment(id)`, `UnresolveComment(id)` в mutations.go
-- [ ] написать тесты для cmd `issues comment update <ID>`, `issues comment delete <ID>`, `issues comment resolve <ID>`
-- [ ] добавить команды в `cmd/issue_comment.go` (расширить существующий файл)
-- [ ] запустить тесты — должны пройти
+- [x] написать тесты для мутаций `commentUpdate`, `commentDelete`, `commentResolve`, `commentUnresolve`
+- [x] добавить методы `UpdateComment(id, body)`, `DeleteComment(id)`, `ResolveComment(id)`, `UnresolveComment(id)` в mutations.go
+- [x] написать тесты для cmd `issues comment update <ID>`, `issues comment delete <ID>`, `issues comment resolve <ID>`
+- [x] добавить команды в `cmd/issue_comment.go` (расширить существующий файл)
+- [x] запустить тесты — должны пройти
 
 ---
 

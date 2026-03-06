@@ -82,10 +82,117 @@ var issueCommentsCmd = &cobra.Command{
 	},
 }
 
+var issueCommentUpdateCmd = &cobra.Command{
+	Use:   "comment-update <COMMENT-ID>",
+	Short: "Обновить комментарий по ID",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		t, err := GetToken()
+		if err != nil {
+			return fmt.Errorf("ошибка загрузки токена: %w", err)
+		}
+		if t == "" {
+			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
+		}
+
+		body, _ := cmd.Flags().GetString("body")
+		c := newLinearClient(t)
+		comment, err := c.UpdateComment(args[0], body)
+		if err != nil {
+			return err
+		}
+
+		out := cmd.OutOrStdout()
+		fmt.Fprintf(out, "Комментарий обновлён (id: %s)\n", comment.ID)
+		return nil
+	},
+}
+
+var issueCommentDeleteCmd = &cobra.Command{
+	Use:   "comment-delete <COMMENT-ID>",
+	Short: "Удалить комментарий по ID",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		t, err := GetToken()
+		if err != nil {
+			return fmt.Errorf("ошибка загрузки токена: %w", err)
+		}
+		if t == "" {
+			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
+		}
+
+		c := newLinearClient(t)
+		if err := c.DeleteComment(args[0]); err != nil {
+			return err
+		}
+
+		out := cmd.OutOrStdout()
+		fmt.Fprintf(out, "Комментарий удалён (id: %s)\n", args[0])
+		return nil
+	},
+}
+
+var issueCommentResolveCmd = &cobra.Command{
+	Use:   "comment-resolve <COMMENT-ID>",
+	Short: "Пометить комментарий как разрешённый",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		t, err := GetToken()
+		if err != nil {
+			return fmt.Errorf("ошибка загрузки токена: %w", err)
+		}
+		if t == "" {
+			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
+		}
+
+		c := newLinearClient(t)
+		comment, err := c.ResolveComment(args[0])
+		if err != nil {
+			return err
+		}
+
+		out := cmd.OutOrStdout()
+		fmt.Fprintf(out, "Комментарий помечен как разрешённый (id: %s)\n", comment.ID)
+		return nil
+	},
+}
+
+var issueCommentUnresolveCmd = &cobra.Command{
+	Use:   "comment-unresolve <COMMENT-ID>",
+	Short: "Снять пометку разрешения с комментария",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		t, err := GetToken()
+		if err != nil {
+			return fmt.Errorf("ошибка загрузки токена: %w", err)
+		}
+		if t == "" {
+			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
+		}
+
+		c := newLinearClient(t)
+		comment, err := c.UnresolveComment(args[0])
+		if err != nil {
+			return err
+		}
+
+		out := cmd.OutOrStdout()
+		fmt.Fprintf(out, "Пометка разрешения снята (id: %s)\n", comment.ID)
+		return nil
+	},
+}
+
 func init() {
 	issueCommentCmd.Flags().StringVar(&commentBody, "body", "", "Текст комментария (обязательно)")
 	_ = issueCommentCmd.MarkFlagRequired("body")
 
+	issueCommentUpdateCmd.Flags().String("body", "", "Новый текст комментария (обязательно)")
+	_ = issueCommentUpdateCmd.MarkFlagRequired("body")
+
 	issueCmd.AddCommand(issueCommentCmd)
 	issueCmd.AddCommand(issueCommentsCmd)
+	issueCmd.AddCommand(issueCommentUpdateCmd)
+	issueCmd.AddCommand(issueCommentDeleteCmd)
+	issueCmd.AddCommand(issueCommentResolveCmd)
+	issueCmd.AddCommand(issueCommentUnresolveCmd)
 }

@@ -700,6 +700,118 @@ mutation IssueBatchUpdate($ids: [UUID!]!, $input: IssueUpdateInput!) {
 	return result.IssueBatchUpdate.Issues, nil
 }
 
+// UpdateComment обновляет тело комментария по ID.
+func (c *Client) UpdateComment(id, body string) (*Comment, error) {
+	mutation := `
+mutation UpdateComment($id: String!, $input: CommentUpdateInput!) {
+  commentUpdate(id: $id, input: $input) {
+    success
+    comment {
+      id
+      body
+      createdAt
+      user { id name displayName email }
+    }
+  }
+}`
+	var result struct {
+		CommentUpdate struct {
+			Comment Comment `json:"comment"`
+			Success bool    `json:"success"`
+		} `json:"commentUpdate"`
+	}
+	if err := c.Do(mutation, map[string]any{
+		"id":    id,
+		"input": map[string]any{"body": body},
+	}, &result); err != nil {
+		return nil, err
+	}
+	if !result.CommentUpdate.Success {
+		return nil, fmt.Errorf("commentUpdate вернул success=false")
+	}
+	return &result.CommentUpdate.Comment, nil
+}
+
+// DeleteComment удаляет комментарий по ID.
+func (c *Client) DeleteComment(id string) error {
+	mutation := `
+mutation DeleteComment($id: String!) {
+  commentDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		CommentDelete struct {
+			Success bool `json:"success"`
+		} `json:"commentDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.CommentDelete.Success {
+		return fmt.Errorf("commentDelete вернул success=false")
+	}
+	return nil
+}
+
+// ResolveComment помечает комментарий как разрешённый.
+func (c *Client) ResolveComment(id string) (*Comment, error) {
+	mutation := `
+mutation ResolveComment($id: String!) {
+  commentResolve(id: $id) {
+    success
+    comment {
+      id
+      body
+      createdAt
+      user { id name displayName email }
+    }
+  }
+}`
+	var result struct {
+		CommentResolve struct {
+			Comment Comment `json:"comment"`
+			Success bool    `json:"success"`
+		} `json:"commentResolve"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return nil, err
+	}
+	if !result.CommentResolve.Success {
+		return nil, fmt.Errorf("commentResolve вернул success=false")
+	}
+	return &result.CommentResolve.Comment, nil
+}
+
+// UnresolveComment снимает пометку "разрешён" с комментария.
+func (c *Client) UnresolveComment(id string) (*Comment, error) {
+	mutation := `
+mutation UnresolveComment($id: String!) {
+  commentUnresolve(id: $id) {
+    success
+    comment {
+      id
+      body
+      createdAt
+      user { id name displayName email }
+    }
+  }
+}`
+	var result struct {
+		CommentUnresolve struct {
+			Comment Comment `json:"comment"`
+			Success bool    `json:"success"`
+		} `json:"commentUnresolve"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return nil, err
+	}
+	if !result.CommentUnresolve.Success {
+		return nil, fmt.Errorf("commentUnresolve вернул success=false")
+	}
+	return &result.CommentUnresolve.Comment, nil
+}
+
 // FindUserByName ищет пользователя по displayName или email.
 func (c *Client) FindUserByName(name string) (*User, error) {
 	query := `
