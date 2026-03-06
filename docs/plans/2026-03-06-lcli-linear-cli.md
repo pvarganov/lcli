@@ -45,17 +45,17 @@
 
 ### Task 1: Инициализация Go-модуля и структуры проекта
 
-- [ ] Выполнить `go mod init github.com/pavelvarganov/lcli`
-- [ ] Создать `main.go` с точкой входа
-- [ ] Создать структуру директорий:
+- [x] Выполнить `go mod init github.com/pavelvarganov/lcli`
+- [x] Создать `main.go` с точкой входа
+- [x] Создать структуру директорий:
   - `cmd/` — cobra-команды
   - `internal/client/` — GraphQL HTTP-клиент
   - `internal/config/` — конфиг (токен, org)
   - `internal/format/` — форматирование вывода (таблицы)
-- [ ] Добавить зависимости: `cobra`, `charmbracelet/lipgloss` (опционально для цветов), `olekukonko/tablewriter`
-- [ ] Создать корневую cobra-команду в `cmd/root.go` с флагом `--token`
-- [ ] Написать тест для `cmd/root.go` (проверка инициализации команды)
-- [ ] Запустить `go test ./...` — должен пройти
+- [x] Добавить зависимости: `cobra`, `charmbracelet/lipgloss` (опционально для цветов), `olekukonko/tablewriter`
+- [x] Создать корневую cobra-команду в `cmd/root.go` с флагом `--token`
+- [x] Написать тест для `cmd/root.go` (проверка инициализации команды)
+- [x] Запустить `go test ./...` — должен пройти
 
 ### Task 2: GraphQL HTTP-клиент
 
