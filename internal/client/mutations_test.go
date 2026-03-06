@@ -2040,3 +2040,87 @@ func TestUpdateTeamMembership(t *testing.T) {
 		}
 	})
 }
+
+func TestMarkNotificationRead(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"notificationUpdate": map[string]any{"success": true},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.MarkNotificationRead("n1"); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		responseData := map[string]any{
+			"notificationUpdate": map[string]any{"success": false},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.MarkNotificationRead("n1"); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestMarkAllNotificationsRead(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"notificationMarkReadAll": map[string]any{"success": true},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.MarkAllNotificationsRead(); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		responseData := map[string]any{
+			"notificationMarkReadAll": map[string]any{"success": false},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.MarkAllNotificationsRead(); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestArchiveNotification(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"notificationArchive": map[string]any{"success": true},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.ArchiveNotification("n1"); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		responseData := map[string]any{
+			"notificationArchive": map[string]any{"success": false},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.ArchiveNotification("n1"); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}

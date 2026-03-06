@@ -1099,3 +1099,95 @@ func TestGetViewer(t *testing.T) {
 		t.Errorf("expected Current User, got %q", viewer.DisplayName)
 	}
 }
+
+func TestListNotifications(t *testing.T) {
+	now := time.Date(2024, 5, 10, 8, 0, 0, 0, time.UTC)
+	responseData := map[string]any{
+		"notifications": map[string]any{
+			"nodes": []map[string]any{
+				{
+					"id":        "n1",
+					"type":      "issueAssignedToYou",
+					"readAt":    nil,
+					"createdAt": now.Format(time.RFC3339),
+					"issue": map[string]any{
+						"id": "i1", "identifier": "ENG-1", "title": "Test Issue",
+					},
+				},
+			},
+			"pageInfo": map[string]any{"hasNextPage": false, "endCursor": ""},
+		},
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	notifications, pageInfo, err := c.ListNotifications(10, "")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(notifications) != 1 {
+		t.Fatalf("expected 1 notification, got %d", len(notifications))
+	}
+	if notifications[0].Type != "issueAssignedToYou" {
+		t.Errorf("expected type issueAssignedToYou, got %q", notifications[0].Type)
+	}
+	if notifications[0].Issue == nil || notifications[0].Issue.Identifier != "ENG-1" {
+		t.Error("expected issue with identifier ENG-1")
+	}
+	if pageInfo == nil {
+		t.Error("expected pageInfo to be non-nil")
+	}
+}
+
+func TestListNotificationsEmpty(t *testing.T) {
+	responseData := map[string]any{
+		"notifications": map[string]any{
+			"nodes":    []map[string]any{},
+			"pageInfo": map[string]any{"hasNextPage": false, "endCursor": ""},
+		},
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	notifications, _, err := c.ListNotifications(10, "")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(notifications) != 0 {
+		t.Fatalf("expected 0 notifications, got %d", len(notifications))
+	}
+}
+
+func TestGetNotificationsUnreadCount(t *testing.T) {
+	responseData := map[string]any{
+		"notifications": map[string]any{
+			"nodes": []map[string]any{
+				{"id": "n1"},
+				{"id": "n2"},
+				{"id": "n3"},
+			},
+		},
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	count, err := c.GetNotificationsUnreadCount()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if count != 3 {
+		t.Errorf("expected 3 unread, got %d", count)
+	}
+}

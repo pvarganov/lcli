@@ -1,6 +1,9 @@
 package client
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 // CreateComment добавляет комментарий к задаче.
 func (c *Client) CreateComment(issueID, body string) (*Comment, error) {
@@ -1933,6 +1936,73 @@ mutation DeleteTeamMembership($id: String!) {
 	}
 	if !result.TeamMembershipDelete.Success {
 		return fmt.Errorf("teamMembershipDelete вернул success=false")
+	}
+	return nil
+}
+
+// MarkNotificationRead отмечает уведомление как прочитанное.
+func (c *Client) MarkNotificationRead(id string) error {
+	mutation := `
+mutation MarkNotificationRead($id: String!, $input: NotificationUpdateInput!) {
+  notificationUpdate(id: $id, input: $input) {
+    success
+  }
+}`
+	var result struct {
+		NotificationUpdate struct {
+			Success bool `json:"success"`
+		} `json:"notificationUpdate"`
+	}
+	input := map[string]any{"readAt": time.Now().UTC().Format(time.RFC3339)}
+	if err := c.Do(mutation, map[string]any{"id": id, "input": input}, &result); err != nil {
+		return err
+	}
+	if !result.NotificationUpdate.Success {
+		return fmt.Errorf("notificationUpdate вернул success=false")
+	}
+	return nil
+}
+
+// MarkAllNotificationsRead отмечает все уведомления как прочитанные.
+func (c *Client) MarkAllNotificationsRead() error {
+	mutation := `
+mutation MarkAllNotificationsRead {
+  notificationMarkReadAll {
+    success
+  }
+}`
+	var result struct {
+		NotificationMarkReadAll struct {
+			Success bool `json:"success"`
+		} `json:"notificationMarkReadAll"`
+	}
+	if err := c.Do(mutation, nil, &result); err != nil {
+		return err
+	}
+	if !result.NotificationMarkReadAll.Success {
+		return fmt.Errorf("notificationMarkReadAll вернул success=false")
+	}
+	return nil
+}
+
+// ArchiveNotification архивирует уведомление по ID.
+func (c *Client) ArchiveNotification(id string) error {
+	mutation := `
+mutation ArchiveNotification($id: String!) {
+  notificationArchive(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		NotificationArchive struct {
+			Success bool `json:"success"`
+		} `json:"notificationArchive"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.NotificationArchive.Success {
+		return fmt.Errorf("notificationArchive вернул success=false")
 	}
 	return nil
 }

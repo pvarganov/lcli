@@ -264,14 +264,14 @@
 
 #### Task 21: Notifications — List + управление
 
-- [ ] добавить тип `Notification` в queries.go (id, type, readAt, createdAt, issue, comment, project)
-- [ ] написать тесты для `ListNotifications(limit, after)`, `GetNotificationsUnreadCount()`
-- [ ] добавить методы в queries.go
-- [ ] написать тесты для мутаций `notificationMarkReadAll`, `notificationArchive`, `notificationUpdate`
-- [ ] добавить методы в mutations.go
-- [ ] написать тесты для cmd `notifications list`, `notifications unread-count`, `notifications mark-read`, `notifications archive`
-- [ ] добавить команды в `cmd/notifications.go`
-- [ ] запустить тесты — должны пройти
+- [x] добавить тип `Notification` в queries.go (id, type, readAt, createdAt, issue, comment, project)
+- [x] написать тесты для `ListNotifications(limit, after)`, `GetNotificationsUnreadCount()`
+- [x] добавить методы в queries.go
+- [x] написать тесты для мутаций `notificationMarkReadAll`, `notificationArchive`, `notificationUpdate`
+- [x] добавить методы в mutations.go
+- [x] написать тесты для cmd `notifications list`, `notifications unread-count`, `notifications mark-read`, `notifications archive`
+- [x] добавить команды в `cmd/notifications.go`
+- [x] запустить тесты — должны пройти
 
 ---
 

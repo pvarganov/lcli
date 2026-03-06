@@ -830,3 +830,90 @@ query GetViewer {
 	}
 	return result.Viewer, nil
 }
+
+// Notification представляет уведомление Linear.
+type Notification struct {
+	ID        string    `json:"id"`
+	Type      string    `json:"type"`
+	ReadAt    *time.Time `json:"readAt"`
+	CreatedAt time.Time `json:"createdAt"`
+	Issue     *Issue    `json:"issue"`
+	Comment   *Comment  `json:"comment"`
+	Project   *Project  `json:"project"`
+}
+
+// ListNotifications возвращает список уведомлений с пагинацией.
+func (c *Client) ListNotifications(limit int, after string) ([]Notification, *PageInfo, error) {
+	if limit <= 0 {
+		limit = 50
+	}
+	query := `
+query ListNotifications($first: Int, $after: String) {
+  notifications(first: $first, after: $after) {
+    nodes {
+      id
+      type
+      readAt
+      createdAt
+      issue {
+        id
+        identifier
+        title
+      }
+      comment {
+        id
+        body
+      }
+      project {
+        id
+        name
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}`
+	vars := map[string]any{"first": limit}
+	if after != "" {
+		vars["after"] = after
+	}
+	var result struct {
+		Notifications struct {
+			Nodes    []Notification `json:"nodes"`
+			PageInfo PageInfo       `json:"pageInfo"`
+		} `json:"notifications"`
+	}
+	if err := c.Do(query, vars, &result); err != nil {
+		return nil, nil, err
+	}
+	pi := result.Notifications.PageInfo
+	return result.Notifications.Nodes, &pi, nil
+}
+
+// GetNotificationsUnreadCount возвращает количество непрочитанных уведомлений.
+func (c *Client) GetNotificationsUnreadCount() (int, error) {
+	query := `
+query GetNotificationsUnreadCount {
+  notifications(filter: { readAt: { null: true } }) {
+    pageInfo {
+      hasNextPage
+    }
+    nodes {
+      id
+    }
+  }
+}`
+	var result struct {
+		Notifications struct {
+			Nodes []struct {
+				ID string `json:"id"`
+			} `json:"nodes"`
+		} `json:"notifications"`
+	}
+	if err := c.Do(query, nil, &result); err != nil {
+		return 0, err
+	}
+	return len(result.Notifications.Nodes), nil
+}
