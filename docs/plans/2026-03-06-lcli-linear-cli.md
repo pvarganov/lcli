@@ -59,13 +59,13 @@
 
 ### Task 2: GraphQL HTTP-клиент
 
-- [ ] Создать `internal/client/client.go` с интерфейсом `LinearClient`
-- [ ] Реализовать метод `Do(query string, variables map[string]any, result any) error`
-- [ ] Добавить Bearer-токен в заголовок `Authorization`
-- [ ] Обрабатывать ошибки GraphQL (поле `errors` в ответе)
-- [ ] Написать тест с `httptest.NewServer` для успешного запроса
-- [ ] Написать тест для ошибки GraphQL и ошибки сети
-- [ ] Запустить `go test ./...` — должен пройти
+- [x] Создать `internal/client/client.go` с интерфейсом `LinearClient`
+- [x] Реализовать метод `Do(query string, variables map[string]any, result any) error`
+- [x] Добавить Bearer-токен в заголовок `Authorization`
+- [x] Обрабатывать ошибки GraphQL (поле `errors` в ответе)
+- [x] Написать тест с `httptest.NewServer` для успешного запроса
+- [x] Написать тест для ошибки GraphQL и ошибки сети
+- [x] Запустить `go test ./...` — должен пройти
 
 ### Task 3: Конфигурация (токен и workspace)
 
