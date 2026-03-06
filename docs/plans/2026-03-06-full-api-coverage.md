@@ -294,14 +294,14 @@
 
 #### Task 23: Attachments — Query + основные мутации
 
-- [ ] добавить тип `Attachment` в queries.go (id, title, url, sourceType, issue)
-- [ ] написать тесты для `ListAttachments(issueID)`
-- [ ] добавить метод `ListAttachments(issueID)` в queries.go
-- [ ] написать тесты для мутаций `attachmentLinkURL`, `attachmentLinkGitHubPR`, `attachmentLinkGitHubIssue`, `attachmentLinkGitLabMR`, `attachmentDelete`, `attachmentUpdate`
-- [ ] добавить методы в mutations.go
-- [ ] написать тесты для cmd `issues attachments list <ISSUE-ID>`, `issues attachments link-url`, `issues attachments link-github-pr`, `issues attachments delete <ID>`
-- [ ] добавить команды в `cmd/issue_attachments.go`
-- [ ] запустить тесты — должны пройти
+- [x] добавить тип `Attachment` в queries.go (id, title, url, sourceType, issue)
+- [x] написать тесты для `ListAttachments(issueID)`
+- [x] добавить метод `ListAttachments(issueID)` в queries.go
+- [x] написать тесты для мутаций `attachmentLinkURL`, `attachmentLinkGitHubPR`, `attachmentLinkGitHubIssue`, `attachmentLinkGitLabMR`, `attachmentDelete`, `attachmentUpdate`
+- [x] добавить методы в mutations.go
+- [x] написать тесты для cmd `issues attachments list <ISSUE-ID>`, `issues attachments link-url`, `issues attachments link-github-pr`, `issues attachments delete <ID>`
+- [x] добавить команды в `cmd/issue_attachments.go`
+- [x] запустить тесты — должны пройти
 
 ---
 

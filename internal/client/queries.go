@@ -978,3 +978,42 @@ query GetWebhook($id: String!) {
 	}
 	return result.Webhook, nil
 }
+
+// Attachment представляет вложение к задаче Linear.
+type Attachment struct {
+	ID         string  `json:"id"`
+	Title      string  `json:"title"`
+	URL        string  `json:"url"`
+	SourceType string  `json:"sourceType"`
+	Subtitle   string  `json:"subtitle"`
+	Issue      *Issue  `json:"issue"`
+}
+
+// ListAttachments возвращает список вложений задачи.
+func (c *Client) ListAttachments(issueID string) ([]Attachment, error) {
+	query := `
+query ListAttachments($id: String!) {
+  issue(id: $id) {
+    attachments {
+      nodes {
+        id
+        title
+        url
+        sourceType
+        subtitle
+      }
+    }
+  }
+}`
+	var result struct {
+		Issue struct {
+			Attachments struct {
+				Nodes []Attachment `json:"nodes"`
+			} `json:"attachments"`
+		} `json:"issue"`
+	}
+	if err := c.Do(query, map[string]any{"id": issueID}, &result); err != nil {
+		return nil, err
+	}
+	return result.Issue.Attachments.Nodes, nil
+}

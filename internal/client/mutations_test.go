@@ -2280,3 +2280,155 @@ func TestRotateWebhookSecret(t *testing.T) {
 		}
 	})
 }
+
+func TestAttachmentLinkURL(t *testing.T) {
+	responseData := map[string]any{
+		"attachmentLinkURL": map[string]any{
+			"success": true,
+			"attachment": map[string]any{
+				"id":         "att1",
+				"title":      "Linear Docs",
+				"url":        "https://linear.app/docs",
+				"sourceType": "url",
+				"subtitle":   "",
+			},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	att, err := c.AttachmentLinkURL("issue1", "https://linear.app/docs", "Linear Docs")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if att.ID != "att1" {
+		t.Errorf("expected id att1, got %s", att.ID)
+	}
+}
+
+func TestAttachmentLinkGitHubPR(t *testing.T) {
+	responseData := map[string]any{
+		"attachmentLinkGitHubPR": map[string]any{
+			"success": true,
+			"attachment": map[string]any{
+				"id":         "att2",
+				"title":      "Fix bug",
+				"url":        "https://github.com/org/repo/pull/1",
+				"sourceType": "github",
+				"subtitle":   "Open",
+			},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	att, err := c.AttachmentLinkGitHubPR("issue1", "https://github.com/org/repo/pull/1", "Fix bug")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if att.ID != "att2" {
+		t.Errorf("expected id att2, got %s", att.ID)
+	}
+}
+
+func TestAttachmentLinkGitHubIssue(t *testing.T) {
+	responseData := map[string]any{
+		"attachmentLinkGitHubIssue": map[string]any{
+			"success": true,
+			"attachment": map[string]any{
+				"id":         "att3",
+				"title":      "Bug report",
+				"url":        "https://github.com/org/repo/issues/5",
+				"sourceType": "github",
+				"subtitle":   "",
+			},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	att, err := c.AttachmentLinkGitHubIssue("issue1", "https://github.com/org/repo/issues/5", "")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if att.ID != "att3" {
+		t.Errorf("expected id att3, got %s", att.ID)
+	}
+}
+
+func TestAttachmentLinkGitLabMR(t *testing.T) {
+	responseData := map[string]any{
+		"attachmentLinkGitLabMR": map[string]any{
+			"success": true,
+			"attachment": map[string]any{
+				"id":         "att4",
+				"title":      "MR !42",
+				"url":        "https://gitlab.com/org/repo/-/merge_requests/42",
+				"sourceType": "gitlab",
+				"subtitle":   "",
+			},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	att, err := c.AttachmentLinkGitLabMR("issue1", "https://gitlab.com/org/repo/-/merge_requests/42", 42, "org/repo", "MR !42")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if att.ID != "att4" {
+		t.Errorf("expected id att4, got %s", att.ID)
+	}
+}
+
+func TestAttachmentDelete(t *testing.T) {
+	responseData := map[string]any{
+		"attachmentDelete": map[string]any{
+			"success": true,
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	err := c.AttachmentDelete("att1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestAttachmentUpdate(t *testing.T) {
+	responseData := map[string]any{
+		"attachmentUpdate": map[string]any{
+			"success": true,
+			"attachment": map[string]any{
+				"id":         "att1",
+				"title":      "Updated title",
+				"url":        "https://linear.app/docs",
+				"sourceType": "url",
+				"subtitle":   "New subtitle",
+			},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	att, err := c.AttachmentUpdate("att1", AttachmentUpdateInput{Title: "Updated title", Subtitle: "New subtitle"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if att.Title != "Updated title" {
+		t.Errorf("expected title 'Updated title', got %s", att.Title)
+	}
+}

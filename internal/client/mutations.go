@@ -2142,3 +2142,202 @@ mutation RotateWebhookSecret($id: String!) {
 	}
 	return &result.WebhookRotateSecret.Webhook, nil
 }
+
+// AttachmentLinkURL привязывает URL к задаче как вложение.
+func (c *Client) AttachmentLinkURL(issueID, url, title string) (*Attachment, error) {
+	mutation := `
+mutation AttachmentLinkURL($issueId: String!, $url: String!, $title: String) {
+  attachmentLinkURL(issueId: $issueId, url: $url, title: $title) {
+    success
+    attachment {
+      id
+      title
+      url
+      sourceType
+      subtitle
+    }
+  }
+}`
+	var result struct {
+		AttachmentLinkURL struct {
+			Attachment Attachment `json:"attachment"`
+			Success    bool       `json:"success"`
+		} `json:"attachmentLinkURL"`
+	}
+	vars := map[string]any{"issueId": issueID, "url": url}
+	if title != "" {
+		vars["title"] = title
+	}
+	if err := c.Do(mutation, vars, &result); err != nil {
+		return nil, err
+	}
+	if !result.AttachmentLinkURL.Success {
+		return nil, fmt.Errorf("attachmentLinkURL вернул success=false")
+	}
+	return &result.AttachmentLinkURL.Attachment, nil
+}
+
+// AttachmentLinkGitHubPR привязывает GitHub PR к задаче как вложение.
+func (c *Client) AttachmentLinkGitHubPR(issueID, url, title string) (*Attachment, error) {
+	mutation := `
+mutation AttachmentLinkGitHubPR($issueId: String!, $url: String!, $title: String) {
+  attachmentLinkGitHubPR(issueId: $issueId, url: $url, title: $title) {
+    success
+    attachment {
+      id
+      title
+      url
+      sourceType
+      subtitle
+    }
+  }
+}`
+	var result struct {
+		AttachmentLinkGitHubPR struct {
+			Attachment Attachment `json:"attachment"`
+			Success    bool       `json:"success"`
+		} `json:"attachmentLinkGitHubPR"`
+	}
+	vars := map[string]any{"issueId": issueID, "url": url}
+	if title != "" {
+		vars["title"] = title
+	}
+	if err := c.Do(mutation, vars, &result); err != nil {
+		return nil, err
+	}
+	if !result.AttachmentLinkGitHubPR.Success {
+		return nil, fmt.Errorf("attachmentLinkGitHubPR вернул success=false")
+	}
+	return &result.AttachmentLinkGitHubPR.Attachment, nil
+}
+
+// AttachmentLinkGitHubIssue привязывает GitHub Issue к задаче как вложение.
+func (c *Client) AttachmentLinkGitHubIssue(issueID, url, title string) (*Attachment, error) {
+	mutation := `
+mutation AttachmentLinkGitHubIssue($issueId: String!, $url: String!, $title: String) {
+  attachmentLinkGitHubIssue(issueId: $issueId, url: $url, title: $title) {
+    success
+    attachment {
+      id
+      title
+      url
+      sourceType
+      subtitle
+    }
+  }
+}`
+	var result struct {
+		AttachmentLinkGitHubIssue struct {
+			Attachment Attachment `json:"attachment"`
+			Success    bool       `json:"success"`
+		} `json:"attachmentLinkGitHubIssue"`
+	}
+	vars := map[string]any{"issueId": issueID, "url": url}
+	if title != "" {
+		vars["title"] = title
+	}
+	if err := c.Do(mutation, vars, &result); err != nil {
+		return nil, err
+	}
+	if !result.AttachmentLinkGitHubIssue.Success {
+		return nil, fmt.Errorf("attachmentLinkGitHubIssue вернул success=false")
+	}
+	return &result.AttachmentLinkGitHubIssue.Attachment, nil
+}
+
+// AttachmentLinkGitLabMR привязывает GitLab MR к задаче как вложение.
+func (c *Client) AttachmentLinkGitLabMR(issueID, url string, number float64, projectPath, title string) (*Attachment, error) {
+	mutation := `
+mutation AttachmentLinkGitLabMR($issueId: String!, $url: String!, $number: Float!, $projectPathWithNamespace: String!, $title: String) {
+  attachmentLinkGitLabMR(issueId: $issueId, url: $url, number: $number, projectPathWithNamespace: $projectPathWithNamespace, title: $title) {
+    success
+    attachment {
+      id
+      title
+      url
+      sourceType
+      subtitle
+    }
+  }
+}`
+	var result struct {
+		AttachmentLinkGitLabMR struct {
+			Attachment Attachment `json:"attachment"`
+			Success    bool       `json:"success"`
+		} `json:"attachmentLinkGitLabMR"`
+	}
+	vars := map[string]any{
+		"issueId":                  issueID,
+		"url":                      url,
+		"number":                   number,
+		"projectPathWithNamespace": projectPath,
+	}
+	if title != "" {
+		vars["title"] = title
+	}
+	if err := c.Do(mutation, vars, &result); err != nil {
+		return nil, err
+	}
+	if !result.AttachmentLinkGitLabMR.Success {
+		return nil, fmt.Errorf("attachmentLinkGitLabMR вернул success=false")
+	}
+	return &result.AttachmentLinkGitLabMR.Attachment, nil
+}
+
+// AttachmentDelete удаляет вложение по ID.
+func (c *Client) AttachmentDelete(id string) error {
+	mutation := `
+mutation AttachmentDelete($id: String!) {
+  attachmentDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		AttachmentDelete struct {
+			Success bool `json:"success"`
+		} `json:"attachmentDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.AttachmentDelete.Success {
+		return fmt.Errorf("attachmentDelete вернул success=false")
+	}
+	return nil
+}
+
+// AttachmentUpdateInput — входные данные для обновления вложения.
+type AttachmentUpdateInput struct {
+	Title    string `json:"title,omitempty"`
+	Subtitle string `json:"subtitle,omitempty"`
+}
+
+// AttachmentUpdate обновляет вложение по ID.
+func (c *Client) AttachmentUpdate(id string, input AttachmentUpdateInput) (*Attachment, error) {
+	mutation := `
+mutation AttachmentUpdate($id: String!, $input: AttachmentUpdateInput!) {
+  attachmentUpdate(id: $id, input: $input) {
+    success
+    attachment {
+      id
+      title
+      url
+      sourceType
+      subtitle
+    }
+  }
+}`
+	var result struct {
+		AttachmentUpdate struct {
+			Attachment Attachment `json:"attachment"`
+			Success    bool       `json:"success"`
+		} `json:"attachmentUpdate"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id, "input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.AttachmentUpdate.Success {
+		return nil, fmt.Errorf("attachmentUpdate вернул success=false")
+	}
+	return &result.AttachmentUpdate.Attachment, nil
+}

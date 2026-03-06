@@ -1294,3 +1294,67 @@ func TestGetWebhookNotFound(t *testing.T) {
 		t.Fatal("expected error for not found webhook")
 	}
 }
+
+func TestListAttachments(t *testing.T) {
+	responseData := map[string]any{
+		"issue": map[string]any{
+			"attachments": map[string]any{
+				"nodes": []map[string]any{
+					{
+						"id":         "att1",
+						"title":      "GitHub PR #42",
+						"url":        "https://github.com/org/repo/pull/42",
+						"sourceType": "github",
+						"subtitle":   "Open",
+					},
+				},
+			},
+		},
+	}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	attachments, err := c.ListAttachments("issue1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(attachments) != 1 {
+		t.Fatalf("expected 1 attachment, got %d", len(attachments))
+	}
+	if attachments[0].ID != "att1" {
+		t.Errorf("expected id att1, got %q", attachments[0].ID)
+	}
+	if attachments[0].Title != "GitHub PR #42" {
+		t.Errorf("expected title 'GitHub PR #42', got %q", attachments[0].Title)
+	}
+}
+
+func TestListAttachmentsEmpty(t *testing.T) {
+	responseData := map[string]any{
+		"issue": map[string]any{
+			"attachments": map[string]any{
+				"nodes": []map[string]any{},
+			},
+		},
+	}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	attachments, err := c.ListAttachments("issue1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(attachments) != 0 {
+		t.Errorf("expected 0 attachments, got %d", len(attachments))
+	}
+}
