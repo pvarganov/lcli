@@ -469,6 +469,47 @@ query ListProjectMilestones($id: String!) {
 	return result.Project.ProjectMilestones.Nodes, nil
 }
 
+// ProjectUpdate представляет обновление (запись журнала) проекта Linear.
+type ProjectUpdate struct {
+	ID        string    `json:"id"`
+	Body      string    `json:"body"`
+	Health    string    `json:"health"`
+	CreatedAt time.Time `json:"createdAt"`
+	User      *User     `json:"user"`
+}
+
+// ListProjectUpdates возвращает список обновлений проекта по его ID.
+func (c *Client) ListProjectUpdates(projectID string) ([]ProjectUpdate, error) {
+	query := `
+query ListProjectUpdates($id: String!) {
+  project(id: $id) {
+    projectUpdates(first: 250) {
+      nodes {
+        id
+        body
+        health
+        createdAt
+        user { id name displayName email }
+      }
+    }
+  }
+}`
+	var result struct {
+		Project *struct {
+			ProjectUpdates struct {
+				Nodes []ProjectUpdate `json:"nodes"`
+			} `json:"projectUpdates"`
+		} `json:"project"`
+	}
+	if err := c.Do(query, map[string]any{"id": projectID}, &result); err != nil {
+		return nil, err
+	}
+	if result.Project == nil {
+		return nil, fmt.Errorf("проект не найден: %s", projectID)
+	}
+	return result.Project.ProjectUpdates.Nodes, nil
+}
+
 // PriorityLabel возвращает текстовое обозначение приоритета.
 func PriorityLabel(p int) string {
 	switch p {

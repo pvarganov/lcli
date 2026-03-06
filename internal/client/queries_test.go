@@ -486,3 +486,83 @@ func TestListProjectMilestones(t *testing.T) {
 		}
 	})
 }
+
+func TestListProjectUpdates(t *testing.T) {
+	now := time.Date(2024, 6, 1, 10, 0, 0, 0, time.UTC)
+
+	t.Run("success", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{
+				"data": map[string]any{
+					"project": map[string]any{
+						"projectUpdates": map[string]any{
+							"nodes": []map[string]any{
+								{
+									"id":        "pu1",
+									"body":      "Week 1 progress",
+									"health":    "onTrack",
+									"createdAt": now.Format(time.RFC3339),
+									"user":      map[string]any{"id": "u1", "name": "Alice", "displayName": "Alice Smith", "email": "alice@test.com"},
+								},
+							},
+						},
+					},
+				},
+			})
+		}))
+		defer srv.Close()
+
+		c := NewWithURL("token", srv.URL)
+		updates, err := c.ListProjectUpdates("proj1")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(updates) != 1 {
+			t.Fatalf("expected 1 update, got %d", len(updates))
+		}
+		if updates[0].ID != "pu1" {
+			t.Errorf("expected id pu1, got %q", updates[0].ID)
+		}
+		if updates[0].Health != "onTrack" {
+			t.Errorf("expected health onTrack, got %q", updates[0].Health)
+		}
+	})
+
+	t.Run("empty", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{
+				"data": map[string]any{
+					"project": map[string]any{
+						"projectUpdates": map[string]any{"nodes": []map[string]any{}},
+					},
+				},
+			})
+		}))
+		defer srv.Close()
+
+		c := NewWithURL("token", srv.URL)
+		updates, err := c.ListProjectUpdates("proj1")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(updates) != 0 {
+			t.Errorf("expected 0 updates, got %d", len(updates))
+		}
+	})
+
+	t.Run("project not found", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{"data": map[string]any{"project": nil}})
+		}))
+		defer srv.Close()
+
+		c := NewWithURL("token", srv.URL)
+		_, err := c.ListProjectUpdates("nonexistent")
+		if err == nil {
+			t.Fatal("expected error for not found project")
+		}
+	})
+}

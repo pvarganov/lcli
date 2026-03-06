@@ -1124,6 +1124,115 @@ mutation DeleteProjectMilestone($id: String!) {
 	return nil
 }
 
+// CreateProjectUpdateInput — входные данные для создания обновления проекта.
+type CreateProjectUpdateInput struct {
+	ProjectID string
+	Body      string
+	Health    string
+}
+
+// UpdateProjectUpdateInput — входные данные для обновления записи журнала проекта.
+type UpdateProjectUpdateInput struct {
+	Body   string
+	Health string
+}
+
+// CreateProjectUpdate создаёт новую запись журнала проекта.
+func (c *Client) CreateProjectUpdate(input CreateProjectUpdateInput) (*ProjectUpdate, error) {
+	mutation := `
+mutation CreateProjectUpdate($input: ProjectUpdateCreateInput!) {
+  projectUpdateCreate(input: $input) {
+    success
+    projectUpdate {
+      id
+      body
+      health
+      createdAt
+      user { id name displayName email }
+    }
+  }
+}`
+	gqlInput := map[string]any{
+		"projectId": input.ProjectID,
+		"body":      input.Body,
+	}
+	if input.Health != "" {
+		gqlInput["health"] = input.Health
+	}
+	var result struct {
+		ProjectUpdateCreate struct {
+			ProjectUpdate ProjectUpdate `json:"projectUpdate"`
+			Success       bool          `json:"success"`
+		} `json:"projectUpdateCreate"`
+	}
+	if err := c.Do(mutation, map[string]any{"input": gqlInput}, &result); err != nil {
+		return nil, err
+	}
+	if !result.ProjectUpdateCreate.Success {
+		return nil, fmt.Errorf("projectUpdateCreate вернул success=false")
+	}
+	return &result.ProjectUpdateCreate.ProjectUpdate, nil
+}
+
+// UpdateProjectUpdate обновляет запись журнала проекта.
+func (c *Client) UpdateProjectUpdate(id string, input UpdateProjectUpdateInput) (*ProjectUpdate, error) {
+	mutation := `
+mutation UpdateProjectUpdate($id: String!, $input: ProjectUpdateUpdateInput!) {
+  projectUpdateUpdate(id: $id, input: $input) {
+    success
+    projectUpdate {
+      id
+      body
+      health
+      createdAt
+      user { id name displayName email }
+    }
+  }
+}`
+	gqlInput := map[string]any{}
+	if input.Body != "" {
+		gqlInput["body"] = input.Body
+	}
+	if input.Health != "" {
+		gqlInput["health"] = input.Health
+	}
+	var result struct {
+		ProjectUpdateUpdate struct {
+			ProjectUpdate ProjectUpdate `json:"projectUpdate"`
+			Success       bool          `json:"success"`
+		} `json:"projectUpdateUpdate"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id, "input": gqlInput}, &result); err != nil {
+		return nil, err
+	}
+	if !result.ProjectUpdateUpdate.Success {
+		return nil, fmt.Errorf("projectUpdateUpdate вернул success=false")
+	}
+	return &result.ProjectUpdateUpdate.ProjectUpdate, nil
+}
+
+// ArchiveProjectUpdate архивирует запись журнала проекта.
+func (c *Client) ArchiveProjectUpdate(id string) error {
+	mutation := `
+mutation ArchiveProjectUpdate($id: String!) {
+  projectUpdateArchive(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		ProjectUpdateArchive struct {
+			Success bool `json:"success"`
+		} `json:"projectUpdateArchive"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.ProjectUpdateArchive.Success {
+		return fmt.Errorf("projectUpdateArchive вернул success=false")
+	}
+	return nil
+}
+
 // UnarchiveProject разархивирует проект в Linear.
 func (c *Client) UnarchiveProject(id string) error {
 	mutation := `

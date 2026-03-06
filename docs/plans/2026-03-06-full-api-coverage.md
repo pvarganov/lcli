@@ -149,14 +149,14 @@
 
 #### Task 12: Project Updates (журнал обновлений проекта)
 
-- [ ] добавить тип `ProjectUpdate` в queries.go (id, body, createdAt, user, health)
-- [ ] написать тесты для `ListProjectUpdates(projectID)`
-- [ ] добавить метод `ListProjectUpdates(projectID)` в queries.go
-- [ ] написать тесты для мутаций `projectUpdateCreate`, `projectUpdateUpdate`, `projectUpdateArchive`
-- [ ] добавить методы в mutations.go
-- [ ] написать тесты для cmd `projects updates list <PROJECT-ID>`, `projects updates create`, `projects updates delete`
-- [ ] добавить команды в `cmd/project_updates.go`
-- [ ] запустить тесты — должны пройти
+- [x] добавить тип `ProjectUpdate` в queries.go (id, body, createdAt, user, health)
+- [x] написать тесты для `ListProjectUpdates(projectID)`
+- [x] добавить метод `ListProjectUpdates(projectID)` в queries.go
+- [x] написать тесты для мутаций `projectUpdateCreate`, `projectUpdateUpdate`, `projectUpdateArchive`
+- [x] добавить методы в mutations.go
+- [x] написать тесты для cmd `projects updates list <PROJECT-ID>`, `projects updates create`, `projects updates delete`
+- [x] добавить команды в `cmd/project_updates.go`
+- [x] запустить тесты — должны пройти
 
 #### Task 13: Project Labels (метки проекта)
 
