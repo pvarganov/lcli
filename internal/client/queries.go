@@ -1902,3 +1902,51 @@ query ListIntegrations {
 	}
 	return result.Integrations.Nodes, nil
 }
+
+// GitAutomationTargetBranch представляет целевую ветку для git автоматизации.
+type GitAutomationTargetBranch struct {
+	ID            string `json:"id"`
+	BranchPattern string `json:"branchPattern"`
+	IsRegex       bool   `json:"isRegex"`
+	Team          *Team  `json:"team"`
+}
+
+// GitAutomationState представляет правило git автоматизации.
+type GitAutomationState struct {
+	ID            string                     `json:"id"`
+	Event         string                     `json:"event"`
+	BranchPattern string                     `json:"branchPattern"`
+	State         *WorkflowState             `json:"state"`
+	TargetBranch  *GitAutomationTargetBranch `json:"targetBranch"`
+	Team          *Team                      `json:"team"`
+}
+
+// ListGitAutomationStates возвращает список правил git автоматизации для команды.
+func (c *Client) ListGitAutomationStates(teamID string) ([]GitAutomationState, error) {
+	query := `
+query ListGitAutomationStates($teamId: String!) {
+  team(id: $teamId) {
+    gitAutomationStates {
+      nodes {
+        id
+        event
+        branchPattern
+        state { id name type color }
+        targetBranch { id branchPattern isRegex }
+        team { id key name }
+      }
+    }
+  }
+}`
+	var result struct {
+		Team struct {
+			GitAutomationStates struct {
+				Nodes []GitAutomationState `json:"nodes"`
+			} `json:"gitAutomationStates"`
+		} `json:"team"`
+	}
+	if err := c.Do(query, map[string]any{"teamId": teamID}, &result); err != nil {
+		return nil, err
+	}
+	return result.Team.GitAutomationStates.Nodes, nil
+}

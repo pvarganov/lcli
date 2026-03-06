@@ -3398,3 +3398,140 @@ func TestDeleteIntegration(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
+
+func TestCreateGitAutomationState(t *testing.T) {
+	responseData := map[string]any{
+		"gitAutomationStateCreate": map[string]any{
+			"success": true,
+			"gitAutomationState": map[string]any{
+				"id":    "gas1",
+				"event": "branchCreated",
+				"team":  map[string]any{"id": "t1", "key": "ENG", "name": "Engineering"},
+			},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	state, err := c.CreateGitAutomationState("t1", "branchCreated", "ws1", "")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if state.ID != "gas1" {
+		t.Errorf("expected ID 'gas1', got %q", state.ID)
+	}
+	if state.Event != "branchCreated" {
+		t.Errorf("expected event 'branchCreated', got %q", state.Event)
+	}
+}
+
+func TestUpdateGitAutomationState(t *testing.T) {
+	responseData := map[string]any{
+		"gitAutomationStateUpdate": map[string]any{
+			"success": true,
+			"gitAutomationState": map[string]any{
+				"id":    "gas1",
+				"event": "branchMerged",
+				"team":  map[string]any{"id": "t1", "key": "ENG", "name": "Engineering"},
+			},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	state, err := c.UpdateGitAutomationState("gas1", "branchMerged", "", "")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if state.Event != "branchMerged" {
+		t.Errorf("expected event 'branchMerged', got %q", state.Event)
+	}
+}
+
+func TestDeleteGitAutomationState(t *testing.T) {
+	responseData := map[string]any{
+		"gitAutomationStateDelete": map[string]any{
+			"success": true,
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	if err := c.DeleteGitAutomationState("gas1"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestCreateGitAutomationTargetBranch(t *testing.T) {
+	responseData := map[string]any{
+		"gitAutomationTargetBranchCreate": map[string]any{
+			"success": true,
+			"gitAutomationTargetBranch": map[string]any{
+				"id":            "tb1",
+				"branchPattern": "main",
+				"isRegex":       false,
+				"team":          map[string]any{"id": "t1", "key": "ENG", "name": "Engineering"},
+			},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	tb, err := c.CreateGitAutomationTargetBranch("t1", "main", false)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if tb.BranchPattern != "main" {
+		t.Errorf("expected branchPattern 'main', got %q", tb.BranchPattern)
+	}
+}
+
+func TestUpdateGitAutomationTargetBranch(t *testing.T) {
+	responseData := map[string]any{
+		"gitAutomationTargetBranchUpdate": map[string]any{
+			"success": true,
+			"gitAutomationTargetBranch": map[string]any{
+				"id":            "tb1",
+				"branchPattern": "release/*",
+				"isRegex":       false,
+				"team":          map[string]any{"id": "t1", "key": "ENG", "name": "Engineering"},
+			},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	tb, err := c.UpdateGitAutomationTargetBranch("tb1", "release/*", false)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if tb.BranchPattern != "release/*" {
+		t.Errorf("expected branchPattern 'release/*', got %q", tb.BranchPattern)
+	}
+}
+
+func TestDeleteGitAutomationTargetBranch(t *testing.T) {
+	responseData := map[string]any{
+		"gitAutomationTargetBranchDelete": map[string]any{
+			"success": true,
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	if err := c.DeleteGitAutomationTargetBranch("tb1"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}

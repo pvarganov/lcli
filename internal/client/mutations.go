@@ -3974,3 +3974,198 @@ mutation IntegrationDelete($id: String!) {
 	}
 	return nil
 }
+
+// CreateGitAutomationState создаёт правило git автоматизации.
+func (c *Client) CreateGitAutomationState(teamID, event, stateID, targetBranchID string) (*GitAutomationState, error) {
+	mutation := `
+mutation GitAutomationStateCreate($input: GitAutomationStateCreateInput!) {
+  gitAutomationStateCreate(input: $input) {
+    success
+    gitAutomationState {
+      id
+      event
+      branchPattern
+      state { id name type color }
+      targetBranch { id branchPattern isRegex }
+      team { id key name }
+    }
+  }
+}`
+	input := map[string]any{
+		"teamId": teamID,
+		"event":  event,
+	}
+	if stateID != "" {
+		input["stateId"] = stateID
+	}
+	if targetBranchID != "" {
+		input["targetBranchId"] = targetBranchID
+	}
+	var result struct {
+		GitAutomationStateCreate struct {
+			GitAutomationState GitAutomationState `json:"gitAutomationState"`
+			Success            bool               `json:"success"`
+		} `json:"gitAutomationStateCreate"`
+	}
+	if err := c.Do(mutation, map[string]any{"input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.GitAutomationStateCreate.Success {
+		return nil, fmt.Errorf("gitAutomationStateCreate вернул success=false")
+	}
+	return &result.GitAutomationStateCreate.GitAutomationState, nil
+}
+
+// UpdateGitAutomationState обновляет правило git автоматизации.
+func (c *Client) UpdateGitAutomationState(id, event, stateID, targetBranchID string) (*GitAutomationState, error) {
+	mutation := `
+mutation GitAutomationStateUpdate($id: String!, $input: GitAutomationStateUpdateInput!) {
+  gitAutomationStateUpdate(id: $id, input: $input) {
+    success
+    gitAutomationState {
+      id
+      event
+      branchPattern
+      state { id name type color }
+      targetBranch { id branchPattern isRegex }
+      team { id key name }
+    }
+  }
+}`
+	input := map[string]any{}
+	if event != "" {
+		input["event"] = event
+	}
+	if stateID != "" {
+		input["stateId"] = stateID
+	}
+	if targetBranchID != "" {
+		input["targetBranchId"] = targetBranchID
+	}
+	var result struct {
+		GitAutomationStateUpdate struct {
+			GitAutomationState GitAutomationState `json:"gitAutomationState"`
+			Success            bool               `json:"success"`
+		} `json:"gitAutomationStateUpdate"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id, "input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.GitAutomationStateUpdate.Success {
+		return nil, fmt.Errorf("gitAutomationStateUpdate вернул success=false")
+	}
+	return &result.GitAutomationStateUpdate.GitAutomationState, nil
+}
+
+// DeleteGitAutomationState удаляет правило git автоматизации.
+func (c *Client) DeleteGitAutomationState(id string) error {
+	mutation := `
+mutation GitAutomationStateDelete($id: String!) {
+  gitAutomationStateDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		GitAutomationStateDelete struct {
+			Success bool `json:"success"`
+		} `json:"gitAutomationStateDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.GitAutomationStateDelete.Success {
+		return fmt.Errorf("gitAutomationStateDelete вернул success=false")
+	}
+	return nil
+}
+
+// CreateGitAutomationTargetBranch создаёт целевую ветку для git автоматизации.
+func (c *Client) CreateGitAutomationTargetBranch(teamID, branchPattern string, isRegex bool) (*GitAutomationTargetBranch, error) {
+	mutation := `
+mutation GitAutomationTargetBranchCreate($input: GitAutomationTargetBranchCreateInput!) {
+  gitAutomationTargetBranchCreate(input: $input) {
+    success
+    gitAutomationTargetBranch {
+      id
+      branchPattern
+      isRegex
+      team { id key name }
+    }
+  }
+}`
+	var result struct {
+		GitAutomationTargetBranchCreate struct {
+			GitAutomationTargetBranch GitAutomationTargetBranch `json:"gitAutomationTargetBranch"`
+			Success                   bool                      `json:"success"`
+		} `json:"gitAutomationTargetBranchCreate"`
+	}
+	if err := c.Do(mutation, map[string]any{
+		"input": map[string]any{
+			"teamId":        teamID,
+			"branchPattern": branchPattern,
+			"isRegex":       isRegex,
+		},
+	}, &result); err != nil {
+		return nil, err
+	}
+	if !result.GitAutomationTargetBranchCreate.Success {
+		return nil, fmt.Errorf("gitAutomationTargetBranchCreate вернул success=false")
+	}
+	return &result.GitAutomationTargetBranchCreate.GitAutomationTargetBranch, nil
+}
+
+// UpdateGitAutomationTargetBranch обновляет целевую ветку для git автоматизации.
+func (c *Client) UpdateGitAutomationTargetBranch(id, branchPattern string, isRegex bool) (*GitAutomationTargetBranch, error) {
+	mutation := `
+mutation GitAutomationTargetBranchUpdate($id: String!, $input: GitAutomationTargetBranchUpdateInput!) {
+  gitAutomationTargetBranchUpdate(id: $id, input: $input) {
+    success
+    gitAutomationTargetBranch {
+      id
+      branchPattern
+      isRegex
+      team { id key name }
+    }
+  }
+}`
+	input := map[string]any{}
+	if branchPattern != "" {
+		input["branchPattern"] = branchPattern
+	}
+	input["isRegex"] = isRegex
+	var result struct {
+		GitAutomationTargetBranchUpdate struct {
+			GitAutomationTargetBranch GitAutomationTargetBranch `json:"gitAutomationTargetBranch"`
+			Success                   bool                      `json:"success"`
+		} `json:"gitAutomationTargetBranchUpdate"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id, "input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.GitAutomationTargetBranchUpdate.Success {
+		return nil, fmt.Errorf("gitAutomationTargetBranchUpdate вернул success=false")
+	}
+	return &result.GitAutomationTargetBranchUpdate.GitAutomationTargetBranch, nil
+}
+
+// DeleteGitAutomationTargetBranch удаляет целевую ветку для git автоматизации.
+func (c *Client) DeleteGitAutomationTargetBranch(id string) error {
+	mutation := `
+mutation GitAutomationTargetBranchDelete($id: String!) {
+  gitAutomationTargetBranchDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		GitAutomationTargetBranchDelete struct {
+			Success bool `json:"success"`
+		} `json:"gitAutomationTargetBranchDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.GitAutomationTargetBranchDelete.Success {
+		return fmt.Errorf("gitAutomationTargetBranchDelete вернул success=false")
+	}
+	return nil
+}

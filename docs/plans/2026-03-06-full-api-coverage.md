@@ -498,14 +498,14 @@
 
 #### Task 37: Git Automation States + Branch Automation
 
-- [ ] добавить типы `GitAutomationState`, `GitAutomationTargetBranch` в queries.go
-- [ ] написать тесты для мутаций `gitAutomationStateCreate`, `gitAutomationStateUpdate`, `gitAutomationStateDelete`
-- [ ] добавить методы в mutations.go
-- [ ] написать тесты для мутаций `gitAutomationTargetBranchCreate`, `gitAutomationTargetBranchUpdate`, `gitAutomationTargetBranchDelete`
-- [ ] добавить методы в mutations.go
-- [ ] написать тесты для cmd `git-automation states list --team <KEY>`, `git-automation states create`, `git-automation states delete <ID>`
-- [ ] добавить команды в `cmd/git_automation.go`
-- [ ] запустить тесты — должны пройти
+- [x] добавить типы `GitAutomationState`, `GitAutomationTargetBranch` в queries.go
+- [x] написать тесты для мутаций `gitAutomationStateCreate`, `gitAutomationStateUpdate`, `gitAutomationStateDelete`
+- [x] добавить методы в mutations.go
+- [x] написать тесты для мутаций `gitAutomationTargetBranchCreate`, `gitAutomationTargetBranchUpdate`, `gitAutomationTargetBranchDelete`
+- [x] добавить методы в mutations.go
+- [x] написать тесты для cmd `git-automation states list --team <KEY>`, `git-automation states create`, `git-automation states delete <ID>`
+- [x] добавить команды в `cmd/git_automation.go`
+- [x] запустить тесты — должны пройти
 
 ---
 

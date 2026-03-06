@@ -2291,3 +2291,57 @@ func TestListIntegrationsEmpty(t *testing.T) {
 		t.Errorf("expected 0 integrations, got %d", len(integrations))
 	}
 }
+
+func TestListGitAutomationStates(t *testing.T) {
+	responseData := map[string]any{
+		"team": map[string]any{
+			"gitAutomationStates": map[string]any{
+				"nodes": []map[string]any{
+					{
+						"id":    "gas1",
+						"event": "branchCreated",
+						"state": map[string]any{"id": "ws1", "name": "In Progress", "type": "started", "color": "#f00"},
+						"team":  map[string]any{"id": "t1", "key": "ENG", "name": "Engineering"},
+					},
+				},
+			},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	states, err := c.ListGitAutomationStates("t1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(states) != 1 {
+		t.Fatalf("expected 1 state, got %d", len(states))
+	}
+	if states[0].Event != "branchCreated" {
+		t.Errorf("expected event 'branchCreated', got %q", states[0].Event)
+	}
+}
+
+func TestListGitAutomationStatesEmpty(t *testing.T) {
+	responseData := map[string]any{
+		"team": map[string]any{
+			"gitAutomationStates": map[string]any{
+				"nodes": []map[string]any{},
+			},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	states, err := c.ListGitAutomationStates("t1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(states) != 0 {
+		t.Errorf("expected 0 states, got %d", len(states))
+	}
+}
