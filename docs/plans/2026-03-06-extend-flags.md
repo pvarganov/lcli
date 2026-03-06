@@ -69,11 +69,11 @@
 
 ### Task 4: Добавить флаги в `issues update` (cmd-слой)
 
-- [ ] добавить флаги в `cmd/issue_update.go`: `--description`, `--due-date`, `--estimate`, `--parent`, `--cycle-id`, `--project-id`, `--milestone-id`, `--add-labels`, `--remove-labels`, `--snooze-until`
-- [ ] обновить проверку "хотя бы один флаг задан" — включить новые флаги
-- [ ] добавить логику разрешения: `--add-labels`/`--remove-labels` → `FindLabelsByNames` (нужен teamID из issue)
-- [ ] написать тесты на новые флаги
-- [ ] запустить `go test ./cmd/...` — все зелёные
+- [x] добавить флаги в `cmd/issue_update.go`: `--description`, `--due-date`, `--estimate`, `--parent`, `--cycle-id`, `--project-id`, `--milestone-id`, `--add-labels`, `--remove-labels`, `--snooze-until`
+- [x] обновить проверку "хотя бы один флаг задан" — включить новые флаги
+- [x] добавить логику разрешения: `--add-labels`/`--remove-labels` → `FindLabelsByNames` (нужен teamID из issue)
+- [x] написать тесты на новые флаги
+- [x] запустить `go test ./cmd/...` — все зелёные
 
 ### Task 5: Расширить IssueFilter и ListIssues (issues list)
 
