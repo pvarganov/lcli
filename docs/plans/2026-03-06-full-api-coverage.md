@@ -219,14 +219,14 @@
 
 #### Task 18: Workflow States — Query + Mutations
 
-- [ ] добавить тип `WorkflowState` в queries.go (id, name, type, color, team)
-- [ ] написать тесты для `ListWorkflowStates(teamID)`
-- [ ] добавить метод `ListWorkflowStates(teamID)` в queries.go (расширить существующий)
-- [ ] написать тесты для мутаций `workflowStateCreate`, `workflowStateUpdate`, `workflowStateArchive`
-- [ ] добавить методы `CreateWorkflowState`, `UpdateWorkflowState`, `ArchiveWorkflowState` в mutations.go
-- [ ] написать тесты для cmd `workflow-states list --team <KEY>`, `workflow-states create`, `workflow-states update`, `workflow-states archive`
-- [ ] добавить команды в `cmd/workflow_states.go`
-- [ ] запустить тесты — должны пройти
+- [x] добавить тип `WorkflowState` в queries.go (id, name, type, color, team)
+- [x] написать тесты для `ListWorkflowStates(teamID)`
+- [x] добавить метод `ListWorkflowStates(teamID)` в queries.go (расширить существующий)
+- [x] написать тесты для мутаций `workflowStateCreate`, `workflowStateUpdate`, `workflowStateArchive`
+- [x] добавить методы `CreateWorkflowState`, `UpdateWorkflowState`, `ArchiveWorkflowState` в mutations.go
+- [x] написать тесты для cmd `workflow-states list --team <KEY>`, `workflow-states create`, `workflow-states update`, `workflow-states archive`
+- [x] добавить команды в `cmd/workflow_states.go`
+- [x] запустить тесты — должны пройти
 
 ---
 

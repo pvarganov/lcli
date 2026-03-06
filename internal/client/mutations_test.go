@@ -1719,3 +1719,118 @@ func TestArchiveCycle(t *testing.T) {
 		}
 	})
 }
+
+func TestCreateWorkflowState(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"workflowStateCreate": map[string]any{
+				"success": true,
+				"workflowState": map[string]any{
+					"id":    "ws1",
+					"name":  "Review",
+					"type":  "started",
+					"color": "#f2c94c",
+					"team":  map[string]any{"id": "t1", "key": "ENG", "name": "Engineering"},
+				},
+			},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		ws, err := c.CreateWorkflowState("t1", "Review", "started", "#f2c94c")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if ws.Name != "Review" {
+			t.Errorf("expected 'Review', got %q", ws.Name)
+		}
+		if ws.Type != "started" {
+			t.Errorf("expected 'started', got %q", ws.Type)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		responseData := map[string]any{
+			"workflowStateCreate": map[string]any{
+				"success": false,
+			},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		if _, err := c.CreateWorkflowState("t1", "Review", "started", ""); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestUpdateWorkflowState(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"workflowStateUpdate": map[string]any{
+				"success": true,
+				"workflowState": map[string]any{
+					"id":    "ws1",
+					"name":  "In Review",
+					"type":  "started",
+					"color": "#f2c94c",
+					"team":  map[string]any{"id": "t1", "key": "ENG", "name": "Engineering"},
+				},
+			},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		ws, err := c.UpdateWorkflowState("ws1", "In Review", "")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if ws.Name != "In Review" {
+			t.Errorf("expected 'In Review', got %q", ws.Name)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		responseData := map[string]any{
+			"workflowStateUpdate": map[string]any{
+				"success": false,
+			},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		if _, err := c.UpdateWorkflowState("ws1", "name", ""); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestArchiveWorkflowState(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"workflowStateArchive": map[string]any{
+				"success": true,
+			},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.ArchiveWorkflowState("ws1"); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		responseData := map[string]any{
+			"workflowStateArchive": map[string]any{
+				"success": false,
+			},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.ArchiveWorkflowState("ws1"); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}

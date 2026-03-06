@@ -855,3 +855,73 @@ func TestGetCycle(t *testing.T) {
 		}
 	})
 }
+
+func TestListWorkflowStates(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{
+				"data": map[string]any{
+					"workflowStates": map[string]any{
+						"nodes": []map[string]any{
+							{
+								"id":    "ws1",
+								"name":  "Todo",
+								"type":  "unstarted",
+								"color": "#e2e2e2",
+								"team":  map[string]any{"id": "t1", "key": "ENG", "name": "Engineering"},
+							},
+							{
+								"id":    "ws2",
+								"name":  "In Progress",
+								"type":  "started",
+								"color": "#f2c94c",
+								"team":  map[string]any{"id": "t1", "key": "ENG", "name": "Engineering"},
+							},
+						},
+					},
+				},
+			})
+		}))
+		defer srv.Close()
+		c := NewWithURL("token", srv.URL)
+		states, err := c.ListWorkflowStates("t1")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(states) != 2 {
+			t.Fatalf("expected 2 states, got %d", len(states))
+		}
+		if states[0].Name != "Todo" {
+			t.Errorf("expected 'Todo', got %q", states[0].Name)
+		}
+		if states[1].Type != "started" {
+			t.Errorf("expected 'started', got %q", states[1].Type)
+		}
+		if states[0].Team.Key != "ENG" {
+			t.Errorf("expected 'ENG', got %q", states[0].Team.Key)
+		}
+	})
+
+	t.Run("empty", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{
+				"data": map[string]any{
+					"workflowStates": map[string]any{
+						"nodes": []map[string]any{},
+					},
+				},
+			})
+		}))
+		defer srv.Close()
+		c := NewWithURL("token", srv.URL)
+		states, err := c.ListWorkflowStates("t1")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(states) != 0 {
+			t.Fatalf("expected 0 states, got %d", len(states))
+		}
+	})
+}

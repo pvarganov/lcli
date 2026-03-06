@@ -1662,3 +1662,100 @@ mutation ArchiveCycle($id: String!) {
 	}
 	return nil
 }
+
+// CreateWorkflowState создаёт новый статус задачи.
+func (c *Client) CreateWorkflowState(teamID, name, stateType, color string) (*WorkflowState, error) {
+	mutation := `
+mutation CreateWorkflowState($input: WorkflowStateCreateInput!) {
+  workflowStateCreate(input: $input) {
+    success
+    workflowState {
+      id
+      name
+      type
+      color
+      team { id key name }
+    }
+  }
+}`
+	input := map[string]any{
+		"teamId": teamID,
+		"name":   name,
+		"type":   stateType,
+	}
+	if color != "" {
+		input["color"] = color
+	}
+	var result struct {
+		WorkflowStateCreate struct {
+			WorkflowState WorkflowState `json:"workflowState"`
+			Success       bool          `json:"success"`
+		} `json:"workflowStateCreate"`
+	}
+	if err := c.Do(mutation, map[string]any{"input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.WorkflowStateCreate.Success {
+		return nil, fmt.Errorf("workflowStateCreate вернул success=false")
+	}
+	return &result.WorkflowStateCreate.WorkflowState, nil
+}
+
+// UpdateWorkflowState обновляет статус задачи по ID.
+func (c *Client) UpdateWorkflowState(id, name, color string) (*WorkflowState, error) {
+	mutation := `
+mutation UpdateWorkflowState($id: String!, $input: WorkflowStateUpdateInput!) {
+  workflowStateUpdate(id: $id, input: $input) {
+    success
+    workflowState {
+      id
+      name
+      type
+      color
+      team { id key name }
+    }
+  }
+}`
+	input := map[string]any{}
+	if name != "" {
+		input["name"] = name
+	}
+	if color != "" {
+		input["color"] = color
+	}
+	var result struct {
+		WorkflowStateUpdate struct {
+			WorkflowState WorkflowState `json:"workflowState"`
+			Success       bool          `json:"success"`
+		} `json:"workflowStateUpdate"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id, "input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.WorkflowStateUpdate.Success {
+		return nil, fmt.Errorf("workflowStateUpdate вернул success=false")
+	}
+	return &result.WorkflowStateUpdate.WorkflowState, nil
+}
+
+// ArchiveWorkflowState архивирует статус задачи по ID.
+func (c *Client) ArchiveWorkflowState(id string) error {
+	mutation := `
+mutation ArchiveWorkflowState($id: String!) {
+  workflowStateArchive(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		WorkflowStateArchive struct {
+			Success bool `json:"success"`
+		} `json:"workflowStateArchive"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.WorkflowStateArchive.Success {
+		return fmt.Errorf("workflowStateArchive вернул success=false")
+	}
+	return nil
+}

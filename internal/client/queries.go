@@ -690,3 +690,37 @@ func PriorityLabel(p int) string {
 		return "No priority"
 	}
 }
+
+// WorkflowState представляет статус задачи (workflow state) в Linear.
+type WorkflowState struct {
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Type  string `json:"type"`
+	Color string `json:"color"`
+	Team  Team   `json:"team"`
+}
+
+// ListWorkflowStates возвращает список статусов задач команды.
+func (c *Client) ListWorkflowStates(teamID string) ([]WorkflowState, error) {
+	query := `
+query ListWorkflowStates($teamId: String!) {
+  workflowStates(filter: { team: { id: { eq: $teamId } } }, first: 250) {
+    nodes {
+      id
+      name
+      type
+      color
+      team { id key name }
+    }
+  }
+}`
+	var result struct {
+		WorkflowStates struct {
+			Nodes []WorkflowState `json:"nodes"`
+		} `json:"workflowStates"`
+	}
+	if err := c.Do(query, map[string]any{"teamId": teamID}, &result); err != nil {
+		return nil, err
+	}
+	return result.WorkflowStates.Nodes, nil
+}
