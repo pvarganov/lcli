@@ -3,7 +3,6 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	"github.com/pavelvarganov/lcli/internal/client"
 	"github.com/pavelvarganov/lcli/internal/format"
@@ -88,11 +87,11 @@ var projectCreateCmd = &cobra.Command{
 			return fmt.Errorf("требуется --team-ids")
 		}
 
-		teamIDs := strings.Split(teamIDsStr, ",")
+		teamIDs := splitComma(teamIDsStr)
 
 		var memberIDs []string
 		if memberIDsStr != "" {
-			memberIDs = strings.Split(memberIDsStr, ",")
+			memberIDs = splitComma(memberIDsStr)
 		}
 
 		inp := client.CreateProjectInput{
@@ -149,7 +148,7 @@ var projectUpdateCmd = &cobra.Command{
 
 		var memberIDs []string
 		if memberIDsStr != "" {
-			memberIDs = strings.Split(memberIDsStr, ",")
+			memberIDs = splitComma(memberIDsStr)
 		}
 
 		upd := client.UpdateProjectInput{

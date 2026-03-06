@@ -112,7 +112,7 @@ func init() {
 	issuesListCmd.Flags().StringVar(&issuesProjectID, "project-id", "", "Фильтр по ID проекта")
 	issuesListCmd.Flags().StringVar(&issuesCycleID, "cycle-id", "", "Фильтр по ID цикла")
 	issuesListCmd.Flags().StringVar(&issuesCreator, "creator", "", "Фильтр по создателю (displayName)")
-	issuesListCmd.Flags().StringVar(&issuesOrderBy, "order-by", "", "Сортировка: updatedAt, createdAt, manualOrder")
+	issuesListCmd.Flags().StringVar(&issuesOrderBy, "order-by", "", "Сортировка: updatedAt, createdAt")
 
 	issuesCmd.AddCommand(issuesListCmd)
 	rootCmd.AddCommand(issuesCmd)

@@ -917,13 +917,13 @@ func TestUpdateIssueInputAddedLabelIDs(t *testing.T) {
 	_, _ = c.UpdateIssue("ENG-42", client.UpdateIssueInput{AddedLabelIDs: []string{"lbl-1", "lbl-2"}})
 
 	input, _ := captured["input"].(map[string]any)
-	raw, ok := input["labelIds"]
+	raw, ok := input["addedLabelIds"]
 	if !ok {
-		t.Fatal("expected labelIds in request")
+		t.Fatal("expected addedLabelIds in request")
 	}
 	labels, _ := raw.([]any)
 	if len(labels) != 2 {
-		t.Errorf("expected 2 labelIds, got %v", labels)
+		t.Errorf("expected 2 addedLabelIds, got %v", labels)
 	}
 }
 
@@ -969,7 +969,7 @@ func TestUpdateIssueInputEmptyFieldsNotSent(t *testing.T) {
 	_, _ = c.UpdateIssue("ENG-42", client.UpdateIssueInput{Title: "only-title"})
 
 	input, _ := captured["input"].(map[string]any)
-	for _, field := range []string{"description", "dueDate", "estimate", "parentId", "cycleId", "projectId", "projectMilestoneId", "labelIds", "removedLabelIds", "snoozedUntilAt"} {
+	for _, field := range []string{"description", "dueDate", "estimate", "parentId", "cycleId", "projectId", "projectMilestoneId", "addedLabelIds", "removedLabelIds", "snoozedUntilAt"} {
 		if _, ok := input[field]; ok {
 			t.Errorf("expected %s not sent when empty, but it was present", field)
 		}
@@ -1312,13 +1312,13 @@ func TestIssueUpdateCmdAddLabels(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	input, _ := captured["input"].(map[string]any)
-	raw, ok := input["labelIds"]
+	raw, ok := input["addedLabelIds"]
 	if !ok {
-		t.Fatal("expected labelIds in request")
+		t.Fatal("expected addedLabelIds in request")
 	}
 	labels, _ := raw.([]any)
 	if len(labels) != 2 {
-		t.Errorf("expected 2 labelIds, got %v", labels)
+		t.Errorf("expected 2 addedLabelIds, got %v", labels)
 	}
 }
 

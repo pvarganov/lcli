@@ -52,7 +52,7 @@ lcli auth status
 lcli issues list
 lcli issues list --team ENG --status "In Progress" --assignee "John Doe" --limit 50
 lcli issues list --after <cursor>     # следующая страница
-lcli issues list --priority 1 --label "Bug" --order-by priority
+lcli issues list --priority 1 --label "Bug" --order-by updatedAt
 lcli issues list --project-id <PROJECT-ID> --cycle-id <CYCLE-ID> --creator "John Doe"
 
 # просмотр задачи
@@ -105,14 +105,14 @@ lcli issue comment ENG-123 --body "Комментарий"
 lcli issue comment ENG-123 --body "Ответ на комментарий" --parent-id <COMMENT-ID>
 
 # обновить комментарий
-lcli issue comment update <COMMENT-ID> --body "Новый текст"
+lcli issue comment-update <COMMENT-ID> --body "Новый текст"
 
 # удалить комментарий
-lcli issue comment delete <COMMENT-ID>
+lcli issue comment-delete <COMMENT-ID>
 
 # resolve/unresolve комментарий
-lcli issue comment resolve <COMMENT-ID>
-lcli issue comment unresolve <COMMENT-ID>
+lcli issue comment-resolve <COMMENT-ID>
+lcli issue comment-unresolve <COMMENT-ID>
 
 # добавить реакцию на комментарий
 lcli issue comment react <COMMENT-ID> 👍
@@ -173,10 +173,10 @@ lcli projects list -o json
 lcli projects view <PROJECT-ID>
 
 # создать проект
-lcli projects create --name "Новый проект" --team ENG
-lcli projects create --name "Проект" --team ENG --description "Описание" --state "started"
-lcli projects create --name "Проект" --team ENG --color "#ff0000" --icon "🚀" --priority 1
-lcli projects create --name "Проект" --team ENG --member-ids "user1,user2" --content "Описание проекта"
+lcli projects create --name "Новый проект" --team-ids <TEAM-ID>
+lcli projects create --name "Проект" --team-ids <TEAM-ID> --description "Описание" --state "started"
+lcli projects create --name "Проект" --team-ids <TEAM-ID> --color "#ff0000" --icon "🚀" --priority 1
+lcli projects create --name "Проект" --team-ids <TEAM-ID> --member-ids "user1,user2" --content "Описание проекта"
 
 # обновить проект
 lcli projects update <PROJECT-ID> --name "Новое название" --state "completed"
@@ -397,7 +397,7 @@ lcli initiatives archive <INITIATIVE-ID>
 
 # обновления инициативы
 lcli initiatives updates list <INITIATIVE-ID>
-lcli initiatives updates create --initiative <INITIATIVE-ID> --body "Прогресс"
+lcli initiatives updates create --initiative-id <INITIATIVE-ID> --body "Прогресс"
 
 # связать/отвязать проект
 lcli initiatives link-project --initiative <INITIATIVE-ID> --project <PROJECT-ID>
@@ -526,8 +526,8 @@ lcli favorites list
 lcli favorites list -o json
 
 # добавить в избранное
-lcli favorites add --issue ENG-123
-lcli favorites add --project <PROJECT-ID>
+lcli favorites add --type issue --id ENG-123
+lcli favorites add --type project --id <PROJECT-ID>
 
 # удалить из избранного
 lcli favorites remove <FAVORITE-ID>
@@ -588,7 +588,7 @@ lcli integrations delete <INTEGRATION-ID>
 lcli git-automation states list --team ENG
 
 # создать состояние
-lcli git-automation states create --team ENG --state <WORKFLOW-STATE-ID> --branch-pattern "feature/*"
+lcli git-automation states create --team ENG --event branchCreated --state <WORKFLOW-STATE-ID>
 
 # удалить состояние
 lcli git-automation states delete <STATE-ID>

@@ -57,7 +57,9 @@ func TestIssuesListFilterPriority(t *testing.T) {
 	cmd := issuesListCmd
 	var buf bytes.Buffer
 	cmd.SetOut(&buf)
-	_ = cmd.RunE(cmd, []string{})
+	if err := cmd.RunE(cmd, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	filter, _ := captured["filter"].(map[string]any)
 	if filter == nil {
@@ -90,7 +92,9 @@ func TestIssuesListFilterPriorityNotSentWhenDefault(t *testing.T) {
 	cmd := issuesListCmd
 	var buf bytes.Buffer
 	cmd.SetOut(&buf)
-	_ = cmd.RunE(cmd, []string{})
+	if err := cmd.RunE(cmd, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	filter, _ := captured["filter"].(map[string]any)
 	if filter != nil {
@@ -118,7 +122,9 @@ func TestIssuesListFilterLabel(t *testing.T) {
 	cmd := issuesListCmd
 	var buf bytes.Buffer
 	cmd.SetOut(&buf)
-	_ = cmd.RunE(cmd, []string{})
+	if err := cmd.RunE(cmd, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	filter, _ := captured["filter"].(map[string]any)
 	if filter == nil {
@@ -156,7 +162,9 @@ func TestIssuesListFilterProjectID(t *testing.T) {
 	cmd := issuesListCmd
 	var buf bytes.Buffer
 	cmd.SetOut(&buf)
-	_ = cmd.RunE(cmd, []string{})
+	if err := cmd.RunE(cmd, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	filter, _ := captured["filter"].(map[string]any)
 	if filter == nil {
@@ -190,7 +198,9 @@ func TestIssuesListFilterCycleID(t *testing.T) {
 	cmd := issuesListCmd
 	var buf bytes.Buffer
 	cmd.SetOut(&buf)
-	_ = cmd.RunE(cmd, []string{})
+	if err := cmd.RunE(cmd, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	filter, _ := captured["filter"].(map[string]any)
 	if filter == nil {
@@ -224,7 +234,9 @@ func TestIssuesListFilterCreator(t *testing.T) {
 	cmd := issuesListCmd
 	var buf bytes.Buffer
 	cmd.SetOut(&buf)
-	_ = cmd.RunE(cmd, []string{})
+	if err := cmd.RunE(cmd, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	filter, _ := captured["filter"].(map[string]any)
 	if filter == nil {
@@ -258,7 +270,9 @@ func TestIssuesListFilterOrderBy(t *testing.T) {
 	cmd := issuesListCmd
 	var buf bytes.Buffer
 	cmd.SetOut(&buf)
-	_ = cmd.RunE(cmd, []string{})
+	if err := cmd.RunE(cmd, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	if captured["orderBy"] != "updatedAt" {
 		t.Errorf("expected orderBy=updatedAt, got %v", captured["orderBy"])
@@ -283,7 +297,9 @@ func TestIssuesListFilterOrderByNotSentWhenEmpty(t *testing.T) {
 	cmd := issuesListCmd
 	var buf bytes.Buffer
 	cmd.SetOut(&buf)
-	_ = cmd.RunE(cmd, []string{})
+	if err := cmd.RunE(cmd, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 
 	if _, ok := captured["orderBy"]; ok {
 		t.Errorf("expected orderBy not sent when empty, but it was present")

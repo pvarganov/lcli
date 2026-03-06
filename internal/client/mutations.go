@@ -224,7 +224,7 @@ mutation UpdateIssue($id: String!, $input: IssueUpdateInput!) {
 		gqlInput["projectMilestoneId"] = input.MilestoneID
 	}
 	if len(input.AddedLabelIDs) > 0 {
-		gqlInput["labelIds"] = input.AddedLabelIDs
+		gqlInput["addedLabelIds"] = input.AddedLabelIDs
 	}
 	if len(input.RemovedLabelIDs) > 0 {
 		gqlInput["removedLabelIds"] = input.RemovedLabelIDs
