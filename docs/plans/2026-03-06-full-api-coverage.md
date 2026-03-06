@@ -138,14 +138,14 @@
 
 #### Task 11: Project Milestones
 
-- [ ] добавить тип `ProjectMilestone` в queries.go (id, name, targetDate, description)
-- [ ] написать тесты для `ListProjectMilestones(projectID)`
-- [ ] добавить метод `ListProjectMilestones(projectID)` в queries.go
-- [ ] написать тесты для мутаций `projectMilestoneCreate`, `projectMilestoneUpdate`, `projectMilestoneDelete`
-- [ ] добавить методы `CreateProjectMilestone`, `UpdateProjectMilestone`, `DeleteProjectMilestone` в mutations.go
-- [ ] написать тесты для cmd `projects milestones list <PROJECT-ID>`, `projects milestones create`, `projects milestones update`, `projects milestones delete`
-- [ ] добавить команды в `cmd/project_milestones.go`
-- [ ] запустить тесты — должны пройти
+- [x] добавить тип `ProjectMilestone` в queries.go (id, name, targetDate, description)
+- [x] написать тесты для `ListProjectMilestones(projectID)`
+- [x] добавить метод `ListProjectMilestones(projectID)` в queries.go
+- [x] написать тесты для мутаций `projectMilestoneCreate`, `projectMilestoneUpdate`, `projectMilestoneDelete`
+- [x] добавить методы `CreateProjectMilestone`, `UpdateProjectMilestone`, `DeleteProjectMilestone` в mutations.go
+- [x] написать тесты для cmd `projects milestones list <PROJECT-ID>`, `projects milestones create`, `projects milestones update`, `projects milestones delete`
+- [x] добавить команды в `cmd/project_milestones.go`
+- [x] запустить тесты — должны пройти
 
 #### Task 12: Project Updates (журнал обновлений проекта)
 

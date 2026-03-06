@@ -430,6 +430,45 @@ query SearchIssues($query: String!, $first: Int) {
 	return result.IssueSearch.Nodes, &pi, nil
 }
 
+// ProjectMilestone представляет веху (milestone) проекта Linear.
+type ProjectMilestone struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	TargetDate  string `json:"targetDate"`
+	Description string `json:"description"`
+}
+
+// ListProjectMilestones возвращает список вех проекта по его ID.
+func (c *Client) ListProjectMilestones(projectID string) ([]ProjectMilestone, error) {
+	query := `
+query ListProjectMilestones($id: String!) {
+  project(id: $id) {
+    projectMilestones(first: 250) {
+      nodes {
+        id
+        name
+        targetDate
+        description
+      }
+    }
+  }
+}`
+	var result struct {
+		Project *struct {
+			ProjectMilestones struct {
+				Nodes []ProjectMilestone `json:"nodes"`
+			} `json:"projectMilestones"`
+		} `json:"project"`
+	}
+	if err := c.Do(query, map[string]any{"id": projectID}, &result); err != nil {
+		return nil, err
+	}
+	if result.Project == nil {
+		return nil, fmt.Errorf("проект не найден: %s", projectID)
+	}
+	return result.Project.ProjectMilestones.Nodes, nil
+}
+
 // PriorityLabel возвращает текстовое обозначение приоритета.
 func PriorityLabel(p int) string {
 	switch p {

@@ -417,3 +417,72 @@ func TestGetProject(t *testing.T) {
 		}
 	})
 }
+
+func TestListProjectMilestones(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{
+				"data": map[string]any{
+					"project": map[string]any{
+						"projectMilestones": map[string]any{
+							"nodes": []map[string]any{
+								{"id": "ms1", "name": "Alpha Release", "targetDate": "2024-03-01", "description": "First milestone"},
+							},
+						},
+					},
+				},
+			})
+		}))
+		defer srv.Close()
+
+		c := NewWithURL("token", srv.URL)
+		milestones, err := c.ListProjectMilestones("proj1")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(milestones) != 1 {
+			t.Fatalf("expected 1 milestone, got %d", len(milestones))
+		}
+		if milestones[0].Name != "Alpha Release" {
+			t.Errorf("expected name 'Alpha Release', got %q", milestones[0].Name)
+		}
+	})
+
+	t.Run("empty", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{
+				"data": map[string]any{
+					"project": map[string]any{
+						"projectMilestones": map[string]any{"nodes": []any{}},
+					},
+				},
+			})
+		}))
+		defer srv.Close()
+
+		c := NewWithURL("token", srv.URL)
+		milestones, err := c.ListProjectMilestones("proj1")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(milestones) != 0 {
+			t.Errorf("expected 0 milestones, got %d", len(milestones))
+		}
+	})
+
+	t.Run("project not found", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{"data": map[string]any{"project": nil}})
+		}))
+		defer srv.Close()
+
+		c := NewWithURL("token", srv.URL)
+		_, err := c.ListProjectMilestones("nonexistent")
+		if err == nil {
+			t.Fatal("expected error for not found project")
+		}
+	})
+}

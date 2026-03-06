@@ -1009,6 +1009,121 @@ mutation ArchiveProject($id: String!) {
 	return nil
 }
 
+// CreateProjectMilestoneInput — входные данные для создания вехи проекта.
+type CreateProjectMilestoneInput struct {
+	ProjectID   string
+	Name        string
+	TargetDate  string
+	Description string
+}
+
+// UpdateProjectMilestoneInput — входные данные для обновления вехи проекта.
+type UpdateProjectMilestoneInput struct {
+	Name        string
+	TargetDate  string
+	Description string
+}
+
+// CreateProjectMilestone создаёт новую веху проекта.
+func (c *Client) CreateProjectMilestone(input CreateProjectMilestoneInput) (*ProjectMilestone, error) {
+	mutation := `
+mutation CreateProjectMilestone($input: ProjectMilestoneCreateInput!) {
+  projectMilestoneCreate(input: $input) {
+    success
+    projectMilestone {
+      id
+      name
+      targetDate
+      description
+    }
+  }
+}`
+	gqlInput := map[string]any{
+		"projectId": input.ProjectID,
+		"name":      input.Name,
+	}
+	if input.TargetDate != "" {
+		gqlInput["targetDate"] = input.TargetDate
+	}
+	if input.Description != "" {
+		gqlInput["description"] = input.Description
+	}
+	var result struct {
+		ProjectMilestoneCreate struct {
+			ProjectMilestone ProjectMilestone `json:"projectMilestone"`
+			Success          bool             `json:"success"`
+		} `json:"projectMilestoneCreate"`
+	}
+	if err := c.Do(mutation, map[string]any{"input": gqlInput}, &result); err != nil {
+		return nil, err
+	}
+	if !result.ProjectMilestoneCreate.Success {
+		return nil, fmt.Errorf("projectMilestoneCreate вернул success=false")
+	}
+	return &result.ProjectMilestoneCreate.ProjectMilestone, nil
+}
+
+// UpdateProjectMilestone обновляет существующую веху проекта.
+func (c *Client) UpdateProjectMilestone(id string, input UpdateProjectMilestoneInput) (*ProjectMilestone, error) {
+	mutation := `
+mutation UpdateProjectMilestone($id: String!, $input: ProjectMilestoneUpdateInput!) {
+  projectMilestoneUpdate(id: $id, input: $input) {
+    success
+    projectMilestone {
+      id
+      name
+      targetDate
+      description
+    }
+  }
+}`
+	gqlInput := map[string]any{}
+	if input.Name != "" {
+		gqlInput["name"] = input.Name
+	}
+	if input.TargetDate != "" {
+		gqlInput["targetDate"] = input.TargetDate
+	}
+	if input.Description != "" {
+		gqlInput["description"] = input.Description
+	}
+	var result struct {
+		ProjectMilestoneUpdate struct {
+			ProjectMilestone ProjectMilestone `json:"projectMilestone"`
+			Success          bool             `json:"success"`
+		} `json:"projectMilestoneUpdate"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id, "input": gqlInput}, &result); err != nil {
+		return nil, err
+	}
+	if !result.ProjectMilestoneUpdate.Success {
+		return nil, fmt.Errorf("projectMilestoneUpdate вернул success=false")
+	}
+	return &result.ProjectMilestoneUpdate.ProjectMilestone, nil
+}
+
+// DeleteProjectMilestone удаляет веху проекта по ID.
+func (c *Client) DeleteProjectMilestone(id string) error {
+	mutation := `
+mutation DeleteProjectMilestone($id: String!) {
+  projectMilestoneDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		ProjectMilestoneDelete struct {
+			Success bool `json:"success"`
+		} `json:"projectMilestoneDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.ProjectMilestoneDelete.Success {
+		return fmt.Errorf("projectMilestoneDelete вернул success=false")
+	}
+	return nil
+}
+
 // UnarchiveProject разархивирует проект в Linear.
 func (c *Client) UnarchiveProject(id string) error {
 	mutation := `

@@ -1058,3 +1058,105 @@ func TestUnarchiveProject(t *testing.T) {
 		}
 	})
 }
+
+func TestCreateProjectMilestone(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"projectMilestoneCreate": map[string]any{
+				"success": true,
+				"projectMilestone": map[string]any{
+					"id": "ms1", "name": "Alpha", "targetDate": "2024-03-01", "description": "First milestone",
+				},
+			},
+		})
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		ms, err := c.CreateProjectMilestone(CreateProjectMilestoneInput{
+			ProjectID:  "proj1",
+			Name:       "Alpha",
+			TargetDate: "2024-03-01",
+		})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if ms.Name != "Alpha" {
+			t.Errorf("expected name 'Alpha', got %q", ms.Name)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"projectMilestoneCreate": map[string]any{"success": false},
+		})
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		_, err := c.CreateProjectMilestone(CreateProjectMilestoneInput{ProjectID: "proj1", Name: "Alpha"})
+		if err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestUpdateProjectMilestone(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"projectMilestoneUpdate": map[string]any{
+				"success": true,
+				"projectMilestone": map[string]any{
+					"id": "ms1", "name": "Beta", "targetDate": "2024-06-01", "description": "",
+				},
+			},
+		})
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		ms, err := c.UpdateProjectMilestone("ms1", UpdateProjectMilestoneInput{Name: "Beta"})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if ms.Name != "Beta" {
+			t.Errorf("expected name 'Beta', got %q", ms.Name)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"projectMilestoneUpdate": map[string]any{"success": false},
+		})
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		_, err := c.UpdateProjectMilestone("ms1", UpdateProjectMilestoneInput{Name: "Beta"})
+		if err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestDeleteProjectMilestone(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"projectMilestoneDelete": map[string]any{"success": true},
+		})
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.DeleteProjectMilestone("ms1"); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"projectMilestoneDelete": map[string]any{"success": false},
+		})
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.DeleteProjectMilestone("ms1"); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
