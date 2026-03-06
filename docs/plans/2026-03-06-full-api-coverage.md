@@ -395,14 +395,14 @@
 
 #### Task 30: Templates — CRUD
 
-- [ ] добавить тип `Template` в queries.go (id, name, description, type, templateData)
-- [ ] написать тесты для `ListTemplates()`, `GetTemplate(id)`
-- [ ] добавить методы в queries.go
-- [ ] написать тесты для мутаций `templateCreate`, `templateUpdate`, `templateDelete`
-- [ ] добавить методы в mutations.go
-- [ ] написать тесты для cmd `templates list`, `templates view <ID>`, `templates create`, `templates update <ID>`, `templates delete <ID>`
-- [ ] добавить команды в `cmd/templates.go`
-- [ ] запустить тесты — должны пройти
+- [x] добавить тип `Template` в queries.go (id, name, description, type, templateData)
+- [x] написать тесты для `ListTemplates()`, `GetTemplate(id)`
+- [x] добавить методы в queries.go
+- [x] написать тесты для мутаций `templateCreate`, `templateUpdate`, `templateDelete`
+- [x] добавить методы в mutations.go
+- [x] написать тесты для cmd `templates list`, `templates view <ID>`, `templates create`, `templates update <ID>`, `templates delete <ID>`
+- [x] добавить команды в `cmd/templates.go`
+- [x] запустить тесты — должны пройти
 
 ---
 

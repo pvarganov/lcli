@@ -1461,3 +1461,66 @@ query GetRoadmap($id: String!) {
 	}
 	return result.Roadmap, nil
 }
+
+// Template представляет шаблон Linear.
+type Template struct {
+	ID           string    `json:"id"`
+	Name         string    `json:"name"`
+	Description  string    `json:"description"`
+	Type         string    `json:"type"`
+	TemplateData string    `json:"templateData"`
+	CreatedAt    time.Time `json:"createdAt"`
+	Creator      *User     `json:"creator"`
+	Team         *Team     `json:"team"`
+}
+
+// ListTemplates возвращает список шаблонов организации.
+func (c *Client) ListTemplates() ([]Template, error) {
+	query := `
+query ListTemplates {
+  templates {
+    id
+    name
+    description
+    type
+    templateData
+    createdAt
+    creator { id name displayName email }
+    team { id name key }
+  }
+}`
+	var result struct {
+		Templates []Template `json:"templates"`
+	}
+	if err := c.Do(query, nil, &result); err != nil {
+		return nil, err
+	}
+	return result.Templates, nil
+}
+
+// GetTemplate возвращает шаблон по ID.
+func (c *Client) GetTemplate(id string) (*Template, error) {
+	query := `
+query GetTemplate($id: String!) {
+  template(id: $id) {
+    id
+    name
+    description
+    type
+    templateData
+    createdAt
+    creator { id name displayName email }
+    team { id name key }
+  }
+}`
+	var result struct {
+		Template *Template `json:"template"`
+	}
+	if err := c.Do(query, map[string]any{"id": id}, &result); err != nil {
+		return nil, err
+	}
+	if result.Template == nil {
+		return nil, fmt.Errorf("шаблон не найден: %s", id)
+	}
+	return result.Template, nil
+}

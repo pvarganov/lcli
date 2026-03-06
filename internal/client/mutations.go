@@ -3242,3 +3242,98 @@ mutation DeleteRoadmapToProject($id: String!) {
 	}
 	return nil
 }
+
+// CreateTemplate создаёт новый шаблон.
+func (c *Client) CreateTemplate(name, templateType string, input map[string]any) (*Template, error) {
+	mutation := `
+mutation CreateTemplate($input: TemplateCreateInput!) {
+  templateCreate(input: $input) {
+    success
+    template {
+      id
+      name
+      description
+      type
+      templateData
+      createdAt
+      creator { id name displayName email }
+      team { id name key }
+    }
+  }
+}`
+	inp := map[string]any{
+		"name": name,
+		"type": templateType,
+	}
+	for k, v := range input {
+		inp[k] = v
+	}
+	var result struct {
+		TemplateCreate struct {
+			Template Template `json:"template"`
+			Success  bool     `json:"success"`
+		} `json:"templateCreate"`
+	}
+	if err := c.Do(mutation, map[string]any{"input": inp}, &result); err != nil {
+		return nil, err
+	}
+	if !result.TemplateCreate.Success {
+		return nil, fmt.Errorf("templateCreate вернул success=false")
+	}
+	return &result.TemplateCreate.Template, nil
+}
+
+// UpdateTemplate обновляет шаблон по ID.
+func (c *Client) UpdateTemplate(id string, input map[string]any) (*Template, error) {
+	mutation := `
+mutation UpdateTemplate($id: String!, $input: TemplateUpdateInput!) {
+  templateUpdate(id: $id, input: $input) {
+    success
+    template {
+      id
+      name
+      description
+      type
+      templateData
+      createdAt
+      creator { id name displayName email }
+      team { id name key }
+    }
+  }
+}`
+	var result struct {
+		TemplateUpdate struct {
+			Template Template `json:"template"`
+			Success  bool     `json:"success"`
+		} `json:"templateUpdate"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id, "input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.TemplateUpdate.Success {
+		return nil, fmt.Errorf("templateUpdate вернул success=false")
+	}
+	return &result.TemplateUpdate.Template, nil
+}
+
+// DeleteTemplate удаляет шаблон по ID.
+func (c *Client) DeleteTemplate(id string) error {
+	mutation := `
+mutation DeleteTemplate($id: String!) {
+  templateDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		TemplateDelete struct {
+			Success bool `json:"success"`
+		} `json:"templateDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.TemplateDelete.Success {
+		return fmt.Errorf("templateDelete вернул success=false")
+	}
+	return nil
+}
