@@ -2900,3 +2900,69 @@ func TestDeleteRoadmapToProject(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
+
+func TestCreateOrganizationInvite(t *testing.T) {
+	responseData := map[string]any{
+		"organizationInviteCreate": map[string]any{
+			"success": true,
+			"organizationInvite": map[string]any{
+				"id":    "inv1",
+				"email": "alice@example.com",
+				"role":  "member",
+			},
+		},
+	}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	inv, err := c.CreateOrganizationInvite("alice@example.com", "member")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if inv.ID != "inv1" {
+		t.Errorf("expected inv1, got %q", inv.ID)
+	}
+}
+
+func TestDeleteOrganizationInvite(t *testing.T) {
+	responseData := map[string]any{
+		"organizationInviteDelete": map[string]any{
+			"success": true,
+		},
+	}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	if err := c.DeleteOrganizationInvite("inv1"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestResendOrganizationInvite(t *testing.T) {
+	responseData := map[string]any{
+		"resendOrganizationInvite": map[string]any{
+			"success": true,
+		},
+	}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	if err := c.ResendOrganizationInvite("inv1"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}

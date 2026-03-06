@@ -1524,3 +1524,74 @@ query GetTemplate($id: String!) {
 	}
 	return result.Template, nil
 }
+
+// Organization представляет организацию Linear.
+type Organization struct {
+	ID                 string    `json:"id"`
+	Name               string    `json:"name"`
+	URLKey             string    `json:"urlKey"`
+	LogoURL            string    `json:"logoUrl"`
+	CreatedAt          time.Time `json:"createdAt"`
+	PeriodUploadVolume float64   `json:"periodUploadVolume"`
+}
+
+// OrganizationInvite представляет приглашение в организацию.
+type OrganizationInvite struct {
+	ID        string    `json:"id"`
+	Email     string    `json:"email"`
+	Role      string    `json:"role"`
+	CreatedAt time.Time `json:"createdAt"`
+	ExpiresAt time.Time `json:"expiresAt"`
+	Inviter   *User     `json:"inviter"`
+}
+
+// GetOrganization возвращает информацию о текущей организации.
+func (c *Client) GetOrganization() (*Organization, error) {
+	query := `
+query GetOrganization {
+  organization {
+    id
+    name
+    urlKey
+    logoUrl
+    createdAt
+    periodUploadVolume
+  }
+}`
+	var result struct {
+		Organization *Organization `json:"organization"`
+	}
+	if err := c.Do(query, nil, &result); err != nil {
+		return nil, err
+	}
+	if result.Organization == nil {
+		return nil, fmt.Errorf("организация не найдена")
+	}
+	return result.Organization, nil
+}
+
+// ListOrganizationInvites возвращает список приглашений в организацию.
+func (c *Client) ListOrganizationInvites() ([]OrganizationInvite, error) {
+	query := `
+query ListOrganizationInvites {
+  organizationInvites {
+    nodes {
+      id
+      email
+      role
+      createdAt
+      expiresAt
+      inviter { id name displayName email }
+    }
+  }
+}`
+	var result struct {
+		OrganizationInvites struct {
+			Nodes []OrganizationInvite `json:"nodes"`
+		} `json:"organizationInvites"`
+	}
+	if err := c.Do(query, nil, &result); err != nil {
+		return nil, err
+	}
+	return result.OrganizationInvites.Nodes, nil
+}

@@ -410,17 +410,17 @@
 
 #### Task 31: Organization — View + Invites
 
-- [ ] добавить тип `Organization` в queries.go (id, name, urlKey, logoUrl, createdAt, periodUploadVolume)
-- [ ] написать тесты для `GetOrganization()`
-- [ ] добавить метод `GetOrganization()` в queries.go
-- [ ] добавить тип `OrganizationInvite` в queries.go
-- [ ] написать тесты для `ListOrganizationInvites()`
-- [ ] добавить метод в queries.go
-- [ ] написать тесты для мутаций `organizationInviteCreate`, `organizationInviteDelete`, `resendOrganizationInvite`
-- [ ] добавить методы в mutations.go
-- [ ] написать тесты для cmd `org view`, `org invites list`, `org invites create`, `org invites delete`, `org invites resend`
-- [ ] добавить команды в `cmd/org.go`
-- [ ] запустить тесты — должны пройти
+- [x] добавить тип `Organization` в queries.go (id, name, urlKey, logoUrl, createdAt, periodUploadVolume)
+- [x] написать тесты для `GetOrganization()`
+- [x] добавить метод `GetOrganization()` в queries.go
+- [x] добавить тип `OrganizationInvite` в queries.go
+- [x] написать тесты для `ListOrganizationInvites()`
+- [x] добавить метод в queries.go
+- [x] написать тесты для мутаций `organizationInviteCreate`, `organizationInviteDelete`, `resendOrganizationInvite`
+- [x] добавить методы в mutations.go
+- [x] написать тесты для cmd `org view`, `org invites list`, `org invites create`, `org invites delete`, `org invites resend`
+- [x] добавить команды в `cmd/org.go`
+- [x] запустить тесты — должны пройти
 
 ---
 

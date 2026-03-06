@@ -3337,3 +3337,82 @@ mutation DeleteTemplate($id: String!) {
 	}
 	return nil
 }
+
+// CreateOrganizationInvite создаёт приглашение в организацию.
+func (c *Client) CreateOrganizationInvite(email, role string) (*OrganizationInvite, error) {
+	mutation := `
+mutation OrganizationInviteCreate($input: OrganizationInviteCreateInput!) {
+  organizationInviteCreate(input: $input) {
+    success
+    organizationInvite {
+      id
+      email
+      role
+      createdAt
+      expiresAt
+      inviter { id name displayName email }
+    }
+  }
+}`
+	var result struct {
+		OrganizationInviteCreate struct {
+			OrganizationInvite OrganizationInvite `json:"organizationInvite"`
+			Success            bool               `json:"success"`
+		} `json:"organizationInviteCreate"`
+	}
+	input := map[string]any{"email": email}
+	if role != "" {
+		input["role"] = role
+	}
+	if err := c.Do(mutation, map[string]any{"input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.OrganizationInviteCreate.Success {
+		return nil, fmt.Errorf("organizationInviteCreate вернул success=false")
+	}
+	return &result.OrganizationInviteCreate.OrganizationInvite, nil
+}
+
+// DeleteOrganizationInvite удаляет приглашение в организацию по ID.
+func (c *Client) DeleteOrganizationInvite(id string) error {
+	mutation := `
+mutation OrganizationInviteDelete($id: String!) {
+  organizationInviteDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		OrganizationInviteDelete struct {
+			Success bool `json:"success"`
+		} `json:"organizationInviteDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.OrganizationInviteDelete.Success {
+		return fmt.Errorf("organizationInviteDelete вернул success=false")
+	}
+	return nil
+}
+
+// ResendOrganizationInvite повторно отправляет приглашение по ID.
+func (c *Client) ResendOrganizationInvite(id string) error {
+	mutation := `
+mutation ResendOrganizationInvite($id: String!) {
+  resendOrganizationInvite(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		ResendOrganizationInvite struct {
+			Success bool `json:"success"`
+		} `json:"resendOrganizationInvite"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.ResendOrganizationInvite.Success {
+		return fmt.Errorf("resendOrganizationInvite вернул success=false")
+	}
+	return nil
+}

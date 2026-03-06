@@ -1743,3 +1743,100 @@ func TestGetRoadmapNotFound(t *testing.T) {
 		t.Fatal("expected error for not found roadmap")
 	}
 }
+
+func TestGetOrganization(t *testing.T) {
+	responseData := map[string]any{
+		"organization": map[string]any{
+			"id":     "org1",
+			"name":   "Acme Corp",
+			"urlKey": "acme",
+		},
+	}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	org, err := c.GetOrganization()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if org.ID != "org1" {
+		t.Errorf("expected org1, got %q", org.ID)
+	}
+	if org.Name != "Acme Corp" {
+		t.Errorf("expected Acme Corp, got %q", org.Name)
+	}
+}
+
+func TestGetOrganizationNotFound(t *testing.T) {
+	responseData := map[string]any{
+		"organization": nil,
+	}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	_, err := c.GetOrganization()
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+}
+
+func TestListOrganizationInvites(t *testing.T) {
+	responseData := map[string]any{
+		"organizationInvites": map[string]any{
+			"nodes": []map[string]any{
+				{"id": "inv1", "email": "alice@example.com", "role": "member"},
+			},
+		},
+	}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	invites, err := c.ListOrganizationInvites()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(invites) != 1 {
+		t.Fatalf("expected 1 invite, got %d", len(invites))
+	}
+	if invites[0].Email != "alice@example.com" {
+		t.Errorf("expected alice@example.com, got %q", invites[0].Email)
+	}
+}
+
+func TestListOrganizationInvitesEmpty(t *testing.T) {
+	responseData := map[string]any{
+		"organizationInvites": map[string]any{
+			"nodes": []map[string]any{},
+		},
+	}
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	invites, err := c.ListOrganizationInvites()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(invites) != 0 {
+		t.Fatalf("expected 0 invites, got %d", len(invites))
+	}
+}
