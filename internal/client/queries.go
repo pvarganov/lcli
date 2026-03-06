@@ -107,7 +107,12 @@ query ListIssues($first: Int, $after: String, $filter: IssueFilter, $orderBy: Pa
 		variables["after"] = filter.After
 	}
 	if filter.OrderBy != "" {
-		variables["orderBy"] = filter.OrderBy
+		switch filter.OrderBy {
+		case "createdAt", "updatedAt":
+			variables["orderBy"] = filter.OrderBy
+		default:
+			return nil, nil, fmt.Errorf("недопустимое значение --order-by %q: допустимые значения: createdAt, updatedAt", filter.OrderBy)
+		}
 	}
 
 	issueFilter := map[string]any{}

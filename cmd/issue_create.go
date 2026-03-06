@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/pavelvarganov/lcli/internal/client"
 	"github.com/pavelvarganov/lcli/internal/format"
@@ -75,10 +74,7 @@ var issueCreateCmd = &cobra.Command{
 		}
 
 		if createLabels != "" {
-			names := strings.Split(createLabels, ",")
-			for i, n := range names {
-				names[i] = strings.TrimSpace(n)
-			}
+			names := splitComma(createLabels)
 			ids, err := c.FindLabelsByNames(team.ID, names)
 			if err != nil {
 				return fmt.Errorf("ошибка поиска меток: %w", err)

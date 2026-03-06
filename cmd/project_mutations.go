@@ -117,7 +117,7 @@ var projectCreateCmd = &cobra.Command{
 			return err
 		}
 
-		fmt.Fprintf(cmd.OutOrStdout(), "Проект создан: %s (%s)\n", project.Name, project.ID)
+		fmt.Fprintf(cmd.OutOrStdout(), "Проект создан: %s (%s)\n", format.StripControlChars(project.Name), project.ID)
 		return nil
 	},
 }
@@ -181,7 +181,7 @@ var projectUpdateCmd = &cobra.Command{
 			return err
 		}
 
-		fmt.Fprintf(cmd.OutOrStdout(), "Проект обновлён: %s (%s)\n", project.Name, project.ID)
+		fmt.Fprintf(cmd.OutOrStdout(), "Проект обновлён: %s (%s)\n", format.StripControlChars(project.Name), project.ID)
 		return nil
 	},
 }
