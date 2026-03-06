@@ -324,14 +324,14 @@
 
 #### Task 25: Initiatives — Query + Mutations
 
-- [ ] добавить тип `Initiative` в queries.go (id, name, description, status, owner, projects)
-- [ ] написать тесты для `ListInitiatives()`, `GetInitiative(id)`
-- [ ] добавить методы в queries.go
-- [ ] написать тесты для мутаций `initiativeCreate`, `initiativeUpdate`, `initiativeDelete`, `initiativeArchive`
-- [ ] добавить методы в mutations.go
-- [ ] написать тесты для cmd `initiatives list`, `initiatives view <ID>`, `initiatives create`, `initiatives update <ID>`, `initiatives archive <ID>`
-- [ ] добавить команды в `cmd/initiatives.go`
-- [ ] запустить тесты — должны пройти
+- [x] добавить тип `Initiative` в queries.go (id, name, description, status, owner, projects)
+- [x] написать тесты для `ListInitiatives()`, `GetInitiative(id)`
+- [x] добавить методы в queries.go
+- [x] написать тесты для мутаций `initiativeCreate`, `initiativeUpdate`, `initiativeDelete`, `initiativeArchive`
+- [x] добавить методы в mutations.go
+- [x] написать тесты для cmd `initiatives list`, `initiatives view <ID>`, `initiatives create`, `initiatives update <ID>`, `initiatives archive <ID>`
+- [x] добавить команды в `cmd/initiatives.go`
+- [x] запустить тесты — должны пройти
 
 #### Task 26: Initiative Updates + Relations с проектами
 

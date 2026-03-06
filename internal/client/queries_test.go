@@ -1485,3 +1485,98 @@ func TestSearchDocuments(t *testing.T) {
 		t.Errorf("expected id doc1, got %q", docs[0].ID)
 	}
 }
+
+func TestListInitiatives(t *testing.T) {
+	responseData := map[string]any{
+		"initiatives": map[string]any{
+			"nodes": []map[string]any{
+				{
+					"id":          "init1",
+					"name":        "Platform Initiative",
+					"description": "Scale the platform",
+					"status":      "planned",
+				},
+			},
+		},
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	initiatives, err := c.ListInitiatives()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(initiatives) != 1 {
+		t.Fatalf("expected 1 initiative, got %d", len(initiatives))
+	}
+	if initiatives[0].ID != "init1" {
+		t.Errorf("expected id init1, got %q", initiatives[0].ID)
+	}
+}
+
+func TestListInitiativesEmpty(t *testing.T) {
+	responseData := map[string]any{
+		"initiatives": map[string]any{
+			"nodes": []map[string]any{},
+		},
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	initiatives, err := c.ListInitiatives()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(initiatives) != 0 {
+		t.Errorf("expected 0 initiatives, got %d", len(initiatives))
+	}
+}
+
+func TestGetInitiative(t *testing.T) {
+	responseData := map[string]any{
+		"initiative": map[string]any{
+			"id":     "init1",
+			"name":   "Platform Initiative",
+			"status": "planned",
+		},
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	init_, err := c.GetInitiative("init1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if init_.ID != "init1" {
+		t.Errorf("expected id init1, got %q", init_.ID)
+	}
+}
+
+func TestGetInitiativeNotFound(t *testing.T) {
+	responseData := map[string]any{
+		"initiative": nil,
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	_, err := c.GetInitiative("nonexistent")
+	if err == nil {
+		t.Fatal("expected error for not found initiative")
+	}
+}

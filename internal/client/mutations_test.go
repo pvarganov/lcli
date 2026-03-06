@@ -2516,3 +2516,100 @@ func TestDeleteDocument(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
+
+func TestCreateInitiative(t *testing.T) {
+	responseData := map[string]any{
+		"initiativeCreate": map[string]any{
+			"success": true,
+			"initiative": map[string]any{
+				"id":     "init1",
+				"name":   "New Initiative",
+				"status": "planned",
+			},
+		},
+	}
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	init_, err := c.CreateInitiative("New Initiative", "", "")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if init_.Name != "New Initiative" {
+		t.Errorf("expected name 'New Initiative', got %s", init_.Name)
+	}
+}
+
+func TestCreateInitiativeFailure(t *testing.T) {
+	responseData := map[string]any{
+		"initiativeCreate": map[string]any{
+			"success":    false,
+			"initiative": nil,
+		},
+	}
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	_, err := c.CreateInitiative("New Initiative", "", "")
+	if err == nil {
+		t.Fatal("expected error for failed initiative create")
+	}
+}
+
+func TestUpdateInitiative(t *testing.T) {
+	responseData := map[string]any{
+		"initiativeUpdate": map[string]any{
+			"success": true,
+			"initiative": map[string]any{
+				"id":     "init1",
+				"name":   "Updated Initiative",
+				"status": "inProgress",
+			},
+		},
+	}
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	init_, err := c.UpdateInitiative("init1", map[string]any{"name": "Updated Initiative"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if init_.Name != "Updated Initiative" {
+		t.Errorf("expected name 'Updated Initiative', got %s", init_.Name)
+	}
+}
+
+func TestDeleteInitiative(t *testing.T) {
+	responseData := map[string]any{
+		"initiativeDelete": map[string]any{
+			"success": true,
+		},
+	}
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	err := c.DeleteInitiative("init1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestArchiveInitiative(t *testing.T) {
+	responseData := map[string]any{
+		"initiativeArchive": map[string]any{
+			"success": true,
+		},
+	}
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	err := c.ArchiveInitiative("init1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}

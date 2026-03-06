@@ -1108,3 +1108,64 @@ query SearchDocuments($query: String!) {
 	}
 	return result.SearchDocuments.Nodes, nil
 }
+
+// Initiative представляет инициативу в Linear.
+type Initiative struct {
+	ID          string  `json:"id"`
+	Name        string  `json:"name"`
+	Description string  `json:"description"`
+	Status      string  `json:"status"`
+	Owner       *User   `json:"owner"`
+	ArchivedAt  *string `json:"archivedAt"`
+}
+
+// ListInitiatives возвращает список инициатив организации.
+func (c *Client) ListInitiatives() ([]Initiative, error) {
+	query := `
+query {
+  initiatives {
+    nodes {
+      id
+      name
+      description
+      status
+      owner { id name displayName email }
+      archivedAt
+    }
+  }
+}`
+	var result struct {
+		Initiatives struct {
+			Nodes []Initiative `json:"nodes"`
+		} `json:"initiatives"`
+	}
+	if err := c.Do(query, nil, &result); err != nil {
+		return nil, err
+	}
+	return result.Initiatives.Nodes, nil
+}
+
+// GetInitiative возвращает инициативу по ID.
+func (c *Client) GetInitiative(id string) (*Initiative, error) {
+	query := `
+query GetInitiative($id: String!) {
+  initiative(id: $id) {
+    id
+    name
+    description
+    status
+    owner { id name displayName email }
+    archivedAt
+  }
+}`
+	var result struct {
+		Initiative *Initiative `json:"initiative"`
+	}
+	if err := c.Do(query, map[string]any{"id": id}, &result); err != nil {
+		return nil, err
+	}
+	if result.Initiative == nil {
+		return nil, fmt.Errorf("инициатива %q не найдена", id)
+	}
+	return result.Initiative, nil
+}

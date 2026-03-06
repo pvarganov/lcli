@@ -2434,3 +2434,116 @@ mutation DocumentDelete($id: String!) {
 	}
 	return nil
 }
+
+// CreateInitiative создаёт новую инициативу.
+func (c *Client) CreateInitiative(name, description, ownerID string) (*Initiative, error) {
+	mutation := `
+mutation InitiativeCreate($input: InitiativeCreateInput!) {
+  initiativeCreate(input: $input) {
+    success
+    initiative {
+      id
+      name
+      description
+      status
+      owner { id name displayName email }
+      archivedAt
+    }
+  }
+}`
+	input := map[string]any{"name": name}
+	if description != "" {
+		input["description"] = description
+	}
+	if ownerID != "" {
+		input["ownerId"] = ownerID
+	}
+	var result struct {
+		InitiativeCreate struct {
+			Initiative Initiative `json:"initiative"`
+			Success    bool       `json:"success"`
+		} `json:"initiativeCreate"`
+	}
+	if err := c.Do(mutation, map[string]any{"input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.InitiativeCreate.Success {
+		return nil, fmt.Errorf("initiativeCreate вернул success=false")
+	}
+	return &result.InitiativeCreate.Initiative, nil
+}
+
+// UpdateInitiative обновляет инициативу.
+func (c *Client) UpdateInitiative(id string, input map[string]any) (*Initiative, error) {
+	mutation := `
+mutation InitiativeUpdate($id: String!, $input: InitiativeUpdateInput!) {
+  initiativeUpdate(id: $id, input: $input) {
+    success
+    initiative {
+      id
+      name
+      description
+      status
+      owner { id name displayName email }
+      archivedAt
+    }
+  }
+}`
+	var result struct {
+		InitiativeUpdate struct {
+			Initiative Initiative `json:"initiative"`
+			Success    bool       `json:"success"`
+		} `json:"initiativeUpdate"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id, "input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.InitiativeUpdate.Success {
+		return nil, fmt.Errorf("initiativeUpdate вернул success=false")
+	}
+	return &result.InitiativeUpdate.Initiative, nil
+}
+
+// DeleteInitiative удаляет инициативу по ID.
+func (c *Client) DeleteInitiative(id string) error {
+	mutation := `
+mutation InitiativeDelete($id: String!) {
+  initiativeDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		InitiativeDelete struct {
+			Success bool `json:"success"`
+		} `json:"initiativeDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.InitiativeDelete.Success {
+		return fmt.Errorf("initiativeDelete вернул success=false")
+	}
+	return nil
+}
+
+// ArchiveInitiative архивирует инициативу по ID.
+func (c *Client) ArchiveInitiative(id string) error {
+	mutation := `
+mutation InitiativeArchive($id: String!) {
+  initiativeArchive(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		InitiativeArchive struct {
+			Success bool `json:"success"`
+		} `json:"initiativeArchive"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.InitiativeArchive.Success {
+		return fmt.Errorf("initiativeArchive вернул success=false")
+	}
+	return nil
+}
