@@ -454,15 +454,15 @@
 
 #### Task 34: Comment Reactions + Emojis
 
-- [ ] написать тесты для мутаций `reactionCreate`, `reactionDelete`
-- [ ] добавить методы в mutations.go
-- [ ] написать тесты для `ListEmojis()`
-- [ ] добавить метод в queries.go
-- [ ] написать тесты для мутаций `emojiCreate`, `emojiDelete`
-- [ ] добавить методы в mutations.go
-- [ ] написать тесты для cmd `issues comment react <COMMENT-ID> <emoji>`, `emojis list`, `emojis create`, `emojis delete`
-- [ ] добавить команды в `cmd/reactions.go`, `cmd/emojis.go`
-- [ ] запустить тесты — должны пройти
+- [x] написать тесты для мутаций `reactionCreate`, `reactionDelete`
+- [x] добавить методы в mutations.go
+- [x] написать тесты для `ListEmojis()`
+- [x] добавить метод в queries.go
+- [x] написать тесты для мутаций `emojiCreate`, `emojiDelete`
+- [x] добавить методы в mutations.go
+- [x] написать тесты для cmd `issues comment react <COMMENT-ID> <emoji>`, `emojis list`, `emojis create`, `emojis delete`
+- [x] добавить команды в `cmd/reactions.go`, `cmd/emojis.go`
+- [x] запустить тесты — должны пройти
 
 ---
 

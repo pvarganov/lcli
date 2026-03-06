@@ -3120,3 +3120,86 @@ func TestUpdateFavorite(t *testing.T) {
 		t.Errorf("expected id fav1, got %s", fav.ID)
 	}
 }
+
+func TestCreateReaction(t *testing.T) {
+	responseData := map[string]any{
+		"reactionCreate": map[string]any{
+			"success": true,
+			"reaction": map[string]any{
+				"id": "reaction1",
+			},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	id, err := c.CreateReaction("comment1", "👍")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if id != "reaction1" {
+		t.Errorf("expected reaction1, got %s", id)
+	}
+}
+
+func TestDeleteReaction(t *testing.T) {
+	responseData := map[string]any{
+		"reactionDelete": map[string]any{
+			"success": true,
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	if err := c.DeleteReaction("reaction1"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestCreateEmoji(t *testing.T) {
+	responseData := map[string]any{
+		"emojiCreate": map[string]any{
+			"success": true,
+			"emoji": map[string]any{
+				"id":   "emoji1",
+				"name": "smile",
+				"url":  "https://example.com/smile.png",
+			},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	emoji, err := c.CreateEmoji("smile", "https://example.com/smile.png")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if emoji.ID != "emoji1" {
+		t.Errorf("expected emoji1, got %s", emoji.ID)
+	}
+	if emoji.Name != "smile" {
+		t.Errorf("expected smile, got %s", emoji.Name)
+	}
+}
+
+func TestDeleteEmoji(t *testing.T) {
+	responseData := map[string]any{
+		"emojiDelete": map[string]any{
+			"success": true,
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	if err := c.DeleteEmoji("emoji1"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}

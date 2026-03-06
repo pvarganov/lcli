@@ -3616,3 +3616,113 @@ mutation CustomViewDelete($id: String!) {
 	}
 	return nil
 }
+
+// CreateReaction добавляет реакцию на комментарий.
+func (c *Client) CreateReaction(commentID, emoji string) (string, error) {
+	mutation := `
+mutation ReactionCreate($input: ReactionCreateInput!) {
+  reactionCreate(input: $input) {
+    success
+    reaction {
+      id
+    }
+  }
+}`
+	var result struct {
+		ReactionCreate struct {
+			Reaction struct {
+				ID string `json:"id"`
+			} `json:"reaction"`
+			Success bool `json:"success"`
+		} `json:"reactionCreate"`
+	}
+	if err := c.Do(mutation, map[string]any{
+		"input": map[string]any{
+			"commentId": commentID,
+			"emoji":     emoji,
+		},
+	}, &result); err != nil {
+		return "", err
+	}
+	if !result.ReactionCreate.Success {
+		return "", fmt.Errorf("reactionCreate вернул success=false")
+	}
+	return result.ReactionCreate.Reaction.ID, nil
+}
+
+// DeleteReaction удаляет реакцию по ID.
+func (c *Client) DeleteReaction(id string) error {
+	mutation := `
+mutation ReactionDelete($id: String!) {
+  reactionDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		ReactionDelete struct {
+			Success bool `json:"success"`
+		} `json:"reactionDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.ReactionDelete.Success {
+		return fmt.Errorf("reactionDelete вернул success=false")
+	}
+	return nil
+}
+
+// CreateEmoji создаёт кастомный эмодзи.
+func (c *Client) CreateEmoji(name, url string) (*Emoji, error) {
+	mutation := `
+mutation EmojiCreate($input: EmojiCreateInput!) {
+  emojiCreate(input: $input) {
+    success
+    emoji {
+      id
+      name
+      url
+    }
+  }
+}`
+	var result struct {
+		EmojiCreate struct {
+			Emoji   Emoji `json:"emoji"`
+			Success bool  `json:"success"`
+		} `json:"emojiCreate"`
+	}
+	if err := c.Do(mutation, map[string]any{
+		"input": map[string]any{
+			"name": name,
+			"url":  url,
+		},
+	}, &result); err != nil {
+		return nil, err
+	}
+	if !result.EmojiCreate.Success {
+		return nil, fmt.Errorf("emojiCreate вернул success=false")
+	}
+	return &result.EmojiCreate.Emoji, nil
+}
+
+// DeleteEmoji удаляет кастомный эмодзи по ID.
+func (c *Client) DeleteEmoji(id string) error {
+	mutation := `
+mutation EmojiDelete($id: String!) {
+  emojiDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		EmojiDelete struct {
+			Success bool `json:"success"`
+		} `json:"emojiDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.EmojiDelete.Success {
+		return fmt.Errorf("emojiDelete вернул success=false")
+	}
+	return nil
+}

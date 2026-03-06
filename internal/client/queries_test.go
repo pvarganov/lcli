@@ -2007,3 +2007,55 @@ func TestListFavoritesEmpty(t *testing.T) {
 		t.Errorf("expected 0 favorites, got %d", len(favs))
 	}
 }
+
+func TestListEmojis(t *testing.T) {
+	responseData := map[string]any{
+		"emojis": map[string]any{
+			"nodes": []map[string]any{
+				{
+					"id":   "emoji1",
+					"name": "smile",
+					"url":  "https://example.com/smile.png",
+				},
+			},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	emojis, err := c.ListEmojis()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(emojis) != 1 {
+		t.Fatalf("expected 1 emoji, got %d", len(emojis))
+	}
+	if emojis[0].ID != "emoji1" {
+		t.Errorf("expected emoji1, got %s", emojis[0].ID)
+	}
+	if emojis[0].Name != "smile" {
+		t.Errorf("expected smile, got %s", emojis[0].Name)
+	}
+}
+
+func TestListEmojisEmpty(t *testing.T) {
+	responseData := map[string]any{
+		"emojis": map[string]any{
+			"nodes": []map[string]any{},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	emojis, err := c.ListEmojis()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(emojis) != 0 {
+		t.Errorf("expected 0 emojis, got %d", len(emojis))
+	}
+}

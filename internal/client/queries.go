@@ -1692,3 +1692,35 @@ query GetCustomView($id: String!) {
 	}
 	return result.CustomView, nil
 }
+
+// Emoji представляет эмодзи в организации Linear.
+type Emoji struct {
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	URL     string `json:"url"`
+	Creator *User  `json:"creator"`
+}
+
+// ListEmojis возвращает список всех эмодзи организации.
+func (c *Client) ListEmojis() ([]Emoji, error) {
+	query := `
+query ListEmojis {
+  emojis {
+    nodes {
+      id
+      name
+      url
+      creator { id name displayName }
+    }
+  }
+}`
+	var result struct {
+		Emojis struct {
+			Nodes []Emoji `json:"nodes"`
+		} `json:"emojis"`
+	}
+	if err := c.Do(query, nil, &result); err != nil {
+		return nil, err
+	}
+	return result.Emojis.Nodes, nil
+}
