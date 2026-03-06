@@ -216,6 +216,121 @@ query GetWorkflowStates($teamId: ID!) {
 	return "", nil
 }
 
+// CreateIssueLabelInput — входные данные для создания метки.
+type CreateIssueLabelInput struct {
+	Name        string
+	Color       string
+	Description string
+	TeamID      string
+}
+
+// UpdateIssueLabelInput — входные данные для обновления метки.
+type UpdateIssueLabelInput struct {
+	Name        string
+	Color       string
+	Description string
+}
+
+// CreateIssueLabel создаёт новую метку задачи.
+func (c *Client) CreateIssueLabel(input CreateIssueLabelInput) (*IssueLabel, error) {
+	mutation := `
+mutation CreateIssueLabel($input: IssueLabelCreateInput!) {
+  issueLabelCreate(input: $input) {
+    success
+    issueLabel {
+      id
+      name
+      color
+      description
+    }
+  }
+}`
+	gqlInput := map[string]any{
+		"name":  input.Name,
+		"color": input.Color,
+	}
+	if input.Description != "" {
+		gqlInput["description"] = input.Description
+	}
+	if input.TeamID != "" {
+		gqlInput["teamId"] = input.TeamID
+	}
+	var result struct {
+		IssueLabelCreate struct {
+			IssueLabel IssueLabel `json:"issueLabel"`
+			Success    bool       `json:"success"`
+		} `json:"issueLabelCreate"`
+	}
+	if err := c.Do(mutation, map[string]any{"input": gqlInput}, &result); err != nil {
+		return nil, err
+	}
+	if !result.IssueLabelCreate.Success {
+		return nil, fmt.Errorf("issueLabelCreate вернул success=false")
+	}
+	return &result.IssueLabelCreate.IssueLabel, nil
+}
+
+// UpdateIssueLabel обновляет существующую метку задачи.
+func (c *Client) UpdateIssueLabel(id string, input UpdateIssueLabelInput) (*IssueLabel, error) {
+	mutation := `
+mutation UpdateIssueLabel($id: String!, $input: IssueLabelUpdateInput!) {
+  issueLabelUpdate(id: $id, input: $input) {
+    success
+    issueLabel {
+      id
+      name
+      color
+      description
+    }
+  }
+}`
+	gqlInput := map[string]any{}
+	if input.Name != "" {
+		gqlInput["name"] = input.Name
+	}
+	if input.Color != "" {
+		gqlInput["color"] = input.Color
+	}
+	if input.Description != "" {
+		gqlInput["description"] = input.Description
+	}
+	var result struct {
+		IssueLabelUpdate struct {
+			IssueLabel IssueLabel `json:"issueLabel"`
+			Success    bool       `json:"success"`
+		} `json:"issueLabelUpdate"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id, "input": gqlInput}, &result); err != nil {
+		return nil, err
+	}
+	if !result.IssueLabelUpdate.Success {
+		return nil, fmt.Errorf("issueLabelUpdate вернул success=false")
+	}
+	return &result.IssueLabelUpdate.IssueLabel, nil
+}
+
+// DeleteIssueLabel удаляет метку задачи по ID.
+func (c *Client) DeleteIssueLabel(id string) error {
+	mutation := `
+mutation DeleteIssueLabel($id: String!) {
+  issueLabelDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		IssueLabelDelete struct {
+			Success bool `json:"success"`
+		} `json:"issueLabelDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.IssueLabelDelete.Success {
+		return fmt.Errorf("issueLabelDelete вернул success=false")
+	}
+	return nil
+}
+
 // FindUserByName ищет пользователя по displayName или email.
 func (c *Client) FindUserByName(name string) (*User, error) {
 	query := `

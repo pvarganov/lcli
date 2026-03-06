@@ -53,13 +53,13 @@
 
 #### Task 2: Issue Labels (метки задач) — Mutations + CMD
 
-- [ ] написать тесты для cmd `issues labels list` (table + json output)
-- [ ] добавить команды `issues labels list` в `cmd/issue_labels.go`
-- [ ] написать тесты для мутаций `issueLabelCreate`, `issueLabelUpdate`, `issueLabelDelete`
-- [ ] добавить методы `CreateIssueLabel`, `UpdateIssueLabel`, `DeleteIssueLabel` в `internal/client/mutations.go`
-- [ ] написать тесты для cmd `issues labels create/update/delete`
-- [ ] добавить команды `issues labels create`, `issues labels update`, `issues labels delete`
-- [ ] запустить тесты — должны пройти
+- [x] написать тесты для cmd `issues labels list` (table + json output)
+- [x] добавить команды `issues labels list` в `cmd/issue_labels.go`
+- [x] написать тесты для мутаций `issueLabelCreate`, `issueLabelUpdate`, `issueLabelDelete`
+- [x] добавить методы `CreateIssueLabel`, `UpdateIssueLabel`, `DeleteIssueLabel` в `internal/client/mutations.go`
+- [x] написать тесты для cmd `issues labels create/update/delete`
+- [x] добавить команды `issues labels create`, `issues labels update`, `issues labels delete`
+- [x] запустить тесты — должны пройти
 
 #### Task 3: Issue Labels — добавление/удаление меток на задачах
 

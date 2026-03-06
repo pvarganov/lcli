@@ -162,6 +162,117 @@ func TestFindWorkflowStateByName(t *testing.T) {
 	}
 }
 
+func TestCreateIssueLabel(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"issueLabelCreate": map[string]any{
+				"success": true,
+				"issueLabel": map[string]any{
+					"id":          "label-new",
+					"name":        "My Label",
+					"color":       "#aabbcc",
+					"description": "A test label",
+				},
+			},
+		})
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		label, err := c.CreateIssueLabel(CreateIssueLabelInput{Name: "My Label", Color: "#aabbcc", Description: "A test label"})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if label.ID != "label-new" {
+			t.Errorf("expected label-new, got %s", label.ID)
+		}
+		if label.Name != "My Label" {
+			t.Errorf("expected My Label, got %s", label.Name)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"issueLabelCreate": map[string]any{
+				"success":    false,
+				"issueLabel": nil,
+			},
+		})
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		_, err := c.CreateIssueLabel(CreateIssueLabelInput{Name: "Bad", Color: "#fff"})
+		if err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestUpdateIssueLabel(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"issueLabelUpdate": map[string]any{
+				"success": true,
+				"issueLabel": map[string]any{
+					"id":          "label1",
+					"name":        "Updated Label",
+					"color":       "#112233",
+					"description": "",
+				},
+			},
+		})
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		label, err := c.UpdateIssueLabel("label1", UpdateIssueLabelInput{Name: "Updated Label", Color: "#112233"})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if label.Name != "Updated Label" {
+			t.Errorf("expected Updated Label, got %s", label.Name)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"issueLabelUpdate": map[string]any{
+				"success":    false,
+				"issueLabel": nil,
+			},
+		})
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		_, err := c.UpdateIssueLabel("label1", UpdateIssueLabelInput{Name: "X"})
+		if err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestDeleteIssueLabel(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"issueLabelDelete": map[string]any{
+				"success": true,
+			},
+		})
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.DeleteIssueLabel("label1"); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"issueLabelDelete": map[string]any{
+				"success": false,
+			},
+		})
+		defer srv.Close()
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.DeleteIssueLabel("label1"); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
 func TestFindUserByName(t *testing.T) {
 	responseData := map[string]any{
 		"users": map[string]any{
