@@ -355,6 +355,46 @@ query ListIssueRelations($id: String!) {
 	return result.Issue.Relations.Nodes, nil
 }
 
+// SearchIssues выполняет поиск задач по строке запроса.
+func (c *Client) SearchIssues(query string, limit int) ([]Issue, *PageInfo, error) {
+	gql := `
+query SearchIssues($query: String!, $first: Int) {
+  issueSearch(query: $query, first: $first) {
+    nodes {
+      id
+      identifier
+      title
+      updatedAt
+      priority
+      state { name type }
+      assignee { id name displayName email }
+      team { id key name }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}`
+
+	variables := map[string]any{
+		"query": query,
+		"first": limit,
+	}
+
+	var result struct {
+		IssueSearch struct {
+			Nodes    []Issue  `json:"nodes"`
+			PageInfo PageInfo `json:"pageInfo"`
+		} `json:"issueSearch"`
+	}
+	if err := c.Do(gql, variables, &result); err != nil {
+		return nil, nil, err
+	}
+	pi := result.IssueSearch.PageInfo
+	return result.IssueSearch.Nodes, &pi, nil
+}
+
 // PriorityLabel возвращает текстовое обозначение приоритета.
 func PriorityLabel(p int) string {
 	switch p {

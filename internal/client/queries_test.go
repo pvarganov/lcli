@@ -275,6 +275,75 @@ func TestListIssueRelations(t *testing.T) {
 	})
 }
 
+func TestSearchIssues(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		now := time.Date(2024, 5, 10, 8, 0, 0, 0, time.UTC)
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{
+				"data": map[string]any{
+					"issueSearch": map[string]any{
+						"nodes": []map[string]any{
+							{
+								"id":         "i1",
+								"identifier": "ENG-1",
+								"title":      "Search result issue",
+								"updatedAt":  now.Format(time.RFC3339),
+								"priority":   2,
+								"state":      map[string]any{"name": "In Progress", "type": "started"},
+								"assignee":   nil,
+								"team":       map[string]any{"id": "t1", "key": "ENG", "name": "Engineering"},
+							},
+						},
+						"pageInfo": map[string]any{
+							"hasNextPage": false,
+							"endCursor":   "",
+						},
+					},
+				},
+			})
+		}))
+		defer srv.Close()
+		c := NewWithURL("token", srv.URL)
+		issues, pageInfo, err := c.SearchIssues("search result", 10)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(issues) != 1 {
+			t.Fatalf("expected 1 issue, got %d", len(issues))
+		}
+		if issues[0].Identifier != "ENG-1" {
+			t.Errorf("expected ENG-1, got %q", issues[0].Identifier)
+		}
+		if pageInfo == nil {
+			t.Error("expected pageInfo to be non-nil")
+		}
+	})
+
+	t.Run("empty", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{
+				"data": map[string]any{
+					"issueSearch": map[string]any{
+						"nodes":    []map[string]any{},
+						"pageInfo": map[string]any{"hasNextPage": false, "endCursor": ""},
+					},
+				},
+			})
+		}))
+		defer srv.Close()
+		c := NewWithURL("token", srv.URL)
+		issues, _, err := c.SearchIssues("nothing", 10)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if len(issues) != 0 {
+			t.Fatalf("expected 0 issues, got %d", len(issues))
+		}
+	})
+}
+
 func TestPriorityLabel(t *testing.T) {
 	cases := []struct {
 		p    int

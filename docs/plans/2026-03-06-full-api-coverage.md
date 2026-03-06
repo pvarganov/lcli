@@ -90,12 +90,12 @@
 
 #### Task 6: Issue Search
 
-- [ ] добавить тип `IssueSearchResult` (nodes + pageInfo) в queries.go
-- [ ] написать тесты для `SearchIssues(query, limit)`
-- [ ] добавить метод `SearchIssues(query string, limit int)` в queries.go (использовать `searchIssues` mutation)
-- [ ] написать тесты для cmd `issues search <query>`
-- [ ] добавить команду `issues search` в `cmd/issue_search.go` (флаги: --limit, --team, -o json)
-- [ ] запустить тесты — должны пройти
+- [x] добавить тип `IssueSearchResult` (nodes + pageInfo) в queries.go
+- [x] написать тесты для `SearchIssues(query, limit)`
+- [x] добавить метод `SearchIssues(query string, limit int)` в queries.go (использовать `searchIssues` mutation)
+- [x] написать тесты для cmd `issues search <query>`
+- [x] добавить команду `issues search` в `cmd/issue_search.go` (флаги: --limit, --team, -o json)
+- [x] запустить тесты — должны пройти
 
 #### Task 7: Issue Subscribe/Unsubscribe
 
