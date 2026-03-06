@@ -146,6 +146,13 @@ var projectUpdateCmd = &cobra.Command{
 		memberIDsStr, _ := cmd.Flags().GetString("member-ids")
 		content, _ := cmd.Flags().GetString("content")
 
+		hasFlag := name != "" || description != "" || startDate != "" || targetDate != "" ||
+			leadID != "" || state != "" || color != "" || icon != "" || memberIDsStr != "" ||
+			content != "" || cmd.Flags().Changed("priority")
+		if !hasFlag {
+			return fmt.Errorf("укажите хотя бы один флаг для обновления: --name, --description, --start-date, --target-date, --lead-id, --state, --color, --icon, --priority, --member-ids, --content")
+		}
+
 		var memberIDs []string
 		if memberIDsStr != "" {
 			memberIDs = splitComma(memberIDsStr)
