@@ -21,11 +21,12 @@ echo "==> Сборка бинарников ($VERSION)"
 
 build() {
   local os=$1 arch=$2
-  local out="$DIST/${BINARY}_${os}_${arch}"
+  local tmpdir="$DIST/tmp_${os}_${arch}"
+  mkdir -p "$tmpdir"
   echo "    $os/$arch"
-  GOOS=$os GOARCH=$arch CGO_ENABLED=0 go build -ldflags="-s -w -X main.version=${VERSION}" -o "$out" .
-  tar -czf "${out}.tar.gz" -C "$DIST" "${BINARY}_${os}_${arch}"
-  rm "$out"
+  GOOS=$os GOARCH=$arch CGO_ENABLED=0 go build -ldflags="-s -w -X main.version=${VERSION}" -o "$tmpdir/${BINARY}" .
+  tar -czf "$DIST/${BINARY}_${os}_${arch}.tar.gz" -C "$tmpdir" "${BINARY}"
+  rm -rf "$tmpdir"
 }
 
 build darwin  amd64
