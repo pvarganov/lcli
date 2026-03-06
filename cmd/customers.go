@@ -55,7 +55,7 @@ var customersListCmd = &cobra.Command{
 			if cu.Tier != nil {
 				tierName = cu.Tier.DisplayName
 			}
-			rows = append(rows, []string{cu.ID, cu.Name, statusName, tierName})
+			rows = append(rows, []string{cu.ID, format.StripControlChars(cu.Name), format.StripControlChars(statusName), format.StripControlChars(tierName)})
 		}
 		format.TableWriter(out, headers, rows)
 		return nil
@@ -89,15 +89,15 @@ var customersViewCmd = &cobra.Command{
 		}
 
 		fmt.Fprintf(out, "ID:       %s\n", cu.ID)
-		fmt.Fprintf(out, "Название: %s\n", cu.Name)
+		fmt.Fprintf(out, "Название: %s\n", format.StripControlChars(cu.Name))
 		if cu.Owner != nil {
-			fmt.Fprintf(out, "Владелец: %s\n", cu.Owner.Name)
+			fmt.Fprintf(out, "Владелец: %s\n", format.StripControlChars(cu.Owner.Name))
 		}
 		if cu.Status != nil {
-			fmt.Fprintf(out, "Статус:   %s\n", cu.Status.DisplayName)
+			fmt.Fprintf(out, "Статус:   %s\n", format.StripControlChars(cu.Status.DisplayName))
 		}
 		if cu.Tier != nil {
-			fmt.Fprintf(out, "Уровень:  %s\n", cu.Tier.DisplayName)
+			fmt.Fprintf(out, "Уровень:  %s\n", format.StripControlChars(cu.Tier.DisplayName))
 		}
 		if cu.Revenue > 0 {
 			fmt.Fprintf(out, "Доход:    %d\n", cu.Revenue)

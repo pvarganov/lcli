@@ -55,7 +55,7 @@ var documentsListCmd = &cobra.Command{
 			if d.Creator != nil {
 				creatorName = d.Creator.Name
 			}
-			rows = append(rows, []string{d.ID, d.Title, projectName, creatorName})
+			rows = append(rows, []string{d.ID, format.StripControlChars(d.Title), format.StripControlChars(projectName), format.StripControlChars(creatorName)})
 		}
 		format.TableWriter(out, headers, rows)
 		return nil
@@ -89,15 +89,15 @@ var documentsViewCmd = &cobra.Command{
 		}
 
 		fmt.Fprintf(out, "ID:      %s\n", doc.ID)
-		fmt.Fprintf(out, "Заголовок: %s\n", doc.Title)
+		fmt.Fprintf(out, "Заголовок: %s\n", format.StripControlChars(doc.Title))
 		if doc.Project != nil {
-			fmt.Fprintf(out, "Проект:  %s\n", doc.Project.Name)
+			fmt.Fprintf(out, "Проект:  %s\n", format.StripControlChars(doc.Project.Name))
 		}
 		if doc.Creator != nil {
-			fmt.Fprintf(out, "Автор:   %s\n", doc.Creator.Name)
+			fmt.Fprintf(out, "Автор:   %s\n", format.StripControlChars(doc.Creator.Name))
 		}
 		if doc.Content != "" {
-			fmt.Fprintf(out, "\n%s\n", doc.Content)
+			fmt.Fprintf(out, "\n%s\n", format.StripControlChars(doc.Content))
 		}
 		return nil
 	},
@@ -248,7 +248,7 @@ var documentsSearchCmd = &cobra.Command{
 			if d.Creator != nil {
 				creatorName = d.Creator.Name
 			}
-			rows = append(rows, []string{d.ID, d.Title, projectName, creatorName})
+			rows = append(rows, []string{d.ID, format.StripControlChars(d.Title), format.StripControlChars(projectName), format.StripControlChars(creatorName)})
 		}
 		format.TableWriter(out, headers, rows)
 		return nil

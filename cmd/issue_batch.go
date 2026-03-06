@@ -37,6 +37,9 @@ var issueBatchUpdateCmd = &cobra.Command{
 		for i, id := range identifiers {
 			identifiers[i] = strings.TrimSpace(id)
 		}
+		if len(identifiers) > 50 {
+			return fmt.Errorf("слишком много задач: %d (максимум 50 за один запрос)", len(identifiers))
+		}
 
 		c := newLinearClient(t)
 

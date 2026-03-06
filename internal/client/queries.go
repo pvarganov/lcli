@@ -888,27 +888,47 @@ query ListNotifications($first: Int, $after: String) {
 // GetNotificationsUnreadCount возвращает количество непрочитанных уведомлений.
 func (c *Client) GetNotificationsUnreadCount() (int, error) {
 	query := `
-query GetNotificationsUnreadCount {
-  notifications(filter: { readAt: { null: true } }) {
+query GetNotificationsUnreadCount($first: Int, $after: String) {
+  notifications(first: $first, filter: { readAt: { null: true } }, after: $after) {
     pageInfo {
       hasNextPage
+      endCursor
     }
     nodes {
       id
     }
   }
 }`
-	var result struct {
+	type resultType struct {
 		Notifications struct {
+			PageInfo struct {
+				HasNextPage bool   `json:"hasNextPage"`
+				EndCursor   string `json:"endCursor"`
+			} `json:"pageInfo"`
 			Nodes []struct {
 				ID string `json:"id"`
 			} `json:"nodes"`
 		} `json:"notifications"`
 	}
-	if err := c.Do(query, nil, &result); err != nil {
-		return 0, err
+	count := 0
+	var cursor *string
+	for {
+		vars := map[string]any{"first": 250}
+		if cursor != nil {
+			vars["after"] = *cursor
+		}
+		var result resultType
+		if err := c.Do(query, vars, &result); err != nil {
+			return 0, err
+		}
+		count += len(result.Notifications.Nodes)
+		if !result.Notifications.PageInfo.HasNextPage {
+			break
+		}
+		end := result.Notifications.PageInfo.EndCursor
+		cursor = &end
 	}
-	return len(result.Notifications.Nodes), nil
+	return count, nil
 }
 
 // Webhook представляет вебхук Linear.
@@ -999,7 +1019,7 @@ query ListAttachments($id: String!) {
   }
 }`
 	var result struct {
-		Issue struct {
+		Issue *struct {
 			Attachments struct {
 				Nodes []Attachment `json:"nodes"`
 			} `json:"attachments"`
@@ -1007,6 +1027,9 @@ query ListAttachments($id: String!) {
 	}
 	if err := c.Do(query, map[string]any{"id": issueID}, &result); err != nil {
 		return nil, err
+	}
+	if result.Issue == nil {
+		return nil, fmt.Errorf("задача не найдена: %s", issueID)
 	}
 	return result.Issue.Attachments.Nodes, nil
 }
