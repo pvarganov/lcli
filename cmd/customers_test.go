@@ -295,3 +295,174 @@ func TestCustomersDeleteOutput(t *testing.T) {
 		t.Errorf("expected deletion message, got: %s", output)
 	}
 }
+
+func TestCustomersNeedsListOutput(t *testing.T) {
+	responseData := map[string]any{
+		"customerNeeds": map[string]any{
+			"nodes": []map[string]any{
+				{
+					"id":        "cn1",
+					"body":      "We need feature X",
+					"priority":  1.0,
+					"createdAt": "2024-01-01T00:00:00Z",
+					"customer":  map[string]any{"id": "c1", "name": "Acme Corp"},
+				},
+			},
+		},
+	}
+
+	srv := newCustomersTestServer(t, responseData)
+	defer srv.Close()
+
+	origFactory := newLinearClient
+	newLinearClient = func(tok string) *client.Client {
+		return client.NewWithURL(tok, srv.URL)
+	}
+	defer func() { newLinearClient = origFactory }()
+
+	token = "test-token"
+	defer func() { token = "" }()
+
+	cmd := customersNeedsListCmd
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	outputFormat = ""
+	defer func() { outputFormat = "" }()
+
+	if err := cmd.RunE(cmd, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	output := buf.String()
+	if !strings.Contains(output, "We need feature X") {
+		t.Errorf("expected need body in output, got: %s", output)
+	}
+	if !strings.Contains(output, "Acme Corp") {
+		t.Errorf("expected customer name in output, got: %s", output)
+	}
+}
+
+func TestCustomersNeedsCreateOutput(t *testing.T) {
+	responseData := map[string]any{
+		"customerNeedCreate": map[string]any{
+			"success": true,
+			"customerNeed": map[string]any{
+				"id":        "cn1",
+				"body":      "New need",
+				"priority":  1.0,
+				"createdAt": "2024-01-01T00:00:00Z",
+			},
+		},
+	}
+
+	srv := newCustomersTestServer(t, responseData)
+	defer srv.Close()
+
+	origFactory := newLinearClient
+	newLinearClient = func(tok string) *client.Client {
+		return client.NewWithURL(tok, srv.URL)
+	}
+	defer func() { newLinearClient = origFactory }()
+
+	token = "test-token"
+	defer func() { token = "" }()
+
+	cmd := customersNeedsCreateCmd
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	outputFormat = ""
+	defer func() { outputFormat = "" }()
+	cmd.Flags().Set("body", "New need")
+	defer cmd.Flags().Set("body", "")
+
+	if err := cmd.RunE(cmd, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	output := buf.String()
+	if !strings.Contains(output, "cn1") {
+		t.Errorf("expected created need ID in output, got: %s", output)
+	}
+}
+
+func TestCustomersStatusesListOutput(t *testing.T) {
+	responseData := map[string]any{
+		"customerStatuses": map[string]any{
+			"nodes": []map[string]any{
+				{
+					"id":          "s1",
+					"name":        "active",
+					"displayName": "Active",
+					"color":       "#00ff00",
+					"description": "",
+				},
+			},
+		},
+	}
+
+	srv := newCustomersTestServer(t, responseData)
+	defer srv.Close()
+
+	origFactory := newLinearClient
+	newLinearClient = func(tok string) *client.Client {
+		return client.NewWithURL(tok, srv.URL)
+	}
+	defer func() { newLinearClient = origFactory }()
+
+	token = "test-token"
+	defer func() { token = "" }()
+
+	cmd := customersStatusesListCmd
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	outputFormat = ""
+	defer func() { outputFormat = "" }()
+
+	if err := cmd.RunE(cmd, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	output := buf.String()
+	if !strings.Contains(output, "Active") {
+		t.Errorf("expected 'Active' in output, got: %s", output)
+	}
+}
+
+func TestCustomersTiersListOutput(t *testing.T) {
+	responseData := map[string]any{
+		"customerTiers": map[string]any{
+			"nodes": []map[string]any{
+				{
+					"id":          "t1",
+					"name":        "enterprise",
+					"displayName": "Enterprise",
+					"color":       "#gold",
+					"description": "",
+				},
+			},
+		},
+	}
+
+	srv := newCustomersTestServer(t, responseData)
+	defer srv.Close()
+
+	origFactory := newLinearClient
+	newLinearClient = func(tok string) *client.Client {
+		return client.NewWithURL(tok, srv.URL)
+	}
+	defer func() { newLinearClient = origFactory }()
+
+	token = "test-token"
+	defer func() { token = "" }()
+
+	cmd := customersTiersListCmd
+	var buf bytes.Buffer
+	cmd.SetOut(&buf)
+	outputFormat = ""
+	defer func() { outputFormat = "" }()
+
+	if err := cmd.RunE(cmd, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	output := buf.String()
+	if !strings.Contains(output, "Enterprise") {
+		t.Errorf("expected 'Enterprise' in output, got: %s", output)
+	}
+}

@@ -2971,6 +2971,256 @@ mutation UpsertCustomer($input: CustomerUpsertInput!) {
 	return &result.CustomerUpsert.Customer, nil
 }
 
+// CreateCustomerNeed создаёт потребность клиента.
+func (c *Client) CreateCustomerNeed(input map[string]any) (*CustomerNeed, error) {
+	mutation := `
+mutation CreateCustomerNeed($input: CustomerNeedCreateInput!) {
+  customerNeedCreate(input: $input) {
+    success
+    customerNeed {
+      id
+      body
+      priority
+      createdAt
+      creator { id name displayName email }
+      customer { id name }
+      issue { id identifier title }
+    }
+  }
+}`
+	var result struct {
+		CustomerNeedCreate struct {
+			CustomerNeed CustomerNeed `json:"customerNeed"`
+			Success      bool         `json:"success"`
+		} `json:"customerNeedCreate"`
+	}
+	if err := c.Do(mutation, map[string]any{"input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.CustomerNeedCreate.Success {
+		return nil, fmt.Errorf("customerNeedCreate вернул success=false")
+	}
+	return &result.CustomerNeedCreate.CustomerNeed, nil
+}
+
+// UpdateCustomerNeed обновляет потребность клиента по ID.
+func (c *Client) UpdateCustomerNeed(id string, input map[string]any) (*CustomerNeed, error) {
+	mutation := `
+mutation UpdateCustomerNeed($id: String!, $input: CustomerNeedUpdateInput!) {
+  customerNeedUpdate(id: $id, input: $input) {
+    success
+    customerNeed {
+      id
+      body
+      priority
+      createdAt
+      creator { id name displayName email }
+      customer { id name }
+      issue { id identifier title }
+    }
+  }
+}`
+	var result struct {
+		CustomerNeedUpdate struct {
+			CustomerNeed CustomerNeed `json:"customerNeed"`
+			Success      bool         `json:"success"`
+		} `json:"customerNeedUpdate"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id, "input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.CustomerNeedUpdate.Success {
+		return nil, fmt.Errorf("customerNeedUpdate вернул success=false")
+	}
+	return &result.CustomerNeedUpdate.CustomerNeed, nil
+}
+
+// DeleteCustomerNeed удаляет потребность клиента по ID.
+func (c *Client) DeleteCustomerNeed(id string) error {
+	mutation := `
+mutation DeleteCustomerNeed($id: String!) {
+  customerNeedDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		CustomerNeedDelete struct {
+			Success bool `json:"success"`
+		} `json:"customerNeedDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.CustomerNeedDelete.Success {
+		return fmt.Errorf("customerNeedDelete вернул success=false")
+	}
+	return nil
+}
+
+// CreateCustomerStatus создаёт статус клиента.
+func (c *Client) CreateCustomerStatus(input map[string]any) (*CustomerStatus, error) {
+	mutation := `
+mutation CreateCustomerStatus($input: CustomerStatusCreateInput!) {
+  customerStatusCreate(input: $input) {
+    success
+    customerStatus {
+      id
+      name
+      displayName
+      color
+      description
+    }
+  }
+}`
+	var result struct {
+		CustomerStatusCreate struct {
+			CustomerStatus CustomerStatus `json:"customerStatus"`
+			Success        bool           `json:"success"`
+		} `json:"customerStatusCreate"`
+	}
+	if err := c.Do(mutation, map[string]any{"input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.CustomerStatusCreate.Success {
+		return nil, fmt.Errorf("customerStatusCreate вернул success=false")
+	}
+	return &result.CustomerStatusCreate.CustomerStatus, nil
+}
+
+// UpdateCustomerStatus обновляет статус клиента по ID.
+func (c *Client) UpdateCustomerStatus(id string, input map[string]any) (*CustomerStatus, error) {
+	mutation := `
+mutation UpdateCustomerStatus($id: String!, $input: CustomerStatusUpdateInput!) {
+  customerStatusUpdate(id: $id, input: $input) {
+    success
+    customerStatus {
+      id
+      name
+      displayName
+      color
+      description
+    }
+  }
+}`
+	var result struct {
+		CustomerStatusUpdate struct {
+			CustomerStatus CustomerStatus `json:"customerStatus"`
+			Success        bool           `json:"success"`
+		} `json:"customerStatusUpdate"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id, "input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.CustomerStatusUpdate.Success {
+		return nil, fmt.Errorf("customerStatusUpdate вернул success=false")
+	}
+	return &result.CustomerStatusUpdate.CustomerStatus, nil
+}
+
+// DeleteCustomerStatus удаляет статус клиента по ID.
+func (c *Client) DeleteCustomerStatus(id string) error {
+	mutation := `
+mutation DeleteCustomerStatus($id: String!) {
+  customerStatusDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		CustomerStatusDelete struct {
+			Success bool `json:"success"`
+		} `json:"customerStatusDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.CustomerStatusDelete.Success {
+		return fmt.Errorf("customerStatusDelete вернул success=false")
+	}
+	return nil
+}
+
+// CreateCustomerTier создаёт уровень клиента.
+func (c *Client) CreateCustomerTier(input map[string]any) (*CustomerTier, error) {
+	mutation := `
+mutation CreateCustomerTier($input: CustomerTierCreateInput!) {
+  customerTierCreate(input: $input) {
+    success
+    customerTier {
+      id
+      name
+      displayName
+      color
+      description
+    }
+  }
+}`
+	var result struct {
+		CustomerTierCreate struct {
+			CustomerTier CustomerTier `json:"customerTier"`
+			Success      bool         `json:"success"`
+		} `json:"customerTierCreate"`
+	}
+	if err := c.Do(mutation, map[string]any{"input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.CustomerTierCreate.Success {
+		return nil, fmt.Errorf("customerTierCreate вернул success=false")
+	}
+	return &result.CustomerTierCreate.CustomerTier, nil
+}
+
+// UpdateCustomerTier обновляет уровень клиента по ID.
+func (c *Client) UpdateCustomerTier(id string, input map[string]any) (*CustomerTier, error) {
+	mutation := `
+mutation UpdateCustomerTier($id: String!, $input: CustomerTierUpdateInput!) {
+  customerTierUpdate(id: $id, input: $input) {
+    success
+    customerTier {
+      id
+      name
+      displayName
+      color
+      description
+    }
+  }
+}`
+	var result struct {
+		CustomerTierUpdate struct {
+			CustomerTier CustomerTier `json:"customerTier"`
+			Success      bool         `json:"success"`
+		} `json:"customerTierUpdate"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id, "input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.CustomerTierUpdate.Success {
+		return nil, fmt.Errorf("customerTierUpdate вернул success=false")
+	}
+	return &result.CustomerTierUpdate.CustomerTier, nil
+}
+
+// DeleteCustomerTier удаляет уровень клиента по ID.
+func (c *Client) DeleteCustomerTier(id string) error {
+	mutation := `
+mutation DeleteCustomerTier($id: String!) {
+  customerTierDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		CustomerTierDelete struct {
+			Success bool `json:"success"`
+		} `json:"customerTierDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.CustomerTierDelete.Success {
+		return fmt.Errorf("customerTierDelete вернул success=false")
+	}
+	return nil
+}
+
 // DeleteRoadmapToProject удаляет связь дорожной карты с проектом.
 func (c *Client) DeleteRoadmapToProject(id string) error {
 	mutation := `

@@ -379,15 +379,15 @@
 
 #### Task 29: Customer Needs + Statuses + Tiers
 
-- [ ] написать тесты для мутаций `customerNeedCreate`, `customerNeedUpdate`, `customerNeedDelete`
-- [ ] добавить методы в mutations.go
-- [ ] написать тесты для мутаций `customerStatusCreate`, `customerStatusUpdate`, `customerStatusDelete`
-- [ ] добавить методы в mutations.go
-- [ ] написать тесты для мутаций `customerTierCreate`, `customerTierUpdate`, `customerTierDelete`
-- [ ] добавить методы в mutations.go
-- [ ] написать тесты для cmd `customers needs list`, `customers needs create`, `customers statuses list`, `customers tiers list`
-- [ ] добавить команды в `cmd/customers.go`
-- [ ] запустить тесты — должны пройти
+- [x] написать тесты для мутаций `customerNeedCreate`, `customerNeedUpdate`, `customerNeedDelete`
+- [x] добавить методы в mutations.go
+- [x] написать тесты для мутаций `customerStatusCreate`, `customerStatusUpdate`, `customerStatusDelete`
+- [x] добавить методы в mutations.go
+- [x] написать тесты для мутаций `customerTierCreate`, `customerTierUpdate`, `customerTierDelete`
+- [x] добавить методы в mutations.go
+- [x] написать тесты для cmd `customers needs list`, `customers needs create`, `customers statuses list`, `customers tiers list`
+- [x] добавить команды в `cmd/customers.go`
+- [x] запустить тесты — должны пройти
 
 ---
 

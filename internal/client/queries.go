@@ -1347,6 +1347,56 @@ query ListCustomerNeeds {
 	return result.CustomerNeeds.Nodes, nil
 }
 
+// ListCustomerStatuses возвращает список статусов клиентов.
+func (c *Client) ListCustomerStatuses() ([]CustomerStatus, error) {
+	query := `
+query ListCustomerStatuses {
+  customerStatuses(first: 250) {
+    nodes {
+      id
+      name
+      displayName
+      color
+      description
+    }
+  }
+}`
+	var result struct {
+		CustomerStatuses struct {
+			Nodes []CustomerStatus `json:"nodes"`
+		} `json:"customerStatuses"`
+	}
+	if err := c.Do(query, nil, &result); err != nil {
+		return nil, err
+	}
+	return result.CustomerStatuses.Nodes, nil
+}
+
+// ListCustomerTiers возвращает список уровней клиентов.
+func (c *Client) ListCustomerTiers() ([]CustomerTier, error) {
+	query := `
+query ListCustomerTiers {
+  customerTiers(first: 250) {
+    nodes {
+      id
+      name
+      displayName
+      color
+      description
+    }
+  }
+}`
+	var result struct {
+		CustomerTiers struct {
+			Nodes []CustomerTier `json:"nodes"`
+		} `json:"customerTiers"`
+	}
+	if err := c.Do(query, nil, &result); err != nil {
+		return nil, err
+	}
+	return result.CustomerTiers.Nodes, nil
+}
+
 // Roadmap представляет дорожную карту Linear.
 type Roadmap struct {
 	ID          string    `json:"id"`

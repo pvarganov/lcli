@@ -228,6 +228,194 @@ var customersDeleteCmd = &cobra.Command{
 	},
 }
 
+var customersNeedsCmd = &cobra.Command{
+	Use:   "needs",
+	Short: "Управление потребностями клиентов",
+}
+
+var customersNeedsListCmd = &cobra.Command{
+	Use:   "list",
+	Short: "Список потребностей клиентов",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		t, err := GetToken()
+		if err != nil {
+			return fmt.Errorf("ошибка загрузки токена: %w", err)
+		}
+		if t == "" {
+			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
+		}
+
+		c := newLinearClient(t)
+		needs, err := c.ListCustomerNeeds()
+		if err != nil {
+			return err
+		}
+
+		out := cmd.OutOrStdout()
+
+		if GetOutputFormat() == "json" {
+			enc := json.NewEncoder(out)
+			enc.SetIndent("", "  ")
+			return enc.Encode(needs)
+		}
+
+		if len(needs) == 0 {
+			fmt.Fprintln(out, "Потребности клиентов не найдены.")
+			return nil
+		}
+
+		headers := []string{"ID", "BODY", "CUSTOMER", "PRIORITY"}
+		rows := make([][]string, 0, len(needs))
+		for _, n := range needs {
+			customerName := ""
+			if n.Customer != nil {
+				customerName = n.Customer.Name
+			}
+			body := n.Body
+			if len(body) > 50 {
+				body = body[:47] + "..."
+			}
+			rows = append(rows, []string{n.ID, body, customerName, fmt.Sprintf("%.0f", n.Priority)})
+		}
+		format.TableWriter(out, headers, rows)
+		return nil
+	},
+}
+
+var customersNeedsCreateCmd = &cobra.Command{
+	Use:   "create",
+	Short: "Создать потребность клиента",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		t, err := GetToken()
+		if err != nil {
+			return fmt.Errorf("ошибка загрузки токена: %w", err)
+		}
+		if t == "" {
+			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
+		}
+
+		body, _ := cmd.Flags().GetString("body")
+		if body == "" {
+			return fmt.Errorf("необходимо указать --body")
+		}
+
+		input := map[string]any{"body": body}
+		if customerID, _ := cmd.Flags().GetString("customer"); customerID != "" {
+			input["customerId"] = customerID
+		}
+		if issueID, _ := cmd.Flags().GetString("issue"); issueID != "" {
+			input["issueId"] = issueID
+		}
+
+		c := newLinearClient(t)
+		need, err := c.CreateCustomerNeed(input)
+		if err != nil {
+			return err
+		}
+
+		out := cmd.OutOrStdout()
+		if GetOutputFormat() == "json" {
+			enc := json.NewEncoder(out)
+			enc.SetIndent("", "  ")
+			return enc.Encode(need)
+		}
+		fmt.Fprintf(out, "Потребность создана: %s\n", need.ID)
+		return nil
+	},
+}
+
+var customersStatusesCmd = &cobra.Command{
+	Use:   "statuses",
+	Short: "Управление статусами клиентов",
+}
+
+var customersStatusesListCmd = &cobra.Command{
+	Use:   "list",
+	Short: "Список статусов клиентов",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		t, err := GetToken()
+		if err != nil {
+			return fmt.Errorf("ошибка загрузки токена: %w", err)
+		}
+		if t == "" {
+			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
+		}
+
+		c := newLinearClient(t)
+		statuses, err := c.ListCustomerStatuses()
+		if err != nil {
+			return err
+		}
+
+		out := cmd.OutOrStdout()
+
+		if GetOutputFormat() == "json" {
+			enc := json.NewEncoder(out)
+			enc.SetIndent("", "  ")
+			return enc.Encode(statuses)
+		}
+
+		if len(statuses) == 0 {
+			fmt.Fprintln(out, "Статусы клиентов не найдены.")
+			return nil
+		}
+
+		headers := []string{"ID", "NAME", "DISPLAY NAME", "COLOR"}
+		rows := make([][]string, 0, len(statuses))
+		for _, s := range statuses {
+			rows = append(rows, []string{s.ID, s.Name, s.DisplayName, s.Color})
+		}
+		format.TableWriter(out, headers, rows)
+		return nil
+	},
+}
+
+var customersTiersCmd = &cobra.Command{
+	Use:   "tiers",
+	Short: "Управление уровнями клиентов",
+}
+
+var customersTiersListCmd = &cobra.Command{
+	Use:   "list",
+	Short: "Список уровней клиентов",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		t, err := GetToken()
+		if err != nil {
+			return fmt.Errorf("ошибка загрузки токена: %w", err)
+		}
+		if t == "" {
+			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
+		}
+
+		c := newLinearClient(t)
+		tiers, err := c.ListCustomerTiers()
+		if err != nil {
+			return err
+		}
+
+		out := cmd.OutOrStdout()
+
+		if GetOutputFormat() == "json" {
+			enc := json.NewEncoder(out)
+			enc.SetIndent("", "  ")
+			return enc.Encode(tiers)
+		}
+
+		if len(tiers) == 0 {
+			fmt.Fprintln(out, "Уровни клиентов не найдены.")
+			return nil
+		}
+
+		headers := []string{"ID", "NAME", "DISPLAY NAME", "COLOR"}
+		rows := make([][]string, 0, len(tiers))
+		for _, tier := range tiers {
+			rows = append(rows, []string{tier.ID, tier.Name, tier.DisplayName, tier.Color})
+		}
+		format.TableWriter(out, headers, rows)
+		return nil
+	},
+}
+
 func init() {
 	customersCreateCmd.Flags().String("name", "", "Название клиента (обязательно)")
 	customersCreateCmd.Flags().String("logo-url", "", "URL логотипа")
@@ -241,10 +429,23 @@ func init() {
 	customersUpdateCmd.Flags().String("status", "", "Новый ID статуса")
 	customersUpdateCmd.Flags().String("tier", "", "Новый ID уровня")
 
+	customersNeedsCreateCmd.Flags().String("body", "", "Текст потребности (обязательно)")
+	customersNeedsCreateCmd.Flags().String("customer", "", "ID клиента")
+	customersNeedsCreateCmd.Flags().String("issue", "", "ID задачи")
+
+	customersNeedsCmd.AddCommand(customersNeedsListCmd)
+	customersNeedsCmd.AddCommand(customersNeedsCreateCmd)
+
+	customersStatusesCmd.AddCommand(customersStatusesListCmd)
+	customersTiersCmd.AddCommand(customersTiersListCmd)
+
 	customersCmd.AddCommand(customersListCmd)
 	customersCmd.AddCommand(customersViewCmd)
 	customersCmd.AddCommand(customersCreateCmd)
 	customersCmd.AddCommand(customersUpdateCmd)
 	customersCmd.AddCommand(customersDeleteCmd)
+	customersCmd.AddCommand(customersNeedsCmd)
+	customersCmd.AddCommand(customersStatusesCmd)
+	customersCmd.AddCommand(customersTiersCmd)
 	rootCmd.AddCommand(customersCmd)
 }
