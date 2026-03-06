@@ -478,3 +478,329 @@ func TestFindLabelsByNamesNotFound(t *testing.T) {
 		t.Errorf("expected 'метка не найдена' in error, got: %v", err)
 	}
 }
+
+// newCaptureMultiServer creates a server that routes by query keyword and captures issueCreate variables.
+func newCaptureMultiServer(t *testing.T, captured *map[string]any, responses map[string]any) *httptest.Server {
+	t.Helper()
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req struct {
+			Query     string         `json:"query"`
+			Variables map[string]any `json:"variables"`
+		}
+		_ = json.NewDecoder(r.Body).Decode(&req)
+
+		if strings.Contains(req.Query, "issueCreate") && captured != nil {
+			*captured = req.Variables
+		}
+
+		for keyword, data := range responses {
+			if strings.Contains(req.Query, keyword) {
+				w.Header().Set("Content-Type", "application/json")
+				body, _ := json.Marshal(map[string]any{"data": data})
+				w.Write(body)
+				return
+			}
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"data":{}}`))
+	}))
+}
+
+func baseCreateResponses() map[string]any {
+	return map[string]any{
+		"GetTeams": map[string]any{
+			"teams": map[string]any{
+				"nodes": []map[string]any{
+					{"id": "t1", "key": "ENG", "name": "Engineering"},
+				},
+			},
+		},
+		"issueCreate": issueCreateResponseData("ENG-1"),
+	}
+}
+
+func resetCreateFlags() {
+	createTitle = "Test issue"
+	createTeam = "ENG"
+	createDescription = ""
+	createAssignee = ""
+	createPriority = 0
+	createDueDate = ""
+	createEstimate = 0
+	createLabels = ""
+	createParent = ""
+	createState = ""
+	createCycleID = ""
+	createProjectID = ""
+	createMilestoneID = ""
+	// Reset Changed state for flags that use cmd.Flags().Changed()
+	if f := issueCreateCmd.Flags().Lookup("estimate"); f != nil {
+		f.Changed = false
+	}
+}
+
+func TestIssueCreateCmdDueDate(t *testing.T) {
+	var captured map[string]any
+	srv := newCaptureMultiServer(t, &captured, baseCreateResponses())
+	defer srv.Close()
+
+	origFactory := newLinearClient
+	newLinearClient = func(tok string) *client.Client { return client.NewWithURL(tok, srv.URL) }
+	defer func() { newLinearClient = origFactory }()
+	token = "test-token"
+	defer func() { token = "" }()
+
+	resetCreateFlags()
+	createDueDate = "2026-04-01"
+
+	if err := issueCreateCmd.RunE(issueCreateCmd, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	input, _ := captured["input"].(map[string]any)
+	if v, ok := input["dueDate"]; !ok || v != "2026-04-01" {
+		t.Errorf("expected dueDate=2026-04-01, got %v", input["dueDate"])
+	}
+}
+
+func TestIssueCreateCmdDueDateNotSentWhenEmpty(t *testing.T) {
+	var captured map[string]any
+	srv := newCaptureMultiServer(t, &captured, baseCreateResponses())
+	defer srv.Close()
+
+	origFactory := newLinearClient
+	newLinearClient = func(tok string) *client.Client { return client.NewWithURL(tok, srv.URL) }
+	defer func() { newLinearClient = origFactory }()
+	token = "test-token"
+	defer func() { token = "" }()
+
+	resetCreateFlags()
+
+	if err := issueCreateCmd.RunE(issueCreateCmd, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	input, _ := captured["input"].(map[string]any)
+	if _, ok := input["dueDate"]; ok {
+		t.Errorf("expected dueDate not sent when empty")
+	}
+}
+
+func TestIssueCreateCmdEstimate(t *testing.T) {
+	var captured map[string]any
+	srv := newCaptureMultiServer(t, &captured, baseCreateResponses())
+	defer srv.Close()
+
+	origFactory := newLinearClient
+	newLinearClient = func(tok string) *client.Client { return client.NewWithURL(tok, srv.URL) }
+	defer func() { newLinearClient = origFactory }()
+	token = "test-token"
+	defer func() { token = "" }()
+
+	resetCreateFlags()
+	// Must use Flags().Set to mark flag as Changed
+	if err := issueCreateCmd.Flags().Set("estimate", "5"); err != nil {
+		t.Fatalf("failed to set flag: %v", err)
+	}
+	defer func() {
+		_ = issueCreateCmd.Flags().Set("estimate", "0")
+		if f := issueCreateCmd.Flags().Lookup("estimate"); f != nil {
+			f.Changed = false
+		}
+	}()
+
+	if err := issueCreateCmd.RunE(issueCreateCmd, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	input, _ := captured["input"].(map[string]any)
+	if _, ok := input["estimate"]; !ok {
+		t.Errorf("expected estimate to be sent when flag is set")
+	}
+}
+
+func TestIssueCreateCmdEstimateNotSentByDefault(t *testing.T) {
+	var captured map[string]any
+	srv := newCaptureMultiServer(t, &captured, baseCreateResponses())
+	defer srv.Close()
+
+	origFactory := newLinearClient
+	newLinearClient = func(tok string) *client.Client { return client.NewWithURL(tok, srv.URL) }
+	defer func() { newLinearClient = origFactory }()
+	token = "test-token"
+	defer func() { token = "" }()
+
+	resetCreateFlags()
+	// Do NOT set estimate flag — it should not appear in request
+	if err := issueCreateCmd.RunE(issueCreateCmd, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	input, _ := captured["input"].(map[string]any)
+	if _, ok := input["estimate"]; ok {
+		t.Errorf("expected estimate not sent when flag not set")
+	}
+}
+
+func TestIssueCreateCmdParent(t *testing.T) {
+	var captured map[string]any
+	srv := newCaptureMultiServer(t, &captured, baseCreateResponses())
+	defer srv.Close()
+
+	origFactory := newLinearClient
+	newLinearClient = func(tok string) *client.Client { return client.NewWithURL(tok, srv.URL) }
+	defer func() { newLinearClient = origFactory }()
+	token = "test-token"
+	defer func() { token = "" }()
+
+	resetCreateFlags()
+	createParent = "parent-abc"
+
+	if err := issueCreateCmd.RunE(issueCreateCmd, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	input, _ := captured["input"].(map[string]any)
+	if v, ok := input["parentId"]; !ok || v != "parent-abc" {
+		t.Errorf("expected parentId=parent-abc, got %v", input["parentId"])
+	}
+}
+
+func TestIssueCreateCmdCycleID(t *testing.T) {
+	var captured map[string]any
+	srv := newCaptureMultiServer(t, &captured, baseCreateResponses())
+	defer srv.Close()
+
+	origFactory := newLinearClient
+	newLinearClient = func(tok string) *client.Client { return client.NewWithURL(tok, srv.URL) }
+	defer func() { newLinearClient = origFactory }()
+	token = "test-token"
+	defer func() { token = "" }()
+
+	resetCreateFlags()
+	createCycleID = "cycle-xyz"
+
+	if err := issueCreateCmd.RunE(issueCreateCmd, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	input, _ := captured["input"].(map[string]any)
+	if v, ok := input["cycleId"]; !ok || v != "cycle-xyz" {
+		t.Errorf("expected cycleId=cycle-xyz, got %v", input["cycleId"])
+	}
+}
+
+func TestIssueCreateCmdProjectID(t *testing.T) {
+	var captured map[string]any
+	srv := newCaptureMultiServer(t, &captured, baseCreateResponses())
+	defer srv.Close()
+
+	origFactory := newLinearClient
+	newLinearClient = func(tok string) *client.Client { return client.NewWithURL(tok, srv.URL) }
+	defer func() { newLinearClient = origFactory }()
+	token = "test-token"
+	defer func() { token = "" }()
+
+	resetCreateFlags()
+	createProjectID = "proj-999"
+
+	if err := issueCreateCmd.RunE(issueCreateCmd, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	input, _ := captured["input"].(map[string]any)
+	if v, ok := input["projectId"]; !ok || v != "proj-999" {
+		t.Errorf("expected projectId=proj-999, got %v", input["projectId"])
+	}
+}
+
+func TestIssueCreateCmdMilestoneID(t *testing.T) {
+	var captured map[string]any
+	srv := newCaptureMultiServer(t, &captured, baseCreateResponses())
+	defer srv.Close()
+
+	origFactory := newLinearClient
+	newLinearClient = func(tok string) *client.Client { return client.NewWithURL(tok, srv.URL) }
+	defer func() { newLinearClient = origFactory }()
+	token = "test-token"
+	defer func() { token = "" }()
+
+	resetCreateFlags()
+	createMilestoneID = "ms-007"
+
+	if err := issueCreateCmd.RunE(issueCreateCmd, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	input, _ := captured["input"].(map[string]any)
+	if v, ok := input["projectMilestoneId"]; !ok || v != "ms-007" {
+		t.Errorf("expected projectMilestoneId=ms-007, got %v", input["projectMilestoneId"])
+	}
+}
+
+func TestIssueCreateCmdLabels(t *testing.T) {
+	var captured map[string]any
+	responses := baseCreateResponses()
+	responses["issueLabels"] = map[string]any{
+		"issueLabels": map[string]any{
+			"nodes": []map[string]any{
+				{"id": "lbl-1", "name": "Bug"},
+			},
+		},
+	}
+	// The labels query returns issueLabels data
+	responses["GetIssueLabels"] = map[string]any{
+		"issueLabels": map[string]any{
+			"nodes": []map[string]any{
+				{"id": "lbl-1", "name": "Bug"},
+			},
+		},
+	}
+	srv := newCaptureMultiServer(t, &captured, responses)
+	defer srv.Close()
+
+	origFactory := newLinearClient
+	newLinearClient = func(tok string) *client.Client { return client.NewWithURL(tok, srv.URL) }
+	defer func() { newLinearClient = origFactory }()
+	token = "test-token"
+	defer func() { token = "" }()
+
+	resetCreateFlags()
+	createLabels = "Bug"
+
+	if err := issueCreateCmd.RunE(issueCreateCmd, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	input, _ := captured["input"].(map[string]any)
+	rawLabels, ok := input["labelIds"]
+	if !ok {
+		t.Fatal("expected labelIds in request")
+	}
+	labels, _ := rawLabels.([]any)
+	if len(labels) != 1 {
+		t.Errorf("expected 1 label, got %v", labels)
+	}
+}
+
+func TestIssueCreateCmdState(t *testing.T) {
+	var captured map[string]any
+	responses := baseCreateResponses()
+	responses["GetWorkflowStates"] = map[string]any{
+		"workflowStates": map[string]any{
+			"nodes": []map[string]any{
+				{"id": "state-in-progress", "name": "In Progress"},
+			},
+		},
+	}
+	srv := newCaptureMultiServer(t, &captured, responses)
+	defer srv.Close()
+
+	origFactory := newLinearClient
+	newLinearClient = func(tok string) *client.Client { return client.NewWithURL(tok, srv.URL) }
+	defer func() { newLinearClient = origFactory }()
+	token = "test-token"
+	defer func() { token = "" }()
+
+	resetCreateFlags()
+	createState = "In Progress"
+
+	if err := issueCreateCmd.RunE(issueCreateCmd, []string{}); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	input, _ := captured["input"].(map[string]any)
+	if v, ok := input["stateId"]; !ok || v != "state-in-progress" {
+		t.Errorf("expected stateId=state-in-progress, got %v", input["stateId"])
+	}
+}

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/pavelvarganov/lcli/internal/client"
 	"github.com/pavelvarganov/lcli/internal/format"
@@ -14,6 +15,14 @@ var (
 	createTeam        string
 	createAssignee    string
 	createPriority    int
+	createDueDate     string
+	createEstimate    int
+	createLabels      string
+	createParent      string
+	createState       string
+	createCycleID     string
+	createProjectID   string
+	createMilestoneID string
 )
 
 var issueCreateCmd = &cobra.Command{
@@ -43,6 +52,15 @@ var issueCreateCmd = &cobra.Command{
 			Title:       createTitle,
 			Description: createDescription,
 			Priority:    createPriority,
+			DueDate:     createDueDate,
+			CycleID:     createCycleID,
+			ProjectID:   createProjectID,
+			MilestoneID: createMilestoneID,
+			ParentID:    createParent,
+		}
+
+		if cmd.Flags().Changed("estimate") {
+			input.Estimate = &createEstimate
 		}
 
 		if createAssignee != "" {
@@ -54,6 +72,29 @@ var issueCreateCmd = &cobra.Command{
 				return fmt.Errorf("пользователь %q не найден", createAssignee)
 			}
 			input.AssigneeID = user.ID
+		}
+
+		if createLabels != "" {
+			names := strings.Split(createLabels, ",")
+			for i, n := range names {
+				names[i] = strings.TrimSpace(n)
+			}
+			ids, err := c.FindLabelsByNames(team.ID, names)
+			if err != nil {
+				return fmt.Errorf("ошибка поиска меток: %w", err)
+			}
+			input.LabelIDs = ids
+		}
+
+		if createState != "" {
+			stateID, err := c.FindWorkflowStateByName(team.ID, createState)
+			if err != nil {
+				return fmt.Errorf("ошибка поиска состояния: %w", err)
+			}
+			if stateID == "" {
+				return fmt.Errorf("состояние %q не найдено", createState)
+			}
+			input.StateID = stateID
 		}
 
 		issue, err := c.CreateIssue(input)
@@ -73,6 +114,14 @@ func init() {
 	issueCreateCmd.Flags().StringVar(&createTeam, "team", "", "Ключ команды (обязательно)")
 	issueCreateCmd.Flags().StringVar(&createAssignee, "assignee", "", "Исполнитель (displayName или email)")
 	issueCreateCmd.Flags().IntVar(&createPriority, "priority", 0, "Приоритет: 1=Urgent, 2=High, 3=Medium, 4=Low")
+	issueCreateCmd.Flags().StringVar(&createDueDate, "due-date", "", "Срок выполнения (YYYY-MM-DD)")
+	issueCreateCmd.Flags().IntVar(&createEstimate, "estimate", 0, "Оценка задачи в story points")
+	issueCreateCmd.Flags().StringVar(&createLabels, "labels", "", "Метки через запятую (по имени)")
+	issueCreateCmd.Flags().StringVar(&createParent, "parent", "", "ID родительской задачи")
+	issueCreateCmd.Flags().StringVar(&createState, "state", "", "Состояние задачи (по имени)")
+	issueCreateCmd.Flags().StringVar(&createCycleID, "cycle-id", "", "ID цикла")
+	issueCreateCmd.Flags().StringVar(&createProjectID, "project-id", "", "ID проекта")
+	issueCreateCmd.Flags().StringVar(&createMilestoneID, "milestone-id", "", "ID вехи проекта")
 	_ = issueCreateCmd.MarkFlagRequired("title")
 	_ = issueCreateCmd.MarkFlagRequired("team")
 

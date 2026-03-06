@@ -55,10 +55,10 @@
 
 ### Task 2: Добавить флаги в `issues create` (cmd-слой)
 
-- [ ] добавить флаги в `cmd/issue_create.go`: `--due-date`, `--estimate`, `--labels` (comma-sep), `--parent`, `--state`, `--cycle-id`, `--project-id`, `--milestone-id`
-- [ ] добавить логику разрешения: `--labels` → `FindLabelsByNames`, `--state` → `FindWorkflowStateByName`, `--parent` → передавать как identifier напрямую
-- [ ] написать тесты в `cmd/issue_mutations_test.go` на новые флаги (success + отсутствие поля при незаданном флаге)
-- [ ] запустить `go test ./cmd/...` — все тесты зелёные
+- [x] добавить флаги в `cmd/issue_create.go`: `--due-date`, `--estimate`, `--labels` (comma-sep), `--parent`, `--state`, `--cycle-id`, `--project-id`, `--milestone-id`
+- [x] добавить логику разрешения: `--labels` → `FindLabelsByNames`, `--state` → `FindWorkflowStateByName`, `--parent` → передавать как identifier напрямую
+- [x] написать тесты в `cmd/issue_mutations_test.go` на новые флаги (success + отсутствие поля при незаданном флаге)
+- [x] запустить `go test ./cmd/...` — все тесты зелёные
 
 ### Task 3: Расширить UpdateIssueInput и клиент issues update
 
