@@ -331,6 +331,94 @@ mutation DeleteIssueLabel($id: String!) {
 	return nil
 }
 
+// getIssueLabelIDs возвращает текущие ID меток задачи.
+func (c *Client) getIssueLabelIDs(issueID string) ([]string, error) {
+	query := `
+query GetIssueLabelIDs($id: String!) {
+  issue(id: $id) {
+    labels(first: 250) {
+      nodes {
+        id
+      }
+    }
+  }
+}`
+	var result struct {
+		Issue *struct {
+			Labels struct {
+				Nodes []struct {
+					ID string `json:"id"`
+				} `json:"nodes"`
+			} `json:"labels"`
+		} `json:"issue"`
+	}
+	if err := c.Do(query, map[string]any{"id": issueID}, &result); err != nil {
+		return nil, err
+	}
+	if result.Issue == nil {
+		return nil, fmt.Errorf("задача не найдена: %s", issueID)
+	}
+	ids := make([]string, 0, len(result.Issue.Labels.Nodes))
+	for _, n := range result.Issue.Labels.Nodes {
+		ids = append(ids, n.ID)
+	}
+	return ids, nil
+}
+
+// updateIssueLabelIDs обновляет метки задачи через issueUpdate.
+func (c *Client) updateIssueLabelIDs(issueID string, labelIDs []string) error {
+	mutation := `
+mutation UpdateIssueLabels($id: String!, $input: IssueUpdateInput!) {
+  issueUpdate(id: $id, input: $input) {
+    success
+  }
+}`
+	var result struct {
+		IssueUpdate struct {
+			Success bool `json:"success"`
+		} `json:"issueUpdate"`
+	}
+	if err := c.Do(mutation, map[string]any{
+		"id":    issueID,
+		"input": map[string]any{"labelIds": labelIDs},
+	}, &result); err != nil {
+		return err
+	}
+	if !result.IssueUpdate.Success {
+		return fmt.Errorf("issueUpdate вернул success=false")
+	}
+	return nil
+}
+
+// AddLabelToIssue добавляет метку к задаче по ID метки.
+func (c *Client) AddLabelToIssue(issueID, labelID string) error {
+	currentIDs, err := c.getIssueLabelIDs(issueID)
+	if err != nil {
+		return err
+	}
+	for _, id := range currentIDs {
+		if id == labelID {
+			return nil
+		}
+	}
+	return c.updateIssueLabelIDs(issueID, append(currentIDs, labelID))
+}
+
+// RemoveLabelFromIssue удаляет метку из задачи по ID метки.
+func (c *Client) RemoveLabelFromIssue(issueID, labelID string) error {
+	currentIDs, err := c.getIssueLabelIDs(issueID)
+	if err != nil {
+		return err
+	}
+	newIDs := make([]string, 0, len(currentIDs))
+	for _, id := range currentIDs {
+		if id != labelID {
+			newIDs = append(newIDs, id)
+		}
+	}
+	return c.updateIssueLabelIDs(issueID, newIDs)
+}
+
 // FindUserByName ищет пользователя по displayName или email.
 func (c *Client) FindUserByName(name string) (*User, error) {
 	query := `

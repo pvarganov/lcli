@@ -63,11 +63,11 @@
 
 #### Task 3: Issue Labels — добавление/удаление меток на задачах
 
-- [ ] написать тесты для мутаций `issueAddLabel`, `issueRemoveLabel`
-- [ ] добавить методы `AddLabelToIssue(issueID, labelID)`, `RemoveLabelFromIssue(issueID, labelID)` в mutations.go
-- [ ] написать тесты для cmd `issues label add <ISSUE-ID> <label-name>` и `issues label remove`
-- [ ] добавить команды `issues label add` и `issues label remove` (поиск метки по имени)
-- [ ] запустить тесты — должны пройти
+- [x] написать тесты для мутаций `issueAddLabel`, `issueRemoveLabel`
+- [x] добавить методы `AddLabelToIssue(issueID, labelID)`, `RemoveLabelFromIssue(issueID, labelID)` в mutations.go
+- [x] написать тесты для cmd `issues label add <ISSUE-ID> <label-name>` и `issues label remove`
+- [x] добавить команды `issues label add` и `issues label remove` (поиск метки по имени)
+- [x] запустить тесты — должны пройти
 
 #### Task 4: Issue Relations (связи задач)
 
