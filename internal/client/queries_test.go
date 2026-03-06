@@ -2059,3 +2059,182 @@ func TestListEmojisEmpty(t *testing.T) {
 		t.Errorf("expected 0 emojis, got %d", len(emojis))
 	}
 }
+
+func TestListReleases(t *testing.T) {
+	responseData := map[string]any{
+		"releases": map[string]any{
+			"nodes": []map[string]any{
+				{
+					"id":        "rel1",
+					"name":      "v1.0.0",
+					"description": "First release",
+					"createdAt": "2024-01-01T00:00:00Z",
+					"pipeline":  map[string]any{"id": "pipe1", "name": "Main Pipeline"},
+					"stage":     map[string]any{"id": "stage1", "name": "Production", "color": "#00ff00"},
+				},
+			},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	releases, err := c.ListReleases()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(releases) != 1 {
+		t.Fatalf("expected 1 release, got %d", len(releases))
+	}
+	if releases[0].ID != "rel1" {
+		t.Errorf("expected rel1, got %s", releases[0].ID)
+	}
+	if releases[0].Name != "v1.0.0" {
+		t.Errorf("expected v1.0.0, got %s", releases[0].Name)
+	}
+	if releases[0].Pipeline == nil || releases[0].Pipeline.ID != "pipe1" {
+		t.Errorf("expected pipeline pipe1")
+	}
+}
+
+func TestListReleasesEmpty(t *testing.T) {
+	responseData := map[string]any{
+		"releases": map[string]any{
+			"nodes": []map[string]any{},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	releases, err := c.ListReleases()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(releases) != 0 {
+		t.Errorf("expected 0 releases, got %d", len(releases))
+	}
+}
+
+func TestGetRelease(t *testing.T) {
+	responseData := map[string]any{
+		"release": map[string]any{
+			"id":        "rel1",
+			"name":      "v1.0.0",
+			"description": "First release",
+			"createdAt": "2024-01-01T00:00:00Z",
+			"commitSha": "abc123",
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	release, err := c.GetRelease("rel1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if release.ID != "rel1" {
+		t.Errorf("expected rel1, got %s", release.ID)
+	}
+	if release.CommitSha != "abc123" {
+		t.Errorf("expected abc123, got %s", release.CommitSha)
+	}
+}
+
+func TestGetReleaseNotFound(t *testing.T) {
+	responseData := map[string]any{
+		"release": nil,
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	_, err := c.GetRelease("nonexistent")
+	if err == nil {
+		t.Fatal("expected error for not found release")
+	}
+}
+
+func TestSearchReleases(t *testing.T) {
+	responseData := map[string]any{
+		"releaseSearch": map[string]any{
+			"nodes": []map[string]any{
+				{
+					"id":   "rel1",
+					"name": "v1.0.0",
+				},
+			},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	releases, err := c.SearchReleases("v1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(releases) != 1 {
+		t.Fatalf("expected 1 release, got %d", len(releases))
+	}
+	if releases[0].ID != "rel1" {
+		t.Errorf("expected rel1, got %s", releases[0].ID)
+	}
+}
+
+func TestListReleasePipelines(t *testing.T) {
+	responseData := map[string]any{
+		"releasePipelines": map[string]any{
+			"nodes": []map[string]any{
+				{
+					"id":        "pipe1",
+					"name":      "Main Pipeline",
+					"slugId":    "main-pipeline",
+					"type":      "github",
+					"createdAt": "2024-01-01T00:00:00Z",
+				},
+			},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	pipelines, err := c.ListReleasePipelines()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(pipelines) != 1 {
+		t.Fatalf("expected 1 pipeline, got %d", len(pipelines))
+	}
+	if pipelines[0].ID != "pipe1" {
+		t.Errorf("expected pipe1, got %s", pipelines[0].ID)
+	}
+}
+
+func TestListReleasePipelinesEmpty(t *testing.T) {
+	responseData := map[string]any{
+		"releasePipelines": map[string]any{
+			"nodes": []map[string]any{},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	pipelines, err := c.ListReleasePipelines()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(pipelines) != 0 {
+		t.Errorf("expected 0 pipelines, got %d", len(pipelines))
+	}
+}

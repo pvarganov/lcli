@@ -1724,3 +1724,145 @@ query ListEmojis {
 	}
 	return result.Emojis.Nodes, nil
 }
+
+// Release представляет выпуск (релиз) в Linear.
+type Release struct {
+	ID          string          `json:"id"`
+	Name        string          `json:"name"`
+	Description string          `json:"description"`
+	Version     string          `json:"version"`
+	CommitSha   string          `json:"commitSha"`
+	CreatedAt   string          `json:"createdAt"`
+	CompletedAt string          `json:"completedAt"`
+	CanceledAt  string          `json:"canceledAt"`
+	Pipeline    *ReleasePipeline `json:"pipeline"`
+	Stage       *ReleaseStage   `json:"stage"`
+}
+
+// ReleasePipeline представляет пайплайн релизов в Linear.
+type ReleasePipeline struct {
+	ID        string          `json:"id"`
+	Name      string          `json:"name"`
+	SlugID    string          `json:"slugId"`
+	Type      string          `json:"type"`
+	CreatedAt string          `json:"createdAt"`
+	Stages    []ReleaseStage  `json:"stages"`
+}
+
+// ReleaseStage представляет стадию в пайплайне релизов.
+type ReleaseStage struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Color    string `json:"color"`
+	Position float64 `json:"position"`
+	Frozen   bool   `json:"frozen"`
+	Type     string `json:"type"`
+}
+
+// ListReleases возвращает список релизов.
+func (c *Client) ListReleases() ([]Release, error) {
+	query := `
+query ListReleases {
+  releases {
+    nodes {
+      id
+      name
+      description
+      createdAt
+      completedAt
+      canceledAt
+      pipeline { id name }
+      stage { id name color }
+    }
+  }
+}`
+	var result struct {
+		Releases struct {
+			Nodes []Release `json:"nodes"`
+		} `json:"releases"`
+	}
+	if err := c.Do(query, nil, &result); err != nil {
+		return nil, err
+	}
+	return result.Releases.Nodes, nil
+}
+
+// GetRelease возвращает релиз по ID.
+func (c *Client) GetRelease(id string) (*Release, error) {
+	query := `
+query GetRelease($id: String!) {
+  release(id: $id) {
+    id
+    name
+    description
+    createdAt
+    completedAt
+    canceledAt
+    commitSha
+    pipeline { id name }
+    stage { id name color }
+  }
+}`
+	var result struct {
+		Release *Release `json:"release"`
+	}
+	if err := c.Do(query, map[string]any{"id": id}, &result); err != nil {
+		return nil, err
+	}
+	if result.Release == nil {
+		return nil, fmt.Errorf("релиз не найден: %s", id)
+	}
+	return result.Release, nil
+}
+
+// SearchReleases ищет релизы по строке запроса.
+func (c *Client) SearchReleases(q string) ([]Release, error) {
+	query := `
+query SearchReleases($term: String!) {
+  releaseSearch(term: $term) {
+    nodes {
+      id
+      name
+      description
+      createdAt
+      completedAt
+      pipeline { id name }
+      stage { id name color }
+    }
+  }
+}`
+	var result struct {
+		ReleaseSearch struct {
+			Nodes []Release `json:"nodes"`
+		} `json:"releaseSearch"`
+	}
+	if err := c.Do(query, map[string]any{"term": q}, &result); err != nil {
+		return nil, err
+	}
+	return result.ReleaseSearch.Nodes, nil
+}
+
+// ListReleasePipelines возвращает список пайплайнов релизов.
+func (c *Client) ListReleasePipelines() ([]ReleasePipeline, error) {
+	query := `
+query ListReleasePipelines {
+  releasePipelines {
+    nodes {
+      id
+      name
+      slugId
+      type
+      createdAt
+    }
+  }
+}`
+	var result struct {
+		ReleasePipelines struct {
+			Nodes []ReleasePipeline `json:"nodes"`
+		} `json:"releasePipelines"`
+	}
+	if err := c.Do(query, nil, &result); err != nil {
+		return nil, err
+	}
+	return result.ReleasePipelines.Nodes, nil
+}

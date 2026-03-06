@@ -470,16 +470,16 @@
 
 #### Task 35: Releases — CRUD + Pipelines
 
-- [ ] добавить типы `Release`, `ReleasePipeline`, `ReleaseStage` в queries.go
-- [ ] написать тесты для `ListReleases()`, `ListReleasePipelines()`, `SearchReleases(query)`
-- [ ] добавить методы в queries.go
-- [ ] написать тесты для мутаций `releaseCreate`, `releaseUpdate`, `releaseDelete`, `releaseComplete`
-- [ ] добавить методы в mutations.go
-- [ ] написать тесты для мутаций `releasePipelineCreate`, `releasePipelineUpdate`, `releasePipelineDelete`
-- [ ] добавить методы в mutations.go
-- [ ] написать тесты для cmd `releases list`, `releases view <ID>`, `releases create`, `releases complete <ID>`, `releases pipelines list`, `releases pipelines create`
-- [ ] добавить команды в `cmd/releases.go`
-- [ ] запустить тесты — должны пройти
+- [x] добавить типы `Release`, `ReleasePipeline`, `ReleaseStage` в queries.go
+- [x] написать тесты для `ListReleases()`, `ListReleasePipelines()`, `SearchReleases(query)`
+- [x] добавить методы в queries.go
+- [x] написать тесты для мутаций `releaseCreate`, `releaseUpdate`, `releaseDelete`, `releaseComplete`
+- [x] добавить методы в mutations.go
+- [x] написать тесты для мутаций `releasePipelineCreate`, `releasePipelineUpdate`, `releasePipelineDelete`
+- [x] добавить методы в mutations.go
+- [x] написать тесты для cmd `releases list`, `releases view <ID>`, `releases create`, `releases complete <ID>`, `releases pipelines list`, `releases pipelines create`
+- [x] добавить команды в `cmd/releases.go`
+- [x] запустить тесты — должны пройти
 
 ---
 

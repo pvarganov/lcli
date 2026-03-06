@@ -3726,3 +3726,207 @@ mutation EmojiDelete($id: String!) {
 	}
 	return nil
 }
+
+// CreateRelease создаёт новый релиз.
+func (c *Client) CreateRelease(name, pipelineID, description, version string) (*Release, error) {
+	mutation := `
+mutation ReleaseCreate($input: ReleaseCreateInput!) {
+  releaseCreate(input: $input) {
+    success
+    release {
+      id
+      name
+      description
+      createdAt
+      pipeline { id name }
+      stage { id name }
+    }
+  }
+}`
+	input := map[string]any{"name": name}
+	if pipelineID != "" {
+		input["pipelineId"] = pipelineID
+	}
+	if description != "" {
+		input["description"] = description
+	}
+	if version != "" {
+		input["version"] = version
+	}
+	var result struct {
+		ReleaseCreate struct {
+			Release Release `json:"release"`
+			Success bool    `json:"success"`
+		} `json:"releaseCreate"`
+	}
+	if err := c.Do(mutation, map[string]any{"input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.ReleaseCreate.Success {
+		return nil, fmt.Errorf("releaseCreate вернул success=false")
+	}
+	return &result.ReleaseCreate.Release, nil
+}
+
+// UpdateRelease обновляет релиз.
+func (c *Client) UpdateRelease(id string, input map[string]any) (*Release, error) {
+	mutation := `
+mutation ReleaseUpdate($id: String!, $input: ReleaseUpdateInput!) {
+  releaseUpdate(id: $id, input: $input) {
+    success
+    release {
+      id
+      name
+      description
+      createdAt
+      pipeline { id name }
+      stage { id name }
+    }
+  }
+}`
+	var result struct {
+		ReleaseUpdate struct {
+			Release Release `json:"release"`
+			Success bool    `json:"success"`
+		} `json:"releaseUpdate"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id, "input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.ReleaseUpdate.Success {
+		return nil, fmt.Errorf("releaseUpdate вернул success=false")
+	}
+	return &result.ReleaseUpdate.Release, nil
+}
+
+// DeleteRelease удаляет релиз по ID.
+func (c *Client) DeleteRelease(id string) error {
+	mutation := `
+mutation ReleaseDelete($id: String!) {
+  releaseDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		ReleaseDelete struct {
+			Success bool `json:"success"`
+		} `json:"releaseDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.ReleaseDelete.Success {
+		return fmt.Errorf("releaseDelete вернул success=false")
+	}
+	return nil
+}
+
+// CompleteRelease завершает релиз.
+func (c *Client) CompleteRelease(id string) (*Release, error) {
+	mutation := `
+mutation ReleaseComplete($id: String!) {
+  releaseComplete(id: $id) {
+    success
+    release {
+      id
+      name
+      completedAt
+    }
+  }
+}`
+	var result struct {
+		ReleaseComplete struct {
+			Release Release `json:"release"`
+			Success bool    `json:"success"`
+		} `json:"releaseComplete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return nil, err
+	}
+	if !result.ReleaseComplete.Success {
+		return nil, fmt.Errorf("releaseComplete вернул success=false")
+	}
+	return &result.ReleaseComplete.Release, nil
+}
+
+// CreateReleasePipeline создаёт новый пайплайн релизов.
+func (c *Client) CreateReleasePipeline(name string) (*ReleasePipeline, error) {
+	mutation := `
+mutation ReleasePipelineCreate($input: ReleasePipelineCreateInput!) {
+  releasePipelineCreate(input: $input) {
+    success
+    releasePipeline {
+      id
+      name
+      slugId
+      type
+      createdAt
+    }
+  }
+}`
+	var result struct {
+		ReleasePipelineCreate struct {
+			ReleasePipeline ReleasePipeline `json:"releasePipeline"`
+			Success         bool            `json:"success"`
+		} `json:"releasePipelineCreate"`
+	}
+	if err := c.Do(mutation, map[string]any{"input": map[string]any{"name": name}}, &result); err != nil {
+		return nil, err
+	}
+	if !result.ReleasePipelineCreate.Success {
+		return nil, fmt.Errorf("releasePipelineCreate вернул success=false")
+	}
+	return &result.ReleasePipelineCreate.ReleasePipeline, nil
+}
+
+// UpdateReleasePipeline обновляет пайплайн релизов.
+func (c *Client) UpdateReleasePipeline(id, name string) (*ReleasePipeline, error) {
+	mutation := `
+mutation ReleasePipelineUpdate($id: String!, $input: ReleasePipelineUpdateInput!) {
+  releasePipelineUpdate(id: $id, input: $input) {
+    success
+    releasePipeline {
+      id
+      name
+      slugId
+      type
+      createdAt
+    }
+  }
+}`
+	var result struct {
+		ReleasePipelineUpdate struct {
+			ReleasePipeline ReleasePipeline `json:"releasePipeline"`
+			Success         bool            `json:"success"`
+		} `json:"releasePipelineUpdate"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id, "input": map[string]any{"name": name}}, &result); err != nil {
+		return nil, err
+	}
+	if !result.ReleasePipelineUpdate.Success {
+		return nil, fmt.Errorf("releasePipelineUpdate вернул success=false")
+	}
+	return &result.ReleasePipelineUpdate.ReleasePipeline, nil
+}
+
+// DeleteReleasePipeline удаляет пайплайн релизов.
+func (c *Client) DeleteReleasePipeline(id string) error {
+	mutation := `
+mutation ReleasePipelineDelete($id: String!) {
+  releasePipelineDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		ReleasePipelineDelete struct {
+			Success bool `json:"success"`
+		} `json:"releasePipelineDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.ReleasePipelineDelete.Success {
+		return fmt.Errorf("releasePipelineDelete вернул success=false")
+	}
+	return nil
+}

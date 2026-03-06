@@ -3203,3 +3203,166 @@ func TestDeleteEmoji(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
+
+func TestCreateRelease(t *testing.T) {
+	responseData := map[string]any{
+		"releaseCreate": map[string]any{
+			"success": true,
+			"release": map[string]any{
+				"id":        "rel1",
+				"name":      "v1.0.0",
+				"createdAt": "2024-01-01T00:00:00Z",
+			},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	release, err := c.CreateRelease("v1.0.0", "pipe1", "First release", "1.0.0")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if release.ID != "rel1" {
+		t.Errorf("expected rel1, got %s", release.ID)
+	}
+	if release.Name != "v1.0.0" {
+		t.Errorf("expected v1.0.0, got %s", release.Name)
+	}
+}
+
+func TestUpdateRelease(t *testing.T) {
+	responseData := map[string]any{
+		"releaseUpdate": map[string]any{
+			"success": true,
+			"release": map[string]any{
+				"id":   "rel1",
+				"name": "v1.0.1",
+			},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	release, err := c.UpdateRelease("rel1", map[string]any{"name": "v1.0.1"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if release.Name != "v1.0.1" {
+		t.Errorf("expected v1.0.1, got %s", release.Name)
+	}
+}
+
+func TestDeleteRelease(t *testing.T) {
+	responseData := map[string]any{
+		"releaseDelete": map[string]any{
+			"success": true,
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	if err := c.DeleteRelease("rel1"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestCompleteRelease(t *testing.T) {
+	responseData := map[string]any{
+		"releaseComplete": map[string]any{
+			"success": true,
+			"release": map[string]any{
+				"id":          "rel1",
+				"name":        "v1.0.0",
+				"completedAt": "2024-06-01T00:00:00Z",
+			},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	release, err := c.CompleteRelease("rel1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if release.CompletedAt == "" {
+		t.Errorf("expected completedAt to be set")
+	}
+}
+
+func TestCreateReleasePipeline(t *testing.T) {
+	responseData := map[string]any{
+		"releasePipelineCreate": map[string]any{
+			"success": true,
+			"releasePipeline": map[string]any{
+				"id":        "pipe1",
+				"name":      "Main Pipeline",
+				"slugId":    "main-pipeline",
+				"type":      "github",
+				"createdAt": "2024-01-01T00:00:00Z",
+			},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	pipeline, err := c.CreateReleasePipeline("Main Pipeline")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if pipeline.ID != "pipe1" {
+		t.Errorf("expected pipe1, got %s", pipeline.ID)
+	}
+	if pipeline.Name != "Main Pipeline" {
+		t.Errorf("expected Main Pipeline, got %s", pipeline.Name)
+	}
+}
+
+func TestUpdateReleasePipeline(t *testing.T) {
+	responseData := map[string]any{
+		"releasePipelineUpdate": map[string]any{
+			"success": true,
+			"releasePipeline": map[string]any{
+				"id":   "pipe1",
+				"name": "Updated Pipeline",
+			},
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	pipeline, err := c.UpdateReleasePipeline("pipe1", "Updated Pipeline")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if pipeline.Name != "Updated Pipeline" {
+		t.Errorf("expected Updated Pipeline, got %s", pipeline.Name)
+	}
+}
+
+func TestDeleteReleasePipeline(t *testing.T) {
+	responseData := map[string]any{
+		"releasePipelineDelete": map[string]any{
+			"success": true,
+		},
+	}
+
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	if err := c.DeleteReleasePipeline("pipe1"); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
