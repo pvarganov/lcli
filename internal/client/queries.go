@@ -1017,3 +1017,94 @@ query ListAttachments($id: String!) {
 	}
 	return result.Issue.Attachments.Nodes, nil
 }
+
+// Document представляет документ Linear.
+type Document struct {
+	ID        string    `json:"id"`
+	Title     string    `json:"title"`
+	Content   string    `json:"content"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+	Project   *Project  `json:"project"`
+	Creator   *User     `json:"creator"`
+}
+
+// ListDocuments возвращает список документов организации.
+func (c *Client) ListDocuments() ([]Document, error) {
+	query := `
+query {
+  documents {
+    nodes {
+      id
+      title
+      content
+      createdAt
+      updatedAt
+      project { id name }
+      creator { id name displayName }
+    }
+  }
+}`
+	var result struct {
+		Documents struct {
+			Nodes []Document `json:"nodes"`
+		} `json:"documents"`
+	}
+	if err := c.Do(query, nil, &result); err != nil {
+		return nil, err
+	}
+	return result.Documents.Nodes, nil
+}
+
+// GetDocument возвращает документ по ID.
+func (c *Client) GetDocument(id string) (*Document, error) {
+	query := `
+query GetDocument($id: String!) {
+  document(id: $id) {
+    id
+    title
+    content
+    createdAt
+    updatedAt
+    project { id name }
+    creator { id name displayName }
+  }
+}`
+	var result struct {
+		Document *Document `json:"document"`
+	}
+	if err := c.Do(query, map[string]any{"id": id}, &result); err != nil {
+		return nil, err
+	}
+	if result.Document == nil {
+		return nil, fmt.Errorf("документ %q не найден", id)
+	}
+	return result.Document, nil
+}
+
+// SearchDocuments выполняет поиск документов по запросу.
+func (c *Client) SearchDocuments(query string) ([]Document, error) {
+	gqlQuery := `
+query SearchDocuments($query: String!) {
+  searchDocuments(query: $query) {
+    nodes {
+      id
+      title
+      content
+      createdAt
+      updatedAt
+      project { id name }
+      creator { id name displayName }
+    }
+  }
+}`
+	var result struct {
+		SearchDocuments struct {
+			Nodes []Document `json:"nodes"`
+		} `json:"searchDocuments"`
+	}
+	if err := c.Do(gqlQuery, map[string]any{"query": query}, &result); err != nil {
+		return nil, err
+	}
+	return result.SearchDocuments.Nodes, nil
+}

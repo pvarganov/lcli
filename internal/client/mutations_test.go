@@ -2432,3 +2432,87 @@ func TestAttachmentUpdate(t *testing.T) {
 		t.Errorf("expected title 'Updated title', got %s", att.Title)
 	}
 }
+
+func TestCreateDocument(t *testing.T) {
+	responseData := map[string]any{
+		"documentCreate": map[string]any{
+			"success": true,
+			"document": map[string]any{
+				"id":      "doc1",
+				"title":   "New Doc",
+				"content": "# Content",
+			},
+		},
+	}
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	doc, err := c.CreateDocument("New Doc", "# Content", "")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if doc.ID != "doc1" {
+		t.Errorf("expected id doc1, got %s", doc.ID)
+	}
+	if doc.Title != "New Doc" {
+		t.Errorf("expected title 'New Doc', got %s", doc.Title)
+	}
+}
+
+func TestCreateDocumentFailure(t *testing.T) {
+	responseData := map[string]any{
+		"documentCreate": map[string]any{
+			"success":  false,
+			"document": nil,
+		},
+	}
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	_, err := c.CreateDocument("New Doc", "", "")
+	if err == nil {
+		t.Fatal("expected error for failed document create")
+	}
+}
+
+func TestUpdateDocument(t *testing.T) {
+	responseData := map[string]any{
+		"documentUpdate": map[string]any{
+			"success": true,
+			"document": map[string]any{
+				"id":      "doc1",
+				"title":   "Updated Doc",
+				"content": "# Updated",
+			},
+		},
+	}
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	doc, err := c.UpdateDocument("doc1", map[string]any{"title": "Updated Doc"})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if doc.Title != "Updated Doc" {
+		t.Errorf("expected title 'Updated Doc', got %s", doc.Title)
+	}
+}
+
+func TestDeleteDocument(t *testing.T) {
+	responseData := map[string]any{
+		"documentDelete": map[string]any{
+			"success": true,
+		},
+	}
+	srv := newMutationTestServer(t, responseData)
+	defer srv.Close()
+
+	c := NewWithURL("test-token", srv.URL)
+	err := c.DeleteDocument("doc1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}

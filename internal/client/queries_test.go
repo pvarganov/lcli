@@ -1358,3 +1358,130 @@ func TestListAttachmentsEmpty(t *testing.T) {
 		t.Errorf("expected 0 attachments, got %d", len(attachments))
 	}
 }
+
+func TestListDocuments(t *testing.T) {
+	responseData := map[string]any{
+		"documents": map[string]any{
+			"nodes": []map[string]any{
+				{
+					"id":      "doc1",
+					"title":   "Getting Started",
+					"content": "# Hello",
+				},
+			},
+		},
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	docs, err := c.ListDocuments()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(docs) != 1 {
+		t.Fatalf("expected 1 document, got %d", len(docs))
+	}
+	if docs[0].ID != "doc1" {
+		t.Errorf("expected id doc1, got %q", docs[0].ID)
+	}
+	if docs[0].Title != "Getting Started" {
+		t.Errorf("expected title 'Getting Started', got %q", docs[0].Title)
+	}
+}
+
+func TestListDocumentsEmpty(t *testing.T) {
+	responseData := map[string]any{
+		"documents": map[string]any{
+			"nodes": []map[string]any{},
+		},
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	docs, err := c.ListDocuments()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(docs) != 0 {
+		t.Errorf("expected 0 documents, got %d", len(docs))
+	}
+}
+
+func TestGetDocument(t *testing.T) {
+	responseData := map[string]any{
+		"document": map[string]any{
+			"id":      "doc1",
+			"title":   "Getting Started",
+			"content": "# Hello",
+		},
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	doc, err := c.GetDocument("doc1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if doc.ID != "doc1" {
+		t.Errorf("expected id doc1, got %q", doc.ID)
+	}
+}
+
+func TestGetDocumentNotFound(t *testing.T) {
+	responseData := map[string]any{
+		"document": nil,
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	_, err := c.GetDocument("nonexistent")
+	if err == nil {
+		t.Fatal("expected error for not found document")
+	}
+}
+
+func TestSearchDocuments(t *testing.T) {
+	responseData := map[string]any{
+		"searchDocuments": map[string]any{
+			"nodes": []map[string]any{
+				{
+					"id":    "doc1",
+					"title": "Getting Started",
+				},
+			},
+		},
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+	}))
+	defer srv.Close()
+
+	c := NewWithURL("token", srv.URL)
+	docs, err := c.SearchDocuments("getting")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(docs) != 1 {
+		t.Fatalf("expected 1 document, got %d", len(docs))
+	}
+	if docs[0].ID != "doc1" {
+		t.Errorf("expected id doc1, got %q", docs[0].ID)
+	}
+}

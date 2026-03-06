@@ -2341,3 +2341,96 @@ mutation AttachmentUpdate($id: String!, $input: AttachmentUpdateInput!) {
 	}
 	return &result.AttachmentUpdate.Attachment, nil
 }
+
+// CreateDocument создаёт новый документ.
+func (c *Client) CreateDocument(title, content, projectID string) (*Document, error) {
+	mutation := `
+mutation DocumentCreate($input: DocumentCreateInput!) {
+  documentCreate(input: $input) {
+    success
+    document {
+      id
+      title
+      content
+      createdAt
+      updatedAt
+      project { id name }
+      creator { id name displayName }
+    }
+  }
+}`
+	input := map[string]any{
+		"title":   title,
+		"content": content,
+	}
+	if projectID != "" {
+		input["projectId"] = projectID
+	}
+	var result struct {
+		DocumentCreate struct {
+			Document Document `json:"document"`
+			Success  bool     `json:"success"`
+		} `json:"documentCreate"`
+	}
+	if err := c.Do(mutation, map[string]any{"input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.DocumentCreate.Success {
+		return nil, fmt.Errorf("documentCreate вернул success=false")
+	}
+	return &result.DocumentCreate.Document, nil
+}
+
+// UpdateDocument обновляет документ по ID.
+func (c *Client) UpdateDocument(id string, input map[string]any) (*Document, error) {
+	mutation := `
+mutation DocumentUpdate($id: String!, $input: DocumentUpdateInput!) {
+  documentUpdate(id: $id, input: $input) {
+    success
+    document {
+      id
+      title
+      content
+      createdAt
+      updatedAt
+      project { id name }
+      creator { id name displayName }
+    }
+  }
+}`
+	var result struct {
+		DocumentUpdate struct {
+			Document Document `json:"document"`
+			Success  bool     `json:"success"`
+		} `json:"documentUpdate"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id, "input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.DocumentUpdate.Success {
+		return nil, fmt.Errorf("documentUpdate вернул success=false")
+	}
+	return &result.DocumentUpdate.Document, nil
+}
+
+// DeleteDocument удаляет документ по ID.
+func (c *Client) DeleteDocument(id string) error {
+	mutation := `
+mutation DocumentDelete($id: String!) {
+  documentDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		DocumentDelete struct {
+			Success bool `json:"success"`
+		} `json:"documentDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.DocumentDelete.Success {
+		return fmt.Errorf("documentDelete вернул success=false")
+	}
+	return nil
+}

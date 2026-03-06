@@ -309,14 +309,14 @@
 
 #### Task 24: Documents — CRUD + Search
 
-- [ ] добавить тип `Document` в queries.go (id, title, content, createdAt, updatedAt, project, creator)
-- [ ] написать тесты для `ListDocuments()`, `GetDocument(id)`, `SearchDocuments(query)`
-- [ ] добавить методы в queries.go
-- [ ] написать тесты для мутаций `documentCreate`, `documentUpdate`, `documentDelete`
-- [ ] добавить методы в mutations.go
-- [ ] написать тесты для cmd `documents list`, `documents view <ID>`, `documents create`, `documents update <ID>`, `documents delete <ID>`, `documents search <query>`
-- [ ] добавить команды в `cmd/documents.go`
-- [ ] запустить тесты — должны пройти
+- [x] добавить тип `Document` в queries.go (id, title, content, createdAt, updatedAt, project, creator)
+- [x] написать тесты для `ListDocuments()`, `GetDocument(id)`, `SearchDocuments(query)`
+- [x] добавить методы в queries.go
+- [x] написать тесты для мутаций `documentCreate`, `documentUpdate`, `documentDelete`
+- [x] добавить методы в mutations.go
+- [x] написать тесты для cmd `documents list`, `documents view <ID>`, `documents create`, `documents update <ID>`, `documents delete <ID>`, `documents search <query>`
+- [x] добавить команды в `cmd/documents.go`
+- [x] запустить тесты — должны пройти
 
 ---
 
