@@ -177,7 +177,7 @@ query ListComments($issueId: String!) {
 }`
 
 	var result struct {
-		Issue struct {
+		Issue *struct {
 			Comments struct {
 				Nodes []Comment `json:"nodes"`
 			} `json:"comments"`
@@ -185,6 +185,9 @@ query ListComments($issueId: String!) {
 	}
 	if err := c.Do(query, map[string]any{"issueId": issueID}, &result); err != nil {
 		return nil, err
+	}
+	if result.Issue == nil {
+		return nil, fmt.Errorf("задача не найдена: %s", issueID)
 	}
 	return result.Issue.Comments.Nodes, nil
 }

@@ -24,12 +24,11 @@ func init() {
 }
 
 // GetToken возвращает токен: сначала флаг --token, затем env LINEAR_API_KEY и файл конфига.
-func GetToken() string {
+func GetToken() (string, error) {
 	if token != "" {
-		return token
+		return token, nil
 	}
-	t, _ := config.LoadToken()
-	return t
+	return config.LoadToken()
 }
 
 // GetOutputFormat возвращает текущий формат вывода.

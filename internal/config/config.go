@@ -26,7 +26,7 @@ func LoadToken() (string, error) {
 
 	path, err := ConfigFilePath()
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	data, err := os.ReadFile(path)

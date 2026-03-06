@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 )
 
 const linearAPIURL = "https://api.linear.app/graphql"
@@ -41,7 +42,7 @@ type Client struct {
 // New создаёт новый Client с заданным токеном.
 func New(token string) *Client {
 	return &Client{
-		httpClient: &http.Client{},
+		httpClient: &http.Client{Timeout: 30 * time.Second},
 		token:      token,
 		url:        linearAPIURL,
 	}
@@ -50,7 +51,7 @@ func New(token string) *Client {
 // NewWithURL создаёт Client с произвольным URL (для тестов).
 func NewWithURL(token, url string) *Client {
 	return &Client{
-		httpClient: &http.Client{},
+		httpClient: &http.Client{Timeout: 30 * time.Second},
 		token:      token,
 		url:        url,
 	}

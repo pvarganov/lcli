@@ -17,7 +17,10 @@ var projectsListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "Список проектов",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		t := GetToken()
+		t, err := GetToken()
+		if err != nil {
+			return fmt.Errorf("ошибка загрузки токена: %w", err)
+		}
 		if t == "" {
 			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
 		}
@@ -44,11 +47,11 @@ var projectsListCmd = &cobra.Command{
 		headers := []string{"ID", "NAME", "STATE", "DESCRIPTION"}
 		rows := make([][]string, 0, len(projects))
 		for _, p := range projects {
-			desc := p.Description
+			desc := format.StripControlChars(p.Description)
 			if len(desc) > 60 {
 				desc = desc[:57] + "..."
 			}
-			rows = append(rows, []string{p.ID, p.Name, p.State, desc})
+			rows = append(rows, []string{p.ID, format.StripControlChars(p.Name), format.StripControlChars(p.State), desc})
 		}
 		format.TableWriter(out, headers, rows)
 		return nil

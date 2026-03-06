@@ -31,7 +31,10 @@ var issuesListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "Список задач",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		t := GetToken()
+		t, err := GetToken()
+		if err != nil {
+			return fmt.Errorf("ошибка загрузки токена: %w", err)
+		}
 		if t == "" {
 			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
 		}
@@ -66,11 +69,11 @@ var issuesListCmd = &cobra.Command{
 		for _, issue := range issues {
 			assignee := ""
 			if issue.Assignee != nil {
-				assignee = issue.Assignee.DisplayName
+				assignee = format.StripControlChars(issue.Assignee.DisplayName)
 			}
 			rows = append(rows, []string{
 				issue.Identifier,
-				issue.Title,
+				format.StripControlChars(issue.Title),
 				format.ColorStatus(issue.State.Name, issue.State.Type),
 				assignee,
 				client.PriorityLabel(issue.Priority),

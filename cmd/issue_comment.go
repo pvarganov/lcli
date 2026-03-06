@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/pavelvarganov/lcli/internal/format"
 	"github.com/spf13/cobra"
 )
 
@@ -15,7 +16,10 @@ var issueCommentCmd = &cobra.Command{
 	Short: "Добавить комментарий к задаче",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		t := GetToken()
+		t, err := GetToken()
+		if err != nil {
+			return fmt.Errorf("ошибка загрузки токена: %w", err)
+		}
 		if t == "" {
 			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
 		}
@@ -37,7 +41,10 @@ var issueCommentsCmd = &cobra.Command{
 	Short: "Список комментариев к задаче",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		t := GetToken()
+		t, err := GetToken()
+		if err != nil {
+			return fmt.Errorf("ошибка загрузки токена: %w", err)
+		}
 		if t == "" {
 			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
 		}
@@ -64,11 +71,11 @@ var issueCommentsCmd = &cobra.Command{
 		for _, cm := range comments {
 			author := "unknown"
 			if cm.User != nil {
-				author = cm.User.DisplayName
+				author = format.StripControlChars(cm.User.DisplayName)
 			}
 			fmt.Fprintf(out, "%s  %s\n", cm.CreatedAt.Format("2006-01-02 15:04"), author)
 			fmt.Fprintln(out, strings.Repeat("─", 60))
-			fmt.Fprintln(out, cm.Body)
+			fmt.Fprintln(out, format.StripControlChars(cm.Body))
 			fmt.Fprintln(out)
 		}
 		return nil

@@ -17,7 +17,10 @@ var teamsListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "Список команд",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		t := GetToken()
+		t, err := GetToken()
+		if err != nil {
+			return fmt.Errorf("ошибка загрузки токена: %w", err)
+		}
 		if t == "" {
 			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
 		}
@@ -44,7 +47,7 @@ var teamsListCmd = &cobra.Command{
 		headers := []string{"ID", "KEY", "NAME"}
 		rows := make([][]string, 0, len(teams))
 		for _, team := range teams {
-			rows = append(rows, []string{team.ID, team.Key, team.Name})
+			rows = append(rows, []string{team.ID, format.StripControlChars(team.Key), format.StripControlChars(team.Name)})
 		}
 		format.TableWriter(out, headers, rows)
 		return nil

@@ -19,7 +19,10 @@ var issueUpdateCmd = &cobra.Command{
 	Short: "Обновить задачу",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		t := GetToken()
+		t, err := GetToken()
+		if err != nil {
+			return fmt.Errorf("ошибка загрузки токена: %w", err)
+		}
 		if t == "" {
 			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
 		}

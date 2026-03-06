@@ -135,5 +135,5 @@ make build
 
 ## Требования
 
-- Go 1.21+
+- Go 1.25+
 - Linear API-токен

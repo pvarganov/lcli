@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/pavelvarganov/lcli/internal/client"
+	"github.com/pavelvarganov/lcli/internal/format"
 	"github.com/spf13/cobra"
 )
 
@@ -19,7 +20,10 @@ var issueViewCmd = &cobra.Command{
 	Short: "Показать детали задачи",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		t := GetToken()
+		t, err := GetToken()
+		if err != nil {
+			return fmt.Errorf("ошибка загрузки токена: %w", err)
+		}
 		if t == "" {
 			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
 		}
@@ -38,20 +42,20 @@ var issueViewCmd = &cobra.Command{
 			return enc.Encode(issue)
 		}
 
-		fmt.Fprintf(out, "%s  %s\n", issue.Identifier, issue.Title)
+		fmt.Fprintf(out, "%s  %s\n", issue.Identifier, format.StripControlChars(issue.Title))
 		fmt.Fprintln(out, strings.Repeat("─", 60))
-		fmt.Fprintf(out, "Статус:     %s\n", issue.State.Name)
+		fmt.Fprintf(out, "Статус:     %s\n", format.StripControlChars(issue.State.Name))
 		fmt.Fprintf(out, "Приоритет:  %s\n", client.PriorityLabel(issue.Priority))
 		if issue.Assignee != nil {
-			fmt.Fprintf(out, "Исполнитель: %s\n", issue.Assignee.DisplayName)
+			fmt.Fprintf(out, "Исполнитель: %s\n", format.StripControlChars(issue.Assignee.DisplayName))
 		} else {
 			fmt.Fprintln(out, "Исполнитель: —")
 		}
-		fmt.Fprintf(out, "Команда:    %s\n", issue.Team.Name)
+		fmt.Fprintf(out, "Команда:    %s\n", format.StripControlChars(issue.Team.Name))
 		fmt.Fprintf(out, "Обновлено:  %s\n", issue.UpdatedAt.Format("2006-01-02 15:04"))
 		if issue.Description != "" {
 			fmt.Fprintln(out, strings.Repeat("─", 60))
-			fmt.Fprintln(out, issue.Description)
+			fmt.Fprintln(out, format.StripControlChars(issue.Description))
 		}
 		return nil
 	},
