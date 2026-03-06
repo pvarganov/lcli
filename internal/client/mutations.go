@@ -1558,3 +1558,107 @@ mutation DeleteProjectRelation($id: String!) {
 	}
 	return nil
 }
+
+// CreateCycle создаёт новый цикл (спринт) для команды.
+func (c *Client) CreateCycle(teamID, name, startsAt, endsAt string) (*Cycle, error) {
+	mutation := `
+mutation CreateCycle($input: CycleCreateInput!) {
+  cycleCreate(input: $input) {
+    success
+    cycle {
+      id
+      number
+      name
+      startsAt
+      endsAt
+      completedAt
+      team { id key name }
+    }
+  }
+}`
+	input := map[string]any{
+		"teamId":   teamID,
+		"startsAt": startsAt,
+		"endsAt":   endsAt,
+	}
+	if name != "" {
+		input["name"] = name
+	}
+	var result struct {
+		CycleCreate struct {
+			Cycle   Cycle `json:"cycle"`
+			Success bool  `json:"success"`
+		} `json:"cycleCreate"`
+	}
+	if err := c.Do(mutation, map[string]any{"input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.CycleCreate.Success {
+		return nil, fmt.Errorf("cycleCreate вернул success=false")
+	}
+	return &result.CycleCreate.Cycle, nil
+}
+
+// UpdateCycle обновляет цикл по ID.
+func (c *Client) UpdateCycle(id, name, startsAt, endsAt string) (*Cycle, error) {
+	mutation := `
+mutation UpdateCycle($id: String!, $input: CycleUpdateInput!) {
+  cycleUpdate(id: $id, input: $input) {
+    success
+    cycle {
+      id
+      number
+      name
+      startsAt
+      endsAt
+      completedAt
+      team { id key name }
+    }
+  }
+}`
+	input := map[string]any{}
+	if name != "" {
+		input["name"] = name
+	}
+	if startsAt != "" {
+		input["startsAt"] = startsAt
+	}
+	if endsAt != "" {
+		input["endsAt"] = endsAt
+	}
+	var result struct {
+		CycleUpdate struct {
+			Cycle   Cycle `json:"cycle"`
+			Success bool  `json:"success"`
+		} `json:"cycleUpdate"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id, "input": input}, &result); err != nil {
+		return nil, err
+	}
+	if !result.CycleUpdate.Success {
+		return nil, fmt.Errorf("cycleUpdate вернул success=false")
+	}
+	return &result.CycleUpdate.Cycle, nil
+}
+
+// ArchiveCycle архивирует цикл по ID.
+func (c *Client) ArchiveCycle(id string) error {
+	mutation := `
+mutation ArchiveCycle($id: String!) {
+  cycleArchive(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		CycleArchive struct {
+			Success bool `json:"success"`
+		} `json:"cycleArchive"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.CycleArchive.Success {
+		return fmt.Errorf("cycleArchive вернул success=false")
+	}
+	return nil
+}

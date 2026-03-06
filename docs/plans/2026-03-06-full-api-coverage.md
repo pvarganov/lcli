@@ -207,11 +207,11 @@
 
 #### Task 17: Cycles — Mutations
 
-- [ ] написать тесты для мутаций `cycleCreate`, `cycleUpdate`, `cycleArchive`
-- [ ] добавить методы `CreateCycle`, `UpdateCycle`, `ArchiveCycle` в mutations.go
-- [ ] написать тесты для cmd `cycles create`, `cycles update <ID>`, `cycles archive <ID>`
-- [ ] добавить команды в `cmd/cycles.go`
-- [ ] запустить тесты — должны пройти
+- [x] написать тесты для мутаций `cycleCreate`, `cycleUpdate`, `cycleArchive`
+- [x] добавить методы `CreateCycle`, `UpdateCycle`, `ArchiveCycle` в mutations.go
+- [x] написать тесты для cmd `cycles create`, `cycles update <ID>`, `cycles archive <ID>`
+- [x] добавить команды в `cmd/cycles.go`
+- [x] запустить тесты — должны пройти
 
 ---
 

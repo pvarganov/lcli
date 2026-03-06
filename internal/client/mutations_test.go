@@ -1588,3 +1588,134 @@ func TestDeleteProjectRelation(t *testing.T) {
 		}
 	})
 }
+
+func TestCreateCycle(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"cycleCreate": map[string]any{
+				"success": true,
+				"cycle": map[string]any{
+					"id":          "cycle1",
+					"number":      1,
+					"name":        "Sprint 1",
+					"startsAt":    "2024-01-01T00:00:00Z",
+					"endsAt":      "2024-01-14T00:00:00Z",
+					"completedAt": nil,
+					"team":        map[string]any{"id": "t1", "key": "ENG", "name": "Engineering"},
+				},
+			},
+		}
+
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		cycle, err := c.CreateCycle("t1", "Sprint 1", "2024-01-01T00:00:00Z", "2024-01-14T00:00:00Z")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if cycle.ID != "cycle1" {
+			t.Errorf("expected cycle ID 'cycle1', got '%s'", cycle.ID)
+		}
+		if cycle.Name != "Sprint 1" {
+			t.Errorf("expected cycle name 'Sprint 1', got '%s'", cycle.Name)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		responseData := map[string]any{
+			"cycleCreate": map[string]any{
+				"success": false,
+			},
+		}
+
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if _, err := c.CreateCycle("t1", "", "2024-01-01T00:00:00Z", "2024-01-14T00:00:00Z"); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestUpdateCycle(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"cycleUpdate": map[string]any{
+				"success": true,
+				"cycle": map[string]any{
+					"id":          "cycle1",
+					"number":      1,
+					"name":        "Sprint 1 Updated",
+					"startsAt":    "2024-01-01T00:00:00Z",
+					"endsAt":      "2024-01-14T00:00:00Z",
+					"completedAt": nil,
+					"team":        map[string]any{"id": "t1", "key": "ENG", "name": "Engineering"},
+				},
+			},
+		}
+
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		cycle, err := c.UpdateCycle("cycle1", "Sprint 1 Updated", "", "")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if cycle.Name != "Sprint 1 Updated" {
+			t.Errorf("expected updated name, got '%s'", cycle.Name)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		responseData := map[string]any{
+			"cycleUpdate": map[string]any{
+				"success": false,
+			},
+		}
+
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if _, err := c.UpdateCycle("cycle1", "name", "", ""); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestArchiveCycle(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"cycleArchive": map[string]any{
+				"success": true,
+			},
+		}
+
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.ArchiveCycle("cycle1"); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		responseData := map[string]any{
+			"cycleArchive": map[string]any{
+				"success": false,
+			},
+		}
+
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.ArchiveCycle("cycle1"); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}

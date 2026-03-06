@@ -105,10 +105,126 @@ var cyclesViewCmd = &cobra.Command{
 	},
 }
 
+var cyclesCreateCmd = &cobra.Command{
+	Use:   "create",
+	Short: "Создать новый цикл",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		t, err := GetToken()
+		if err != nil {
+			return fmt.Errorf("ошибка загрузки токена: %w", err)
+		}
+		if t == "" {
+			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
+		}
+
+		teamID, _ := cmd.Flags().GetString("team")
+		if teamID == "" {
+			return fmt.Errorf("требуется --team (ID команды)")
+		}
+		startsAt, _ := cmd.Flags().GetString("starts-at")
+		if startsAt == "" {
+			return fmt.Errorf("требуется --starts-at (дата начала, формат: 2006-01-02T00:00:00Z)")
+		}
+		endsAt, _ := cmd.Flags().GetString("ends-at")
+		if endsAt == "" {
+			return fmt.Errorf("требуется --ends-at (дата окончания, формат: 2006-01-02T00:00:00Z)")
+		}
+		name, _ := cmd.Flags().GetString("name")
+
+		c := newLinearClient(t)
+		cycle, err := c.CreateCycle(teamID, name, startsAt, endsAt)
+		if err != nil {
+			return err
+		}
+
+		out := cmd.OutOrStdout()
+
+		if GetOutputFormat() == "json" {
+			enc := json.NewEncoder(out)
+			enc.SetIndent("", "  ")
+			return enc.Encode(cycle)
+		}
+
+		fmt.Fprintf(out, "Цикл создан: %s (ID: %s)\n", format.StripControlChars(cycle.Name), cycle.ID)
+		return nil
+	},
+}
+
+var cyclesUpdateCmd = &cobra.Command{
+	Use:   "update <ID>",
+	Short: "Обновить цикл",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		t, err := GetToken()
+		if err != nil {
+			return fmt.Errorf("ошибка загрузки токена: %w", err)
+		}
+		if t == "" {
+			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
+		}
+
+		name, _ := cmd.Flags().GetString("name")
+		startsAt, _ := cmd.Flags().GetString("starts-at")
+		endsAt, _ := cmd.Flags().GetString("ends-at")
+
+		c := newLinearClient(t)
+		cycle, err := c.UpdateCycle(args[0], name, startsAt, endsAt)
+		if err != nil {
+			return err
+		}
+
+		out := cmd.OutOrStdout()
+
+		if GetOutputFormat() == "json" {
+			enc := json.NewEncoder(out)
+			enc.SetIndent("", "  ")
+			return enc.Encode(cycle)
+		}
+
+		fmt.Fprintf(out, "Цикл обновлён: %s (ID: %s)\n", format.StripControlChars(cycle.Name), cycle.ID)
+		return nil
+	},
+}
+
+var cyclesArchiveCmd = &cobra.Command{
+	Use:   "archive <ID>",
+	Short: "Архивировать цикл",
+	Args:  cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		t, err := GetToken()
+		if err != nil {
+			return fmt.Errorf("ошибка загрузки токена: %w", err)
+		}
+		if t == "" {
+			return fmt.Errorf("токен не настроен. Используйте --token или запустите `lcli auth login`")
+		}
+
+		c := newLinearClient(t)
+		if err := c.ArchiveCycle(args[0]); err != nil {
+			return err
+		}
+
+		fmt.Fprintf(cmd.OutOrStdout(), "Цикл %s архивирован.\n", args[0])
+		return nil
+	},
+}
+
 func init() {
 	cyclesListCmd.Flags().String("team", "", "ID команды (обязательно)")
 
+	cyclesCreateCmd.Flags().String("team", "", "ID команды (обязательно)")
+	cyclesCreateCmd.Flags().String("name", "", "Название цикла")
+	cyclesCreateCmd.Flags().String("starts-at", "", "Дата начала (формат: 2006-01-02T00:00:00Z)")
+	cyclesCreateCmd.Flags().String("ends-at", "", "Дата окончания (формат: 2006-01-02T00:00:00Z)")
+
+	cyclesUpdateCmd.Flags().String("name", "", "Новое название цикла")
+	cyclesUpdateCmd.Flags().String("starts-at", "", "Новая дата начала")
+	cyclesUpdateCmd.Flags().String("ends-at", "", "Новая дата окончания")
+
 	cyclesCmd.AddCommand(cyclesListCmd)
 	cyclesCmd.AddCommand(cyclesViewCmd)
+	cyclesCmd.AddCommand(cyclesCreateCmd)
+	cyclesCmd.AddCommand(cyclesUpdateCmd)
+	cyclesCmd.AddCommand(cyclesArchiveCmd)
 	rootCmd.AddCommand(cyclesCmd)
 }
