@@ -174,7 +174,7 @@ func TestWebhooksViewOutput(t *testing.T) {
 	}
 
 	out := buf.String()
-	for _, want := range []string{"wh1", "https://example.com/hook", "mysecret", "ENG"} {
+	for _, want := range []string{"wh1", "https://example.com/hook", "[скрыто]", "ENG"} {
 		if !strings.Contains(out, want) {
 			t.Errorf("expected %q in output, got:\n%s", want, out)
 		}

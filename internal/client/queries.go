@@ -108,10 +108,10 @@ query ListIssues($first: Int, $after: String, $filter: IssueFilter, $orderBy: Pa
 	}
 	if filter.OrderBy != "" {
 		switch filter.OrderBy {
-		case "createdAt", "updatedAt":
+		case "createdAt", "updatedAt", "priority", "manualOrder":
 			variables["orderBy"] = filter.OrderBy
 		default:
-			return nil, nil, fmt.Errorf("недопустимое значение --order-by %q: допустимые значения: createdAt, updatedAt", filter.OrderBy)
+			return nil, nil, fmt.Errorf("недопустимое значение --order-by %q: допустимые значения: createdAt, updatedAt, priority, manualOrder", filter.OrderBy)
 		}
 	}
 

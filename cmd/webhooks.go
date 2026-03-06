@@ -108,7 +108,11 @@ var webhooksViewCmd = &cobra.Command{
 		fmt.Fprintf(out, "ID:             %s\n", wh.ID)
 		fmt.Fprintf(out, "URL:            %s\n", wh.URL)
 		fmt.Fprintf(out, "Enabled:        %s\n", enabled)
-		fmt.Fprintf(out, "Secret:         %s\n", wh.Secret)
+		maskedSecret := "[не задан]"
+		if wh.Secret != "" {
+			maskedSecret = "[скрыто]"
+		}
+		fmt.Fprintf(out, "Secret:         %s\n", maskedSecret)
 		fmt.Fprintf(out, "ResourceTypes:  %s\n", strings.Join(wh.ResourceTypes, ", "))
 		fmt.Fprintf(out, "Team:           %s\n", teamKey)
 		return nil
