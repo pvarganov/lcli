@@ -885,3 +885,176 @@ func TestUnresolveComment(t *testing.T) {
 		}
 	})
 }
+
+func TestCreateProject(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"projectCreate": map[string]any{
+				"success": true,
+				"project": map[string]any{
+					"id":          "proj1",
+					"name":        "My Project",
+					"description": "A project",
+					"state":       "started",
+					"startDate":   "2024-01-01",
+					"targetDate":  "2024-06-01",
+					"url":         "https://linear.app/team/project/my-project",
+					"lead":        nil,
+				},
+			},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		project, err := c.CreateProject(CreateProjectInput{
+			Name:        "My Project",
+			Description: "A project",
+			TeamIDs:     []string{"team1"},
+			StartDate:   "2024-01-01",
+			TargetDate:  "2024-06-01",
+		})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if project.Name != "My Project" {
+			t.Errorf("expected name 'My Project', got %q", project.Name)
+		}
+		if project.StartDate != "2024-01-01" {
+			t.Errorf("expected startDate '2024-01-01', got %q", project.StartDate)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"projectCreate": map[string]any{"success": false},
+		})
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if _, err := c.CreateProject(CreateProjectInput{Name: "x", TeamIDs: []string{"t1"}}); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestUpdateProject(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"projectUpdate": map[string]any{
+				"success": true,
+				"project": map[string]any{
+					"id":          "proj1",
+					"name":        "Updated Project",
+					"description": "Updated",
+					"state":       "started",
+					"startDate":   "",
+					"targetDate":  "",
+					"url":         "",
+					"lead":        nil,
+				},
+			},
+		}
+		srv := newMutationTestServer(t, responseData)
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		project, err := c.UpdateProject("proj1", UpdateProjectInput{Name: "Updated Project"})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if project.Name != "Updated Project" {
+			t.Errorf("expected 'Updated Project', got %q", project.Name)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"projectUpdate": map[string]any{"success": false},
+		})
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if _, err := c.UpdateProject("proj1", UpdateProjectInput{Name: "x"}); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestDeleteProject(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"projectDelete": map[string]any{"success": true},
+		})
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.DeleteProject("proj1"); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"projectDelete": map[string]any{"success": false},
+		})
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.DeleteProject("proj1"); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestArchiveProject(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"projectArchive": map[string]any{"success": true},
+		})
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.ArchiveProject("proj1"); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"projectArchive": map[string]any{"success": false},
+		})
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.ArchiveProject("proj1"); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}
+
+func TestUnarchiveProject(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"projectUnarchive": map[string]any{"success": true},
+		})
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.UnarchiveProject("proj1"); err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	})
+
+	t.Run("failure", func(t *testing.T) {
+		srv := newMutationTestServer(t, map[string]any{
+			"projectUnarchive": map[string]any{"success": false},
+		})
+		defer srv.Close()
+
+		c := NewWithURL("test-token", srv.URL)
+		if err := c.UnarchiveProject("proj1"); err == nil {
+			t.Fatal("expected error when success=false")
+		}
+	})
+}

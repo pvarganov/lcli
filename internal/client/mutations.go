@@ -841,3 +841,192 @@ query GetUsers {
 	}
 	return nil, nil
 }
+
+// CreateProjectInput — входные данные для создания проекта.
+type CreateProjectInput struct {
+	Name        string
+	Description string
+	TeamIDs     []string
+	StartDate   string
+	TargetDate  string
+	LeadID      string
+}
+
+// UpdateProjectInput — входные данные для обновления проекта.
+type UpdateProjectInput struct {
+	Name        string
+	Description string
+	StartDate   string
+	TargetDate  string
+	LeadID      string
+	State       string
+}
+
+// CreateProject создаёт новый проект в Linear.
+func (c *Client) CreateProject(input CreateProjectInput) (*Project, error) {
+	mutation := `
+mutation CreateProject($input: ProjectCreateInput!) {
+  projectCreate(input: $input) {
+    success
+    project {
+      id
+      name
+      description
+      state
+      startDate
+      targetDate
+      url
+      lead { id name displayName email }
+    }
+  }
+}`
+	gqlInput := map[string]any{
+		"name":    input.Name,
+		"teamIds": input.TeamIDs,
+	}
+	if input.Description != "" {
+		gqlInput["description"] = input.Description
+	}
+	if input.StartDate != "" {
+		gqlInput["startDate"] = input.StartDate
+	}
+	if input.TargetDate != "" {
+		gqlInput["targetDate"] = input.TargetDate
+	}
+	if input.LeadID != "" {
+		gqlInput["leadId"] = input.LeadID
+	}
+
+	var result struct {
+		ProjectCreate struct {
+			Project Project `json:"project"`
+			Success bool    `json:"success"`
+		} `json:"projectCreate"`
+	}
+	if err := c.Do(mutation, map[string]any{"input": gqlInput}, &result); err != nil {
+		return nil, err
+	}
+	if !result.ProjectCreate.Success {
+		return nil, fmt.Errorf("projectCreate вернул success=false")
+	}
+	return &result.ProjectCreate.Project, nil
+}
+
+// UpdateProject обновляет существующий проект в Linear.
+func (c *Client) UpdateProject(id string, input UpdateProjectInput) (*Project, error) {
+	mutation := `
+mutation UpdateProject($id: String!, $input: ProjectUpdateInput!) {
+  projectUpdate(id: $id, input: $input) {
+    success
+    project {
+      id
+      name
+      description
+      state
+      startDate
+      targetDate
+      url
+      lead { id name displayName email }
+    }
+  }
+}`
+	gqlInput := map[string]any{}
+	if input.Name != "" {
+		gqlInput["name"] = input.Name
+	}
+	if input.Description != "" {
+		gqlInput["description"] = input.Description
+	}
+	if input.StartDate != "" {
+		gqlInput["startDate"] = input.StartDate
+	}
+	if input.TargetDate != "" {
+		gqlInput["targetDate"] = input.TargetDate
+	}
+	if input.LeadID != "" {
+		gqlInput["leadId"] = input.LeadID
+	}
+	if input.State != "" {
+		gqlInput["state"] = input.State
+	}
+
+	var result struct {
+		ProjectUpdate struct {
+			Project Project `json:"project"`
+			Success bool    `json:"success"`
+		} `json:"projectUpdate"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id, "input": gqlInput}, &result); err != nil {
+		return nil, err
+	}
+	if !result.ProjectUpdate.Success {
+		return nil, fmt.Errorf("projectUpdate вернул success=false")
+	}
+	return &result.ProjectUpdate.Project, nil
+}
+
+// DeleteProject удаляет проект из Linear.
+func (c *Client) DeleteProject(id string) error {
+	mutation := `
+mutation DeleteProject($id: String!) {
+  projectDelete(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		ProjectDelete struct {
+			Success bool `json:"success"`
+		} `json:"projectDelete"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.ProjectDelete.Success {
+		return fmt.Errorf("projectDelete вернул success=false")
+	}
+	return nil
+}
+
+// ArchiveProject архивирует проект в Linear.
+func (c *Client) ArchiveProject(id string) error {
+	mutation := `
+mutation ArchiveProject($id: String!) {
+  projectArchive(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		ProjectArchive struct {
+			Success bool `json:"success"`
+		} `json:"projectArchive"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.ProjectArchive.Success {
+		return fmt.Errorf("projectArchive вернул success=false")
+	}
+	return nil
+}
+
+// UnarchiveProject разархивирует проект в Linear.
+func (c *Client) UnarchiveProject(id string) error {
+	mutation := `
+mutation UnarchiveProject($id: String!) {
+  projectUnarchive(id: $id) {
+    success
+  }
+}`
+	var result struct {
+		ProjectUnarchive struct {
+			Success bool `json:"success"`
+		} `json:"projectUnarchive"`
+	}
+	if err := c.Do(mutation, map[string]any{"id": id}, &result); err != nil {
+		return err
+	}
+	if !result.ProjectUnarchive.Success {
+		return fmt.Errorf("projectUnarchive вернул success=false")
+	}
+	return nil
+}

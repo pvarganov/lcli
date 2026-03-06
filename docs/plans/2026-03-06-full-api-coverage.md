@@ -127,14 +127,14 @@
 
 #### Task 10: Projects — Create/Update/Delete
 
-- [ ] расширить тип `Project` в queries.go (добавить startDate, targetDate, lead, members, teams, url)
-- [ ] написать тесты для `GetProject(id)` query
-- [ ] добавить метод `GetProject(id)` в queries.go
-- [ ] написать тесты для мутаций `projectCreate`, `projectUpdate`, `projectDelete`, `projectArchive`, `projectUnarchive`
-- [ ] добавить методы `CreateProject`, `UpdateProject`, `DeleteProject`, `ArchiveProject`, `UnarchiveProject` в mutations.go
-- [ ] написать тесты для cmd `projects create`, `projects update <ID>`, `projects delete <ID>`, `projects view <ID>`
-- [ ] добавить команды в `cmd/projects.go` (расширить) и `cmd/project_mutations.go`
-- [ ] запустить тесты — должны пройти
+- [x] расширить тип `Project` в queries.go (добавить startDate, targetDate, lead, members, teams, url)
+- [x] написать тесты для `GetProject(id)` query
+- [x] добавить метод `GetProject(id)` в queries.go
+- [x] написать тесты для мутаций `projectCreate`, `projectUpdate`, `projectDelete`, `projectArchive`, `projectUnarchive`
+- [x] добавить методы `CreateProject`, `UpdateProject`, `DeleteProject`, `ArchiveProject`, `UnarchiveProject` в mutations.go
+- [x] написать тесты для cmd `projects create`, `projects update <ID>`, `projects delete <ID>`, `projects view <ID>`
+- [x] добавить команды в `cmd/projects.go` (расширить) и `cmd/project_mutations.go`
+- [x] запустить тесты — должны пройти
 
 #### Task 11: Project Milestones
 

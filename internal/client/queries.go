@@ -198,6 +198,10 @@ type Project struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	State       string `json:"state"`
+	StartDate   string `json:"startDate"`
+	TargetDate  string `json:"targetDate"`
+	URL         string `json:"url"`
+	Lead        *User  `json:"lead"`
 }
 
 // ProjectConnection — ответ на запрос списка проектов.
@@ -224,6 +228,10 @@ query ListProjects {
       name
       description
       state
+      startDate
+      targetDate
+      url
+      lead { id name displayName email }
     }
   }
 }`
@@ -233,6 +241,33 @@ query ListProjects {
 		return nil, err
 	}
 	return result.Projects.Nodes, nil
+}
+
+// GetProject возвращает проект по ID.
+func (c *Client) GetProject(id string) (*Project, error) {
+	query := `
+query GetProject($id: String!) {
+  project(id: $id) {
+    id
+    name
+    description
+    state
+    startDate
+    targetDate
+    url
+    lead { id name displayName email }
+  }
+}`
+	var result struct {
+		Project *Project `json:"project"`
+	}
+	if err := c.Do(query, map[string]any{"id": id}, &result); err != nil {
+		return nil, err
+	}
+	if result.Project == nil {
+		return nil, fmt.Errorf("проект не найден: %s", id)
+	}
+	return result.Project, nil
 }
 
 // ListTeams возвращает список команд.

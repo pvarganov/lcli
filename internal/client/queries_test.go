@@ -362,3 +362,58 @@ func TestPriorityLabel(t *testing.T) {
 		}
 	}
 }
+
+func TestGetProject(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		responseData := map[string]any{
+			"project": map[string]any{
+				"id":          "proj1",
+				"name":        "My Project",
+				"description": "Project description",
+				"state":       "started",
+				"startDate":   "2024-01-01",
+				"targetDate":  "2024-06-01",
+				"url":         "https://linear.app/team/project/my-project",
+				"lead":        map[string]any{"id": "u1", "name": "Alice", "displayName": "Alice Smith", "email": "alice@test.com"},
+			},
+		}
+
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{"data": responseData})
+		}))
+		defer srv.Close()
+
+		c := NewWithURL("token", srv.URL)
+		project, err := c.GetProject("proj1")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if project.ID != "proj1" {
+			t.Errorf("expected id proj1, got %q", project.ID)
+		}
+		if project.Name != "My Project" {
+			t.Errorf("expected name 'My Project', got %q", project.Name)
+		}
+		if project.StartDate != "2024-01-01" {
+			t.Errorf("expected startDate '2024-01-01', got %q", project.StartDate)
+		}
+		if project.Lead == nil || project.Lead.Name != "Alice" {
+			t.Errorf("expected lead Alice")
+		}
+	})
+
+	t.Run("not found", func(t *testing.T) {
+		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]any{"data": map[string]any{"project": nil}})
+		}))
+		defer srv.Close()
+
+		c := NewWithURL("token", srv.URL)
+		_, err := c.GetProject("nonexistent")
+		if err == nil {
+			t.Fatal("expected error for not found project")
+		}
+	})
+}
