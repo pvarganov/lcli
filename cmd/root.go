@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/pavelvarganov/lcli/internal/config"
 	"github.com/spf13/cobra"
 )
 
@@ -20,7 +21,11 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&token, "token", "", "Linear API токен (или установите LINEAR_API_KEY)")
 }
 
-// GetToken возвращает токен из флага
+// GetToken возвращает токен: сначала флаг --token, затем env LINEAR_API_KEY и файл конфига.
 func GetToken() string {
-	return token
+	if token != "" {
+		return token
+	}
+	t, _ := config.LoadToken()
+	return t
 }
